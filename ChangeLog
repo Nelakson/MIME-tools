@@ -1,3 +1,10 @@
+2004-10-27  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.415 RELEASED
+
+	* Fixed parsing of paramater="" in headers, and fixed case where
+	multipart boundary is ""
+
 2004-10-06  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.414 RELEASED

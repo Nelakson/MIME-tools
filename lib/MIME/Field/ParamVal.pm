@@ -80,7 +80,7 @@ use MIME::Tools qw(:config :msgs);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.414";
+$VERSION = "5.415";
 
 
 #------------------------------
@@ -236,7 +236,7 @@ sub parse_params {
 	$raw =~ m/\G$SPCZ\;$SPCZ/og or last;             # skip leading separator
 	$raw =~ m/\G($PARAMNAME)\s*=\s*/og or last;      # give up if not a param
 	$param = lc($1);
-	$raw =~ m/\G(\"([^\"]+)\")|\G($ENCTOKEN)|\G($BADTOKEN)|\G($TOKEN)/g or last;   # give up if no value"
+	$raw =~ m/\G(\"([^\"]*)\")|\G($ENCTOKEN)|\G($BADTOKEN)|\G($TOKEN)/g or last;   # give up if no value"
 	my ($qstr, $str, $enctoken, $badtoken, $token) = ($1, $2, $3, $4, $5);
 	if (defined($badtoken)) {
 	    # Strip leading/trailing whitespace from badtoken
