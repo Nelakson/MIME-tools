@@ -8,7 +8,7 @@ use Globby;
 use MIME::WordDecoder qw(unmime);
 
 use strict;
-config MIME::Tools DEBUGGING=>0;
+MIME::Tools->debugging(0);
 
 use MIME::Parser;
 

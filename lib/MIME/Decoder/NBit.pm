@@ -85,7 +85,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:48 $
+$Revision: 6.107 $ $Date: 2003/06/06 23:41:41 $
 
 
 =cut
@@ -94,11 +94,12 @@ use vars qw(@ISA $VERSION);
 
 use MIME::Decoder;
 use MIME::Tools qw(:msgs);
+use MIME::Tools::Utils qw(:msgs);
 
 @ISA = qw(MIME::Decoder);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 ### How many bytes to decode at a time?
 my $DecodeChunkLength = 8 * 1024;
@@ -141,12 +142,14 @@ sub encode_it {
 
 	### Whine if encoding is 7bit and it has 8-bit data:
 	if ($seven_bit && ($line =~ /[\200-\377]/)) { ### oops! saw 8-bit data!
-	    whine "saw 8-bit data while encoding 7bit" unless $saw_8bit++;
+	    $LOG->warning("saw 8-bit data while encoding 7bit")
+		unless $saw_8bit++;
 	}
 
 	### Whine if long lines detected:
 	if (length($line) > 998) {
-	    whine "saw long line while encoding 7bit/8bit" unless $saw_long++;
+	    $LOG->warning("saw long line while encoding 7bit/8bit")
+		unless $saw_long++;
 	}
 
 	### Output!

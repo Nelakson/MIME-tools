@@ -4,13 +4,16 @@
 
 mimedump - dump out the contents of a parsed MIME message
 
+
 =head1 DESCRIPTION
 
 Read a MIME stream from the stdin, and dump its contents to the stdout.
 
+
 =head1 SYNOPSIS
 
     mimedump < mime.msg
+
 
 =head1 AUTHOR
 

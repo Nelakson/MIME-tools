@@ -46,19 +46,20 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:48 $
+$Revision: 6.107 $ $Date: 2003/06/06 23:41:39 $
 
 =cut
 
 use vars qw(@ISA $VERSION);
 use MIME::Decoder;
 use MIME::Base64 2.04;    
-use MIME::Tools qw(debug);
+use MIME::Tools qw(:msgs);
+use MIME::Tools::Utils qw(:msgs);
 
 @ISA = qw(MIME::Decoder);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 ### How many bytes to encode at a time (must be a multiple of 3, and
 ### less than (76 * 0.75)!
@@ -77,7 +78,6 @@ sub decode_it {
     
     ### Create a suitable buffer:
     my $buffer = ' ' x (120 + $DecodeChunkLength); $buffer = '';
-    debug "in = $in; out = $out";
 
     ### Get chunks until done:
     local($_) = ' ' x $DecodeChunkLength;    

@@ -8,43 +8,43 @@ MIME::Field::ParamVal - subclass of Mail::Field, for structured MIME fields
 
 =head1 SYNOPSIS
 
-    # Create an object for a content-type field:
-    $field = new Mail::Field 'Content-type'; 
-     
-    # Set some attributes:
+    ### Create an object for a content-type field:
+    $field = new Mail::Field 'Content-type';
+
+    ### Set some attributes:
     $field->param('_'        => 'text/html');
     $field->param('charset'  => 'us-ascii');
     $field->param('boundary' => '---ABC---');
-     
-    # Same:
+
+    ### Same:
     $field->set('_'        => 'text/html',
 		'charset'  => 'us-ascii',
 		'boundary' => '---ABC---');
-      
-    # Get an attribute, or undefined if not present:
+
+    ### Get an attribute, or undefined if not present:
     print "no id!"  if defined($field->param('id'));
-     
-    # Same, but use empty string for missing values:
+
+    ### Same, but use empty string for missing values:
     print "no id!"  if ($field->paramstr('id') eq '');
-                    
-    # Output as string:
+
+    ### Output as string:
     print $field->stringify, "\n";
 
 
 =head1 DESCRIPTION
 
-This is an abstract superclass of most MIME fields.  It handles 
+This is an abstract superclass of most MIME fields.  It handles
 fields with a general syntax like this:
 
     Content-Type: Message/Partial;
-        number=2; total=3;
-        id="oc=jpbe0M2Yt4s@thumper.bellcore.com"
+	number=2; total=3;
+	id="oc=jpbe0M2Yt4s@thumper.bellcore.com"
 
 Comments are supported I<between> items, like this:
 
     Content-Type: Message/Partial; (a comment)
-        number=2  (another comment) ; (yet another comment) total=3;
-        id="oc=jpbe0M2Yt4s@thumper.bellcore.com"
+	number=2  (another comment) ; (yet another comment) total=3;
+	id="oc=jpbe0M2Yt4s@thumper.bellcore.com"
 
 
 =head1 PUBLIC INTERFACE
@@ -68,7 +68,8 @@ use vars qw($VERSION @ISA);
 use Mail::Field;
 
 # Kit modules:
-use MIME::Tools qw(:config :msgs);
+use MIME::Tools qw(:msgs :config);
+use MIME::Tools::Utils qw(:msgs :config);
 
 @ISA = qw(Mail::Field);
 
@@ -80,7 +81,7 @@ use MIME::Tools qw(:config :msgs);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 
 #------------------------------
@@ -100,6 +101,9 @@ my $FIRST    = '[^\s\;\x00-\x1f\x80-\xff]+';
 #      token      =  1*<any  (ASCII) CHAR except SPACE, CTLs, or tspecials>
 #
 my $TSPECIAL = '()<>@,;:\</[]?="';
+
+#" Fix emacs highlighting...
+
 my $TOKEN    = '[^ \x00-\x1f\x80-\xff' . "\Q$TSPECIAL\E" . ']+';
 
 # Encoded token:
@@ -108,6 +112,9 @@ my $ENCTOKEN = "=\\?[^?]*\\?[A-Za-z]\\?[^?]+\\?=";
 # Pattern to match spaces or comments:
 my $SPCZ     = '(?:\s|\([^\)]*\))*';
 
+# Pattern to match non-semicolon as fallback for broken MIME
+# produced by some viruses
+my $BADTOKEN = '[^;]+';
 
 #------------------------------
 #
@@ -133,7 +140,7 @@ signifying the "default" (unnamed) parameter for the field:
 		  'total'   => 3,
 		  'id'      => "ocj=pbe0M2");
 
-Note that a single argument is taken to be a I<reference> to 
+Note that a single argument is taken to be a I<reference> to
 a paramhash, while multiple args are taken to be the elements
 of the paramhash themselves.
 
@@ -147,7 +154,7 @@ The self object is returned.
 sub set {
     my $self = shift;
     my $params = ((@_ == 1) ? (shift || {}) : {@_});
-    %$self = %$params;    # set 'em
+    %$self = %$params;    ### set 'em
     $self;
 }
 
@@ -160,16 +167,16 @@ Extract parameter info from a structured field, and return
 it as a hash reference.  For example, here is a field with parameters:
 
     Content-Type: Message/Partial;
-        number=2; total=3;
-        id="oc=jpbe0M2Yt4s@thumper.bellcore.com"
+	number=2; total=3;
+	id="oc=jpbe0M2Yt4s@thumper.bellcore.com"
 
 Here is how you'd extract them:
 
     $params = $class->parse_params('content-type');
     if ($$params{'_'} eq 'message/partial') {
-        $number = $$params{'number'};
-        $total  = $$params{'total'};
-        $id     = $$params{'id'};
+	$number = $$params{'number'};
+	$total  = $$params{'total'};
+	$id     = $$params{'id'};
     }
 
 Like field names, parameter names are coerced to lowercase.
@@ -181,32 +188,103 @@ compatibility, but you probably shouldn't use it.
 
 =cut
 
+sub rfc2231decode {
+    my($val) = @_;
+    my($enc, $lang, $rest);
+
+    if ($val =~ m/^([^\']*)\'([^\']*)\'(.*)$/) {
+	# SHOULD REALLY DO SOMETHING MORE INTELLIGENT WITH ENCODING!!!
+	$enc = $1;
+	$lang = $2;
+	$rest = $3;
+	$rest = rfc2231percent($rest);
+    } elsif ($val =~ m/^([^\']*)\'([^\']*)$/) {
+	$enc = $1;
+	$rest = $2;
+	$rest = rfc2231percent($rest);
+    } else {
+	$rest = rfc2231percent($val);
+    }
+    return $rest;
+}
+
+sub rfc2231percent {
+    ### Do percent-subsitution
+    my($str) = @_;
+    $str =~ s/%([0-9a-fA-F]{2})/pack("c", hex($1))/ge;
+    return $str;
+}
+
 sub parse_params {
     my ($self, $raw) = @_;
     my %params = ();
+    my %rfc2231params = ();
     my $param;
+    my $val;
+    my $part;
 
-    # Get raw field, and unfold it:
+    ### Get raw field, and unfold it:
     defined($raw) or $raw = '';
     $raw =~ s/\n//g;
 
-    # Extract special first parameter:
-    $raw =~ m/\A$SPCZ($FIRST)$SPCZ/og or return {};    # nada!
+    ### Extract special first parameter:
+    $raw =~ m/\A$SPCZ($FIRST)$SPCZ/og or return {};    ### nada!
     $params{'_'} = $1;
 
-    # Extract subsequent parameters.
-    # No, we can't just "split" on semicolons: they're legal in quoted strings!
-    while (1) {                     # keep chopping away until done...
-	$raw =~ m/\G$SPCZ\;$SPCZ/og or last;             # skip leading separator
-	$raw =~ m/\G($PARAMNAME)\s*=\s*/og or last;      # give up if not a param
+    ### Extract subsequent parameters.
+    ### No, we can't just "split" on semicolons: they're legal in quoted strings!
+    while (1) {                             ### keep chopping away until done...
+	$raw =~ m/\G$SPCZ\;$SPCZ/og or last;          ### skip leading separator
+	$raw =~ m/\G($PARAMNAME)\s*=\s*/og or last;   ### give up if not a param
 	$param = lc($1);
-	$raw =~ m/\G(\"([^\"]+)\")|\G($TOKEN)|\G($ENCTOKEN)/g or last;   # give up if no value
-	my ($qstr, $str, $token, $enctoken) = ($1, $2, $3, $4);
-	$params{$param} = defined($qstr) ? $str : (defined($token) ? $token : $enctoken);
-	debug "   field param <$param> = <$params{$param}>";
+
+	### begin MIMEdefang fix...
+	
+ 	$raw =~ m/\G(\"([^\"]+)\")|\G($ENCTOKEN)|\G($BADTOKEN)|\G($TOKEN)/g or last;   ### give up if no value"
+ 	my ($qstr, $str, $enctoken, $badtoken, $token) = ($1, $2, $3, $4, $5);
+ 	if (defined($badtoken)) {
+
+ 	    ### Strip leading/trailing whitespace from badtoken:
+ 	    $badtoken =~ s/^\s+//;
+ 	    $badtoken =~ s/\s+$//;
+ 	}
+ 	$val = defined($qstr) ? $str :
+ 	    (defined($enctoken) ? $enctoken :
+ 	     (defined($badtoken) ? $badtoken : $token));
+	
+ 	### Do RFC 2231 processing...
+ 	if ($param =~ /\*/) {
+ 	    my($name, $num);
+
+ 	    ### Pick out the parts of the parameter:
+ 	    if ($param =~ m/^([^*]+)\*([^*]+)\*?$/) {
+ 		### We have param*number* or param*number:
+ 		($name, $num) = ($1, $2);
+ 	    } 
+	    else {
+ 		### Fake a part of zero... not sure how to handle this properly:
+ 		$param =~ s/\*//g;
+ 		($name, $num) = ($param, 0);
+ 	    }
+ 	    ### Decode the value unless it was a quoted string:
+	    $val = rfc2231decode($val) unless defined($qstr);
+ 	    $rfc2231params{$name}{$num} .= $val;
+ 	} 
+	else {
+ 	    ### Make a fake "part zero" for non-RFC2231 params:
+ 	    $rfc2231params{$param}{"0"} = $val;
+ 	}
+    }
+    
+    ### Extract reconstructed parameters
+    foreach $param (keys %rfc2231params) {
+	foreach $part (sort { $a <=> $b } keys %{$rfc2231params{$param}}) {
+ 	    $params{$param} .= $rfc2231params{$param}{$part};
+ 	}
+	$LOG->debug("   field param <$param> = <$params{$param}>");
     }
 
-    # Done:
+    ### Done:
     \%params;
 }
 
@@ -225,10 +303,10 @@ May also be used as a constructor.
 sub parse {
     my ($self, $string) = @_;
 
-    # Allow use as constructor, for MIME::Head:
+    ### Allow use as constructor, for MIME::Head:
     ref($self) or $self = bless({}, $self);
-    
-    # Get params, and stuff them into the self object:
+
+    ### Get params, and stuff them into the self object:
     $self->set($self->parse_params($string));
 }
 
@@ -279,9 +357,9 @@ sub stringify {
     my $self = shift;
     my ($key, $val);
 
-    my $str = $self->{'_'};                   # default subfield
+    my $str = $self->{'_'};                   ### default subfield
     foreach $key (sort keys %$self) {
-	next if ($key !~ /^[a-z][a-z-_0-9]*$/);  # only lowercase ones!
+	next if ($key !~ /^[a-z][a-z-_0-9]*$/);  ### only lowercase ones!
 	defined($val = $self->{$key}) or next;
 	$str .= qq{; $key="$val"};
     }

@@ -42,23 +42,24 @@ Results from the last MIME::Parser parse.
 use strict;
 
 ### Kit modules:
-use MIME::Tools qw(:msgs);
-
+use MIME::Tools qw(:config :msgs);
+use MIME::Tools::Utils qw(:config :msgs);
+use base qw(MIME::Tools::Logger);
 
 #------------------------------
 
 =item new
 
 I<Constructor.>
+Creates an empty results object.
 
 =cut
 
 sub new {
     bless {
-	MPI_ID    => 'MIME-parser',
-	MPI_Msgs  => [],
-	MPI_Level => 0,
-	MPI_TopHead => undef,
+	MPR_Msgs  => [],
+	MPR_Level => 0,
+	MPR_TopHead => undef,
     }, shift;
 }
 
@@ -71,24 +72,13 @@ Return all messages that we logged, in order.
 Every message is a string beginning with its type followed by C<": ">; 
 the current types are C<debug>, C<warning>, and C<error>.
 
+Note that debug messages are only output if the toolkit is
+configured for debugging.
+
 =cut
 
 sub msgs { 
-    @{shift->{MPI_Msgs}};
-}
-
-#------------------------------
-
-=item errors
-
-I<Instance method.>  
-Return all error messages that we logged, in order.
-A convenience front-end onto msgs().
-
-=cut
-
-sub errors { 
-    grep /^error: /, @{shift->{MPI_Msgs}};
+    @{shift->{MPR_Msgs}};
 }
 
 #------------------------------
@@ -102,8 +92,24 @@ A convenience front-end onto msgs().
 =cut
 
 sub warnings { 
-    grep /^warning: /, @{shift->{MPI_Msgs}};
+    grep /^warning: /, @{shift->{MPR_Msgs}};
 }
+
+#------------------------------
+
+=item errors
+
+I<Instance method.>  
+Return all error messages that we logged, in order.
+A convenience front-end onto msgs().
+
+=cut
+
+sub errors { 
+    grep /^error: /, @{shift->{MPR_Msgs}};
+}
+
+
 
 #------------------------------
 
@@ -117,8 +123,8 @@ This may be useful if the parse fails.
 
 sub top_head { 
     my ($self, $head) = @_;
-    $self->{MPI_TopHead} = $head if @_ > 1;
-    $self->{MPI_TopHead};
+    $self->{MPR_TopHead} = $head if @_ > 1;
+    $self->{MPR_TopHead};
 }
 
 
@@ -131,40 +137,22 @@ sub top_head {
 
 #------------------------------
 #
-# msg TYPE, MESSAGE...
+# _msg TYPE, MESSAGE...
 #
 # Take a message.
 #
-sub msg {
+sub _msg {
     my $self = shift;
     my $type = shift;
     my @args = map { defined($_) ? $_ : '<<undef>>' } @_;
 
-    push @{$self->{MPI_Msgs}}, ($type.": ".join('', @args)."\n");
+    push @{$self->{MPR_Msgs}}, ($type.": ".join('', @args)."\n");
 }
 
-#------------------------------
-#
-# level [+1|-1]
-#
-# Return current parsing level.
-#
-sub level {
-    my ($self, $lvl) = @_;
-    $self->{MPI_Level} += $lvl if @_ > 1;
-    $self->{MPI_Level};
-}
-
-#------------------------------
-#
-# indent
-#
-# Return indent for current parsing level.
-#
-sub indent {
-    my ($self) = @_;
-    '   ' x $self->{MPI_Level};
-}
+### The MIME::Tools::Logger interface
+sub debug   { shift->_msg('debug',   @_) if $CONFIG{DEBUGGING}; }
+sub warning { shift->_msg('warning', @_); }
+sub error   { shift->_msg('error',   @_); }
 
 =back
 
@@ -184,7 +172,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $
+$Revision: 6.107 $
 
 
 

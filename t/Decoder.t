@@ -2,9 +2,8 @@ use lib "./t";
 
 use MIME::Tools;
 use MIME::Decoder;
-config MIME::Tools QUIET=>1;
+MIME::Tools->quiet(1);
 
-# config MIME::Tools DEBUGGING=>1;
 use ExtUtils::TBone;
 
 #------------------------------------------------------------

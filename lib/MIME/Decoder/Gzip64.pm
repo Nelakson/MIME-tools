@@ -45,7 +45,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:48 $
+$Revision: 6.107 $ $Date: 2003/06/06 23:41:40 $
 
 =cut
 
@@ -55,14 +55,15 @@ use vars qw(@ISA $VERSION $ZIP $UNZIP);
 use MIME::Decoder;
 use MIME::Base64;
 use MIME::Decoder::Base64;
-use MIME::Tools qw(tmpopen whine);
+use MIME::Tools qw( $LOG);
+use MIME::Tools::Utils qw(tmpopen);
 use IO::Wrap;
 
 # Inheritance:
 @ISA = qw(MIME::Decoder::Base64);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 # How to compress stdin to stdout:
 $GZIP   = "gzip -c";
@@ -95,7 +96,7 @@ sub decode_it {
 #
 sub encode_it {
     my ($self, $in, $out) = @_;
-    whine "Encoding ", $self->encoding, " is not standard MIME!"; 
+    $LOG->warning("Encoding ", $self->encoding, " is not standard MIME!"); 
     
     # Open a temp file (assume the worst, that this is a big stream):
     my $tmp = wraphandle(tmpopen() || die "can't get temp file");

@@ -82,6 +82,8 @@ Exporter::export_ok_tags('all');
 @ISA = qw(Exporter);
 
 ### Other modules:
+use MIME::Tools qw(:msgs);
+use MIME::Tools::Utils qw(:msgs);
 use MIME::Base64;
 use MIME::QuotedPrint;
 
@@ -94,7 +96,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.404 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -186,7 +188,7 @@ sub decode_mimewords {
     $@ = '';           ### error-return
 
     ### Collapse boundaries between adjacent encoded words:
-    $encstr =~ s{(\?\=)\r?\n[ \t](\=\?)}{$1$2}gs;
+    $encstr =~ s{(\?\=)\s*(\=\?)}{$1$2}gs;
     pos($encstr) = 0;
     ### print STDOUT "ENC = [", $encstr, "]\n";
 
@@ -225,14 +227,13 @@ sub decode_mimewords {
 			  \n*)             #   followed by 0 or more NLs,
 		         (?=(\Z|=\?))      # terminated by "=?" or EOS
 			}xg) {
-	    length($1) or die "MIME::Words: internal logic err: empty token\n";
+	    length($1) or internal_error "empty token";
 	    push @tokens, [$1];
 	    next;
 	}
 
 	### Case 4: bug!
-	die "MIME::Words: unexpected case:\n($encstr) pos $pos\n\t".
-	    "Please alert developer.\n";
+	internal_error "unexpected case:\n($encstr) pos $pos";
     }
     return (wantarray ? @tokens : join('',map {$_->[0]} @tokens));
 }
@@ -349,7 +350,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 5.404 $ $Date: 2000/11/10 16:45:12 $
+$Revision: 6.107 $ $Date: 2003/06/06 23:41:55 $
 
 =cut
 

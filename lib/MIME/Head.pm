@@ -69,9 +69,7 @@ Ready?  Ok...
     ### Get rid of internal newlines in fields:
     $head->unfold;
     
-    ### Decode any Q- or B-encoded-text in fields (DEPRECATED):
-    $head->decode;
-     
+    
 
 =head2 Getting high-level MIME information
 
@@ -122,6 +120,7 @@ use Mail::Field  1.05 ();
 ### Kit modules:
 use MIME::Words qw(:all);
 use MIME::Tools qw(:config :msgs);
+use MIME::Tools::Utils qw(:config :msgs);
 use MIME::Field::ParamVal;
 use MIME::Field::ConTraEnc;
 use MIME::Field::ContDisp;
@@ -137,7 +136,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -203,7 +202,7 @@ sub from_file {
     my $class = ref($self) ? ref($self) : $self;
 
     ### Parse:
-    open(HDR, $file) or return error("open $file: $!");
+    open(HDR, $file) or die "can't open $file: $!\n";
     binmode(HDR);  # we expect to have \r\n at line ends, and want to keep 'em.
     $self = $class->new(\*HDR, @opts);      ### now, $self is instance or undef
     close(HDR);
@@ -288,18 +287,6 @@ this method: consider using C<replace()> instead.
 ### Inherited.
 
 #------------------------------
-#
-# copy
-#
-# Instance method, DEPRECATED.
-# Duplicate the object.
-#
-sub copy {
-    usage "deprecated: use dup() instead.";
-    shift->dup(@_);
-}
-
-#------------------------------
 
 =item count TAG
 
@@ -318,87 +305,14 @@ and some true value if it does.
 
 ### Inherited.
 
-
 #------------------------------
-
-=item decode [FORCE]
-
-I<Instance method, DEPRECATED.>
-Go through all the header fields, looking for RFC-1522-style "Q"
-(quoted-printable, sort of) or "B" (base64) encoding, and decode them
-in-place.  Fellow Americans, you probably don't know what the hell I'm
-talking about.  Europeans, Russians, et al, you probably do.  C<:-)>. 
-
-B<This method has been deprecated.>
-See L<MIME::Parser/decode_headers> for the full reasons.
-If you absolutely must use it and don't like the warning, then
-provide a FORCE:
-
-   "I_NEED_TO_FIX_THIS"
-          Just shut up and do it.  Not recommended.
-          Provided only for those who need to keep old scripts functioning.
-
-   "I_KNOW_WHAT_I_AM_DOING"
-          Just shut up and do it.  Not recommended.
-          Provided for those who REALLY know what they are doing.
-
-B<What this method does.>
-For an example, let's consider a valid email header you might get:
-
-    From: =?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>
-    To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>
-    CC: =?ISO-8859-1?Q?Andr=E9_?= Pirard <PIRARD@vm1.ulg.ac.be>
-    Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
-     =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=
-     =?US-ASCII?Q?.._cool!?=
-
-That basically decodes to (sorry, I can only approximate the
-Latin characters with 7 bit sequences /o and 'e):
-
-    From: Keith Moore <moore@cs.utk.edu>
-    To: Keld J/orn Simonsen <keld@dkuug.dk>
-    CC: Andr'e  Pirard <PIRARD@vm1.ulg.ac.be>
-    Subject: If you can read this you understand the example... cool!
-
-B<Note:> currently, the decodings are done without regard to the
-character set: thus, the Q-encoding C<=F8> is simply translated to the
-octet (hexadecimal C<F8>), period.  For piece-by-piece decoding
-of a given field, you want the array context of 
-C<MIME::Word::decode_mimewords()>.
-
-B<Warning:> the CRLF+SPACE separator that splits up long encoded words 
-into shorter sequences (see the Subject: example above) gets lost
-when the field is unfolded, and so decoding after unfolding causes
-a spurious space to be left in the field.  
-I<THEREFORE: if you're going to decode, do so BEFORE unfolding!>
-
-This method returns the self object.
-
-I<Thanks to Kent Boortz for providing the idea, and the baseline 
-RFC-1522-decoding code.>
-
-=cut
-
+#
+# decode
+#
+# Instance method, deprecated.
+#
 sub decode {
-    my $self = shift;
-
-    ### Warn if necessary:
-    my $force = shift || 0;
-    unless (($force eq "I_NEED_TO_FIX_THIS") ||
-	    ($force eq "I_KNOW_WHAT_I_AM_DOING")) {
-	usage "decode is deprecated for safety";
-    }
-
-    my ($tag, $i, @decoded);
-    foreach $tag ($self->tags) {
-	@decoded = map { scalar(decode_mimewords($_, Field=>$tag))
-			 } $self->get_all($tag);
-	for ($i = 0; $i < @decoded; $i++) {
-	    $self->replace($tag, $decoded[$i], $i);
-	}
-    }
-    $self->{MH_Decoded} = 1;
-    $self;
+    usage_error "deprecated MIME::Head::decode() has been removed";
 }
 
 #------------------------------
@@ -416,24 +330,6 @@ Delete all occurences of the field named TAG.
 
 ### Inherited
 
-
-#------------------------------
-#
-# exists
-#
-sub exists {   
-    usage "deprecated; use count() instead";
-    shift->count(@_);
-}
-
-#------------------------------
-#
-# fields
-#
-sub fields {
-    usage "deprecated: use tags() instead",
-    shift->tags(@_);
-}
 
 #------------------------------
 
@@ -496,18 +392,6 @@ sub get_all {
 }
 
 #------------------------------
-#
-# original_text
-#
-# Instance method, DEPRECATED.  
-# Return an approximation of the original text.
-#    
-sub original_text {
-    usage "deprecated: use stringify() instead";
-    shift->stringify(@_);
-}
-
-#------------------------------
 
 =item print [OUTSTREAM]
 
@@ -528,19 +412,6 @@ sub print {
     my ($self, $fh) = @_;
     $fh = wraphandle($fh || select);   ### get output handle, as a print()able
     $fh->print($self->as_string);
-}
-
-#------------------------------
-#
-# set TAG,TEXT
-#
-# Instance method, DEPRECATED.
-# Set the field named TAG to [the single occurence given by the TEXT.
-#
-sub set {
-    my $self = shift;
-    usage "deprecated: use the replace() method instead.";
-    $self->replace(@_);
 }
 
 #------------------------------
@@ -600,24 +471,6 @@ field, you should really use the Mail::Field interface to get it.
 =over 4
 
 =cut
-
-#------------------------------
-
-
-#------------------------------
-#
-# params TAG
-#
-# Instance method, DEPRECATED.
-# Extract parameter info from a structured field, and return
-# it as a hash reference.  Provided for 1.0 compatibility only!
-# Use the new MIME::Field interface classes (subclasses of Mail::Field).  
-
-sub params {
-    my ($self, $tag) = @_;
-    usage "deprecated: use the MIME::Field interface classes from now on!";
-    return MIME::Field::ParamVal->parse_params($self->get($tag,0));     
-}
 
 #------------------------------
 
@@ -685,11 +538,16 @@ I quote from RFC-1521 section 5:
     This is the default value -- that is, "Content-Transfer-Encoding: 7BIT" 
     is assumed if the Content-Transfer-Encoding header field is not present.
 
+I do one other form of fixup: "7_bit", "7-bit", and "7 bit" are 
+corrected to "7bit"; likewise for "8bit".
+
 =cut
 
 sub mime_encoding {
     my $self = shift;
-    lc($self->mime_attr('content-transfer-encoding') || '7bit');
+    my $enc = lc($self->mime_attr('content-transfer-encoding') || '7bit');
+    $enc =~ s{^([78])[ _-]bit\Z}{$1bit};
+    $enc;
 }
 
 #------------------------------
@@ -784,17 +642,6 @@ sub recommended_filename {
 =cut
 
 
-#------------------------------
-#
-# tweak_FROM_parsing
-#
-# DEPRECATED.  Use the inherited mail_from() class method now.
-
-sub tweak_FROM_parsing {
-    my $self = shift;
-    usage "deprecated.  Use mail_from() instead.";
-    $self->mail_from(@_);
-}
 
 
 __END__
@@ -900,7 +747,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:46 $
+$Revision: 6.107 $ $Date: 2003/06/06 23:41:45 $
 
 =cut
 

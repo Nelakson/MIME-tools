@@ -1,0 +1,59 @@
+[{
+	Case => 1,
+	Raw          => "Subject: =?ISO-8859-1?Q?Oc=E9_3165_Network_Copier_down_for_maintenance?=    ",
+	#--------------------	
+	ISO_8859_1   => "Subject: Oc\xE9 3165 Network Copier down for maintenance    ",
+	ISO_8859_1_o => "Subject: Oc\xE9 3165 Network Copier down for maintenance    ",
+	US_ASCII     => "Subject: Oc 3165 Network Copier down for maintenance    ",
+	US_ASCII_o   => "Subject: Oc? 3165 Network Copier down for maintenance    ",
+	UTF_8        => "Subject: Oc\xC3\xA9 3165 Network Copier down for maintenance    ",
+ },
+ {
+	Case => 2,
+	Raw          => "=?US-ASCII?Q?Keith_Moore?= <moore\@cs.utk.edu>",
+	#--------------------	
+	ISO_8859_1   => "Keith Moore <moore\@cs.utk.edu>",
+	ISO_8859_1_o => "Keith Moore <moore\@cs.utk.edu>",
+	US_ASCII     => "Keith Moore <moore\@cs.utk.edu>",
+	US_ASCII_o   => "Keith Moore <moore\@cs.utk.edu>",
+	UTF_8        => "Keith Moore <moore\@cs.utk.edu>",
+},
+{
+	Case => 3,
+	Raw          => "=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld\@dkuug.dk>",
+	#--------------------
+	ISO_8859_1   => "Keld J\xF8rn Simonsen <keld\@dkuug.dk>",
+	ISO_8859_1_o => "Keld J\xF8rn Simonsen <keld\@dkuug.dk>",
+	US_ASCII     => "Keld Jrn Simonsen <keld\@dkuug.dk>",
+	US_ASCII_o   => "Keld J?rn Simonsen <keld\@dkuug.dk>",
+	UTF_8        => "Keld J\xC3\xB8rn Simonsen <keld\@dkuug.dk>",
+},
+{
+	Case => 4,
+	Raw          => "=?ISO-8859-1?Q?Andr=E9_?=(<- one space) Pirard <PIRARD\@vm1.ulg.ac.be>",
+	#--------------------
+	ISO_8859_1   => "Andr\xE9 (<- one space) Pirard <PIRARD\@vm1.ulg.ac.be>",
+	ISO_8859_1_o => "Andr\xE9 (<- one space) Pirard <PIRARD\@vm1.ulg.ac.be>",
+},
+{
+	Case => 5,
+	Raw          => "=?ISO-8859-1?Q?=5F-=5F?=",
+	#--------------------
+	ISO_8859_1   => "_-_",
+	ISO_8859_1_o => "_-_",
+	US_ASCII     => "_-_",
+	US_ASCII_o   => "_-_",
+	UTF_8        => "_-_",
+	UTF_16       => "\x00_\x00-\x00_",
+},	
+{
+	Case => 6,
+	Raw          => "=?us-ascii?q?space?= \t\n  \n =?us-ascii?q?less?=",
+	#--------------------
+	ISO_8859_1   => "spaceless",
+	ISO_8859_1_o => "spaceless",
+	US_ASCII     => "spaceless",
+	US_ASCII_o   => "spaceless",
+	UTF_8        => "spaceless",
+},	
+]

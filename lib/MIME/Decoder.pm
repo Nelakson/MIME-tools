@@ -90,6 +90,7 @@ use IPC::Open2;
 
 ### Kit modules:
 use MIME::Tools qw(:config :msgs);
+use MIME::Tools::Utils qw(:config :msgs);
 use IO::Wrap;
 use Carp;
 
@@ -122,7 +123,7 @@ use Carp;
 );
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 ### Me:
 my $ME = 'MIME::Decoder';
@@ -192,7 +193,7 @@ sub best {
     my ($class, $enc, @args) = @_;
     my $self = $class->new($enc, @args);
     if (!$self) {
-	usage "unsupported encoding '$enc': using 'binary'";
+	usage_warning "unsupported encoding '$enc': using 'binary'";
 	$self = $class->new('binary') || croak "ack! no binary decoder!";
     }
     $self;
@@ -226,7 +227,7 @@ sub decode {
 
     ### Invoke back-end method to do the work:
     $self->decode_it($in, $out) ||
-	die "$ME: ".$self->encoding." decoding failed\n";
+	die "".$self->encoding." decoding failed\n";
     1;
 }
 
@@ -255,7 +256,7 @@ sub encode {
 
     ### Invoke back-end method to do the work:
     $self->encode_it($in, $out) || 
-	die "$ME: ".$self->encoding." encoding failed\n";
+	die "".$self->encoding." encoding failed\n";
 }
 
 #------------------------------
@@ -633,7 +634,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:46 $
+$Revision: 6.107 $ $Date: 2003/06/06 23:41:38 $
 
 =cut
 

@@ -36,7 +36,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:49 $
+$Revision: 6.107 $ $Date: 2003/06/06 23:41:42 $
 
 =cut
 
@@ -44,12 +44,13 @@ $Revision: 5.403 $ $Date: 2000/11/04 19:54:49 $
 require 5.002;
 use vars qw(@ISA $VERSION);
 use MIME::Decoder;
-use MIME::Tools qw(whine);
+use MIME::Tools qw(:msgs);
+use MIME::Tools::Utils qw(:msgs);
 
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 6.107 $, 10;
 
 
 #------------------------------
@@ -92,7 +93,7 @@ sub decode_it {
 	$out->print(unpack('u', $_));
     }
     ### chmod oct($mode), $file;    # sheeyeah... right...
-    whine "file incomplete, no end found\n" if !defined($_); # eof
+    $LOG->warning("file incomplete, no end found\n") if !defined($_); # eof
     1;
 }
 
