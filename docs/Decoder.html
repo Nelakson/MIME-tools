@@ -531,25 +531,8 @@ Really. Use a more-appropriate encoding, like quoted-printable.
 
 </A></STRONG><DD>
 Approximate the appearance of the Latin-1 character via Internet
-conventions; e.g., <CODE>"\c,"</CODE>, <CODE>"\n~"</CODE>, etc. This is the default behavior of this class.
-
-
-<P>
-
-<DT><STRONG><A NAME="item_clearbit8">CLEARBIT8
-
-</A></STRONG><DD>
-Just clear the 8th bit. Yuck. Sort of a sledgehammer approach. Not
-recommended at all.
-
-
-<P>
-
-<DT><STRONG><A NAME="item_entity">ENTITY
-
-</A></STRONG><DD>
-Output as an HTML-style entity; e.g., <CODE>"&</CODE><CODE>#189;"</CODE>. This sounds like a good idea, until you see some French text which is
-actually encoded this way... yuck. You're better off with quoted-printable.
+conventions; e.g., <CODE>"\c,"</CODE>, <CODE>"\n~"</CODE>, etc. This is the default behavior of this class. It will pull in the <A
+HREF="Latin1.html">MIME::Latin1</A> module to do the translation.
 
 
 <P>
@@ -560,6 +543,16 @@ actually encoded this way... yuck. You're better off with quoted-printable.
 Strip out any 8-bit characters. Nice if you're <EM>really</EM>
  sure that any such characters in your input are mistakes to be deleted, but
 it'll transform non-English documents into an abbreviated mess.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_qp">QP
+
+</A></STRONG><DD>
+Encode them as though we were doing a quoted-printable encoding; e.g.,
+``=A0''. This won't help the mail viewing software, but some humans may get
+the gist...
 
 
 <P>
@@ -755,7 +748,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.9 $ $Date: 1997/01/03 21:06:09 $
+$Revision: 2.11 $ $Date: 1997/01/14 06:16:03 $
 
 
 <P>

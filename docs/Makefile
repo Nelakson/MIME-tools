@@ -27,7 +27,7 @@ DOCS           = .
 .SUFFIXES: .pm .pod .html
 
 docs: ${HTMLS} ${MODS}
-	podreadme -t MIME-tools.pod > ../README
+	pod2readme -t MIME-tools.pod > ../README
 
 .pm.html:
 	${POD2HTML} ${POD2HTML_FLAGS} \

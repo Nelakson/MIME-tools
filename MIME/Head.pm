@@ -37,7 +37,9 @@ To RFC-1522-decode any Q- or B-encoded-text in the header fields:
 
     $head->decode();
 
-To test whether a given field B<exists>:
+To test whether a given field B<exists> (consider using the inherited
+C<count> method instead, though: C<exists> has been deprecated, but will
+continue to work even if your MailTools is old):
 
     # Was a "Subject:" given?
     if ($head->exists('subject')) {
@@ -130,7 +132,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.12 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.13 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Sanity (we put this test after our own version, for CPAN::):
 $Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
@@ -153,8 +155,7 @@ $Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
 
 =item new [ARG],[OPTIONS]
 
-I<Class method.>
-I<Inherited.>
+I<Class method, inherited.>
 Creates a new header object.  Arguments are the same as those in the 
 superclass.  
 
@@ -280,7 +281,7 @@ documentation around for convenience.
 
 =item add TAG,TEXT,[INDEX]
 
-I<Inherited.>
+I<Instance method, inherited.>
 Add a new occurence of the field named TAG, given by TEXT:
 
     # Add the trace information:    
@@ -336,13 +337,13 @@ sub add_text {
     $self->replace($tag, "$old$text", -1);   
 }
 
-
 #------------------------------------------------------------
 # decode
 #------------------------------------------------------------
 
 =item decode
 
+I<Instance method.>
 Go through all the header fields, looking for RFC-1522-style "Q"
 (quoted-printable, sort of) or "B" (base64) encoding, and decode them
 in-place.  Fellow Americans, you probably don't know what the hell I'm
@@ -436,7 +437,7 @@ sub _decode_B_text {
 
 =item delete TAG,[INDEX]
 
-I<Inherited.>
+I<Instance method, inherited.>
 Delete all occurences of the field named TAG.
 
     # Remove all the MIME information:
@@ -456,6 +457,7 @@ Delete all occurences of the field named TAG.
 
 =item exists TAG
 
+I<Instance method, inherited, DEPRECATED.>
 Returns whether a given field exists:
 
     # Was a "Subject:" given?
@@ -463,15 +465,26 @@ Returns whether a given field exists:
         # yes, it does!
     }
 
-
 The TAG is treated in a case-insensitive manner.
 This method returns some false value if the field doesn't exist,
 and some true value if it does.
 
+B<DEPRECATED> by Mail::Header v.1.06.  If you have a recent copy of
+Mail::Header, you should use count() instead, which returns equivalent 
+boolean values.  MIME::Head::exists uses count() if it's available,
+but exists() is currently kept without warning for backwards-compatibility
+(since we don't want to demand that you have count()).
+
 =cut
 
-### Inherited ###
-
+sub exists {    
+    if (defined(&Mail::Header::count)) {
+	shift->count(@_);
+    }
+    else {
+	shift->Mail::Header::exists(@_);
+    }
+}
 
 #------------------------------------------------------------
 # fields
@@ -494,7 +507,7 @@ sub fields {
 
 =item get TAG,[INDEX]
 
-I<Inherited.>  
+I<Instance method, inherited.>  
 Get the contents of field TAG.
 
 If a B<numeric INDEX> is given, returns the occurence at that index, 
@@ -544,6 +557,7 @@ sub get {
 
 =item get_all FIELD
 
+I<Instance method.>
 Returns the list of I<all> occurences of the field, or the 
 empty list if the field is not present:
 
@@ -575,25 +589,44 @@ sub get_all {
 
 =item original_text
 
+I<Instance method.>
 Recover the original text that was read() in to create this object:
 
     print "PARSED FROM:\n", $head->original_text;    
 
 B<WARNING:> does no such thing now.  Just returns a reasonable
-approximation of that text.
+approximation of that text.  Think of it as nothing more than a poorly-named
+C<as_string()> method.  Provided for backwards-compatibility only.
 
 =cut
     
 sub original_text {
     my $self = shift;
-    my ($line, $text);
-    $text = '';
-    foreach $line (@{$self->{'mail_hdr_list'}}) {
-	next unless defined $line;
-	$text .= $line;
+    my ($tag, $value);
+    my $text = '';
+    foreach $tag (sort $self->tags()) {
+	foreach $value ($self->get_all($tag)) {
+	    $value =~ s/\r?\n\Z//;
+	    $text .= "\u$tag: $value\n";
+	}
     }
     $text;
 }
+
+
+#------------------------------------------------------------
+# print
+#------------------------------------------------------------
+
+=item print [FILEHANDLE]
+
+I<Instance method, inherited.>
+Print the header out to the given filehandle.
+
+=cut
+
+### Inherited
+
 
 #------------------------------------------------------------
 # set
@@ -1034,7 +1067,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 2.12 $ $Date: 1997/01/03 23:33:26 $
+$Revision: 2.13 $ $Date: 1997/01/14 06:02:25 $
 
 =cut
 
@@ -1061,6 +1094,12 @@ print "* Reading MIME header from STDIN...\n";
 $head = MIME::Head->new->read(\*STDIN) or die "couldn't parse input";
 $head->print;
 $head->modify(1);
+
+print "\n* Printing original text to STDOUT...\n";
+print '=' x 60, "\n";
+print $head->original_text;
+print '=' x 60, "\n\n";
+
 
 print "* Listing all fields...\n";
 print "    ", join(', ', sort $head->fields), "\n";

@@ -180,7 +180,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.14 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.15 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Boundary counter:
 my $BCount = 0;
@@ -819,9 +819,15 @@ See C<print_body()> for an important note on how the body is output.
 
 sub print {
     my ($self, $fh) = @_;
-    $fh or $fh = select;
     no strict 'refs';      # globrefs don't handle direct object syntax :-(
 
+    # Default filehandle to currently-selected one:
+    $fh or $fh = select;
+
+    # Since we pass this filehandle to Mail::Header, we've got to make
+    # sure it works under strict refs:
+    ref($fh) or $fh = \*$fh;            # not a ref, so it must be a scalar
+    
     # Output the head and its terminating blank line:
     $self->head->print($fh);
     print $fh "\n";  
@@ -1046,7 +1052,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.14 $ $Date: 1997/01/13 00:22:41 $
+$Revision: 2.15 $ $Date: 1997/01/14 06:15:12 $
 
 =cut
 

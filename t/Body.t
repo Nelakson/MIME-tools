@@ -26,17 +26,18 @@ my $line;
 my $body;
 my $pos;
 foreach $body ($sbody, $fbody) {
+    my $io;
 
     #------------------------------------------------------------
     note "Checking ", ref($body), " class";
     #------------------------------------------------------------
 
-    my $io = $body->open("w");
+    $io = $body->open("w");
     check($io, "open for writing");
     $io->print("Line 1\nLine 2\nLine 3");
     $io->close;
     
-    my $io   = $body->open("r");
+    $io   = $body->open("r");
     check($io, "open for reading");
 
     # Read all lines:

@@ -98,7 +98,7 @@ use MIME::IO;
 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.9 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.11 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 
@@ -656,25 +656,20 @@ Really.  Use a more-appropriate encoding, like quoted-printable.
 
 Approximate the appearance of the Latin-1 character via Internet
 conventions; e.g., C<"\c,">, C<"\n~">, etc.  This is the default
-behavior of this class.
-
-=item CLEARBIT8
-
-Just clear the 8th bit.  Yuck.  Sort of a sledgehammer approach.
-Not recommended at all.
-
-=item ENTITY
-
-Output as an HTML-style entity; e.g., C<"&>C<#189;">.
-This sounds like a good idea, until you see some French text which
-is actually encoded this way... yuck.  You're better off with
-quoted-printable.
+behavior of this class.  It will pull in the MIME::Latin1 module
+to do the translation.
 
 =item STRIP
 
 Strip out any 8-bit characters.  Nice if you're I<really> sure that any
 such characters in your input are mistakes to be deleted, but it'll
 transform non-English documents into an abbreviated mess.
+
+=item QP
+
+Encode them as though we were doing a quoted-printable encoding;
+e.g., "=A0".  This won't help the mail viewing software, but some 
+humans may get the gist...
 
 =back
 
@@ -686,6 +681,7 @@ use vars qw(@ISA);
 
 @ISA = qw(MIME::Decoder);
 
+use MIME::ToolUtils qw(:msgs);
 
 #------------------------------------------------------------
 # encode_8bit 
@@ -697,13 +693,18 @@ sub encode_8bit {
     my ($self, $line) = @_;
     my $opt = ($self->{MD_Xbit_Encode8} || 'APPROX');
     if ($opt eq    'CLEARBIT8') {                # just clear 8th bit
+	usage "option CLEARBIT8 is deprecated as of MIME-tools 2.13";
 	$line =~ tr[\200-\377][\000-\177];
     }
     elsif ($opt eq 'STRIP') {                    # just remove offending chars
 	$line =~ s/[\200-\377]//g;
     }
     elsif ($opt eq 'ENTITY') {                   # output HTML-style entity
+	usage "option ENTITY is deprecated as of MIME-tools 2.13";
 	$line =~ s/[\200-\377]/'&#'.ord($&).';'/ge;
+    }
+    elsif ($opt eq 'QP') {                       # output QP-style encoding
+	$line =~ s/[\200-\377]/sprintf("=%02X",ord($&))/ge;
     }
     else {        # APPROX                       # output ASCII approximation
 	require MIME::Latin1;
@@ -882,7 +883,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.9 $ $Date: 1997/01/03 21:06:09 $
+$Revision: 2.11 $ $Date: 1997/01/14 06:16:03 $
 
 =cut
 

@@ -119,7 +119,9 @@ To RFC-1522-decode any Q- or B-encoded-text in the header fields:
 <P>
 
 To test whether a given field <STRONG>exists</STRONG>
-:
+ (consider using the inherited
+<CODE>count</CODE> method instead, though: <CODE>exists</CODE> has been deprecated, but will continue to work even if your MailTools is
+old):
 
 
 <P>
@@ -234,10 +236,7 @@ specified in RFC-1521, <EM>Multipurpose Internet Mail Extensions</EM>
 <DT><STRONG><A NAME="item_new_argoptions">new [ARG],[OPTIONS]
 
 </A></STRONG><DD>
-<EM>Class method.</EM>
-
-
-<EM>Inherited.</EM>
+<EM>Class method, inherited.</EM>
 
 Creates a new header object. Arguments are the same as those in the
 superclass.  
@@ -356,7 +355,7 @@ documentation around for convenience.
 <DT><STRONG><A NAME="item_add_tagtextindex">add TAG,TEXT,[INDEX]
 
 </A></STRONG><DD>
-<EM>Inherited.</EM>
+<EM>Instance method, inherited.</EM>
 
 Add a new occurence of the field named TAG, given by TEXT:
 
@@ -399,6 +398,8 @@ occurences... so if you just want to <EM>change</EM>
 <DT><STRONG><A NAME="item_decode">decode
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Go through all the header fields, looking for RFC-1522-style ``Q''
 (quoted-printable, sort of) or ``B'' (base64) encoding, and decode them
 in-place. Fellow Americans, you probably don't know what the hell I'm
@@ -479,7 +480,7 @@ RFC-1522-decoding code!</EM>
 <DT><STRONG><A NAME="item_delete_tagindex">delete TAG,[INDEX]
 
 </A></STRONG><DD>
-<EM>Inherited.</EM>
+<EM>Instance method, inherited.</EM>
 
 Delete all occurences of the field named TAG.
 
@@ -499,6 +500,8 @@ Delete all occurences of the field named TAG.
 <DT><STRONG><A NAME="item_exists_tag">exists TAG
 
 </A></STRONG><DD>
+<EM>Instance method, inherited, DEPRECATED.</EM>
+
 Returns whether a given field exists:
 
 
@@ -519,10 +522,21 @@ false value if the field doesn't exist, and some true value if it does.
 
 <P>
 
+<STRONG>DEPRECATED</STRONG>
+ by Mail::Header v.1.06. If you have a recent copy of Mail::Header, you
+should use <CODE>count()</CODE> instead, which returns equivalent boolean
+values. <A HREF="Head.html">MIME::Head::exists</A> uses
+<CODE>count()</CODE> if it's available, but <CODE>exists()</CODE> is
+currently kept without warning for backwards-compatibility (since we don't
+want to demand that you have <CODE>count()).</CODE>
+
+
+<P>
+
 <DT><STRONG><A NAME="item_get_tagindex">get TAG,[INDEX]
 
 </A></STRONG><DD>
-<EM>Inherited.</EM>
+<EM>Instance method, inherited.</EM>
   
 Get the contents of field TAG.
 
@@ -589,6 +603,8 @@ version 1.0.</EM>
 <DT><STRONG><A NAME="item_get_all_field">get_all FIELD
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Returns the list of <EM>all</EM>
  occurences of the field, or the empty list if the field is not present:
 
@@ -625,6 +641,8 @@ for all occurences.
 <DT><STRONG><A NAME="item_original_text">original_text
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Recover the original text that was <CODE>read()</CODE> in to create this
 object:
 
@@ -639,7 +657,18 @@ object:
 
 <STRONG>WARNING:</STRONG>
  does no such thing now. Just returns a reasonable approximation of that
-text.
+text. Think of it as nothing more than a poorly-named
+<CODE>as_string()</CODE> method. Provided for backwards-compatibility only.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_print_filehandle">print [FILEHANDLE]
+
+</A></STRONG><DD>
+<EM>Instance method, inherited.</EM>
+
+Print the header out to the given filehandle.
 
 
 <P>
@@ -1156,7 +1185,7 @@ Advanced Data Solutions.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.12 $ $Date: 1997/01/03 23:33:26 $
+$Revision: 2.13 $ $Date: 1997/01/14 06:02:25 $
 
 
 <P>

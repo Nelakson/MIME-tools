@@ -393,6 +393,13 @@ B<See MIME::ParserBase for details.>
 =over 4
 
 
+=item I<Version> 2.14
+
+Just a few bug fixes to improve compatibility with Mail-Tools 1.08,
+and with the upcoming Perl 5.004 release.
+I<Thanks to Jason L. Tibbitts III for reporting the problems so quickly.>
+
+
 =item Version 2.13
 
 =over 4
@@ -651,6 +658,7 @@ contributions of the following:
     Andreas Koenig     Numerous good ideas, tons of beta testing,
                        and help with CPAN-friendly packaging
     Igor Starovoitov   Bug reports and suggestions
+    Jason L Tibbitts III    Bug reports and suggestions
  
 Not to mention the Accidental Beta Test Team, whose bug reports (and
 comments) have been invaluable in improving the whole:

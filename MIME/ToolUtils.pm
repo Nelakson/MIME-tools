@@ -42,10 +42,10 @@ Exporter::export_ok_tags('config', 'msgs', 'utils');
 #
 # Globals
 #
-#------------------------------
+#------------------------------ 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.13 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.14 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Configuration:
 %CONFIG = 
@@ -327,7 +327,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.13 $ $Date: 1997/01/13 01:37:53 $
+$Revision: 2.14 $ $Date: 1997/01/14 06:17:36 $
 
 I<Note: this file is used to set the version of the entire MIME-tools 
 distribution.>

@@ -109,14 +109,22 @@ unlink <$DIR/[a-z]*>;
 #------------------------------------------------------------
 print "1..39\n";
 
+my $parser;
+my $entity;
+my $msgno;
+my $infile;
+my $type;
+my $enc;
+
+
 #------------------------------------------------------------
 note "Read a nested multipart MIME message";
 #------------------------------------------------------------
-my $parser = new MIME::Parser;
+$parser = new MIME::Parser;
 $parser->output_dir($DIR);
 $parser->output_path_hook(\&simple_output_path);
 open IN, "./testin/multi-nested.msg" or die "open: $!";
-my $entity = $parser->read(\*IN);
+$entity = $parser->read(\*IN);
 check($entity => "parsed okay");
 
 #------------------------------------------------------------
@@ -124,7 +132,6 @@ note "Check the various output files";
 #------------------------------------------------------------
 check((-s "$DIR/3d-vise.gif" == 419) => "vise gif okay");
 check((-s "$DIR/3d-eye.gif" == 357)  => "3d-eye gif okay");
-my $msgno;
 for $msgno (1..4) {
     check((-s "$DIR/message-$msgno.dat") => "message $msgno okay");
 }
@@ -132,24 +139,23 @@ for $msgno (1..4) {
 #------------------------------------------------------------
 note "Same message, but CRLF-terminated and no output path hook";
 #------------------------------------------------------------
-my $parser = new MIME::Parser;
+$parser = new MIME::Parser;
 $parser->output_dir($DIR);
 open IN, "./testin/multi-nested2.msg" or die "open: $!";
-my $entity = $parser->read(\*IN);
+$entity = $parser->read(\*IN);
 check($entity => "parsed CRLF-terminated message okay");
 
 #------------------------------------------------------------
 # Check various messages
 #------------------------------------------------------------
-my $parser = new MIME::Parser;
+$parser = new MIME::Parser;
 $parser->output_dir($DIR);
-my $infile;
-my ($type, $enc);
 foreach $infile (sort keys %MESSAGES) {
-  
+    my $ent;  
+
     note "Parsing $infile (and checking results)...";
     open IN, "./testin/$infile" or die "open: $!";
-    my $ent = $parser->read(\*IN);
+    $ent = $parser->read(\*IN);
     close IN;
     check_entity($infile, $ent, $MESSAGES{$infile});
 }
