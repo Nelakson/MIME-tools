@@ -547,6 +547,17 @@ I'm currently working on a good mechanism for this.
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="current_events">Current events</A></H3>
 <DL>
+<DT><STRONG><A NAME="item_version_204">Version 2.04
+
+</A></STRONG><DD>
+A bug in <A HREF="Entity.html">MIME::Entity's</A> output method was
+corrected. <A HREF="Entity.html">MIME::Entity::print</A> now outputs
+everything to the desired filehandle explicitly. Thanks to Jake Morrison
+for pointing out the incompatibility with Mail::Header.
+
+
+<P>
+
 <DT><STRONG><A NAME="item_version_203">Version 2.03
 
 </A></STRONG><DD>
@@ -850,9 +861,10 @@ invaluable in improving the whole:
 <P>
 
 <PRE>
-	Phil Abercrombie  
-	Andrew Pimlott    
-	Joel Noble        
+	Phil Abercrombie
+	Jake Morrison
+	Joel Noble    
+	Andrew Pimlott
 	Russell Sutherland
 	Larry Virden
 </PRE>

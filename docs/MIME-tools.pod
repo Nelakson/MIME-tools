@@ -337,6 +337,13 @@ I'm currently working on a good mechanism for this.
 
 =over
 
+=item Version 2.04
+
+A bug in MIME::Entity's output method was corrected.
+MIME::Entity::print now outputs everything to the desired filehandle
+explicitly.  Thanks to Jake Morrison for pointing out the
+incompatibility with Mail::Header.
+
 =item Version 2.03
 
 Fixed transposed "if" statement, removing spurious printing of header 
@@ -520,9 +527,10 @@ contributions of the following:
 Not to mention the Accidental Beta Test Team, whose bug reports have been
 invaluable in improving the whole:
 
-	Phil Abercrombie  
-	Andrew Pimlott    
-	Joel Noble        
+	Phil Abercrombie
+	Jake Morrison
+	Joel Noble    
+	Andrew Pimlott
 	Russell Sutherland
 	Larry Virden
 

@@ -1,22 +1,19 @@
 BEGIN { 
-    push(@INC, "./blib/lib", "./etc");
+    push(@INC, "./blib/lib", "./etc", "./t");
 }
 use MIME::ToolUtils;
 MIME::ToolUtils->debugging(1);
-
+use Checker;
 use MIME::Decoder;
-print STDERR "\n";
-
-sub okay_if { print( ($_[0] ? "ok\n" : "not ok\n")) }
-sub note    { print STDERR "\ttest ", @_, "\n" }
 
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
 print "1..5\n";
+print STDERR "\n";
 
 #------------------------------------------------------------
-note "1-5: encode and decode...";
+note "Encode and decode...";
 #------------------------------------------------------------
 my @encodings = qw(base64 quoted-printable 7bit 8bit binary);
 my ($e, $eno) = (undef, 0);

@@ -1,35 +1,31 @@
 BEGIN { 
-    push(@INC, "./blib/lib");
+    push(@INC, "./blib/lib", "./etc", "./t");
 }
 use MIME::Head;
-print STDERR "\n";
-
-sub okay_if { print( ($_[0] ? "ok\n" : "not ok\n")) }
-sub note    { print STDERR "\ttest ", @_, "\n" }
-my $head;
-
+use Checker;
 
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
-print "1..11\n";
+print STDERR "\n";
+print "1..12\n";
 
 
 #------------------------------------------------------------
-note "1: read a bogus file (this had better fail...)";
+note "Read a bogus file (this had better fail...)";
 #------------------------------------------------------------
-$head = MIME::Head->from_file('BLAHBLAH');
-okay_if(!$head);
+my $head = MIME::Head->from_file('BLAHBLAH');
+check(!$head);
 
 #------------------------------------------------------------
-note "2: parse in the crlf.hdr file:";
+note "Parse in the crlf.hdr file:";
 #------------------------------------------------------------
 ($head = MIME::Head->from_file('./testin/crlf.hdr'))
     or die "couldn't parse input";  # stop now
-okay_if('HERE');
+check('HERE');
 
 #------------------------------------------------------------
-note "3: did we get all the fields?";
+note "Did we get all the fields?";
 #------------------------------------------------------------
 my @actuals = qw(path
 		 from
@@ -49,41 +45,49 @@ my @actuals = qw(path
 push(@actuals, "From ");
 my $actual = join '|', sort( map {lc($_)} @actuals);
 my $parsed = join '|', sort( map {lc($_)} $head->tags);
-okay_if($parsed eq $actual);
+check($parsed eq $actual);
 
 #------------------------------------------------------------
-note "4: could we get() the 'subject'? (it'll end in \\r\\n)";
+note "Could we get() the 'subject'? (it'll end in \\r\\n)";
 #------------------------------------------------------------
 my $subject;
 ($subject) = ($head->get('subject',0));    # force array context, see if okay
 note("subject = ", length($subject));
-okay_if($subject eq "EMPLOYMENT: CHICAGO, IL UNIX/CGI/WEB/DBASE\r\n");
+check($subject eq "EMPLOYMENT: CHICAGO, IL UNIX/CGI/WEB/DBASE\r\n");
 
 #------------------------------------------------------------
-note "5: could we set() the 'Subject', and get it as 'SUBJECT'?";
+note "Could we set() the 'Subject', and get it as 'SUBJECT'?";
 #------------------------------------------------------------
 my $newsubject = "Hellooooooo, nurse!\r\n";
 $head->replace('Subject', $newsubject);
 $subject = $head->get('SUBJECT');
-okay_if($subject eq $newsubject);
+check($subject eq $newsubject);
 
 #------------------------------------------------------------
-note "6: does the exists() method work?";
+note "Does the exists() method work?";
 #------------------------------------------------------------
-okay_if($head->exists('NNTP-Posting-Host') and
+check($head->exists('NNTP-Posting-Host') and
         $head->exists('nntp-POSTING-HOST') and
         !($head->exists('Doesnt-Exist')));
 
 #------------------------------------------------------------
-note "7-11: create a custom structured field, and extract parameters";
+note "Create a custom structured field, and extract parameters";
 #------------------------------------------------------------
 $head->set('X-Files', 'default ; name="X Files Test"; LENgth=60 ;setting="6"');
 my $params = $head->params('X-Files');
-okay_if($params);
-okay_if($$params{_}         eq 'default');
-okay_if($$params{'name'}    eq 'X Files Test');
-okay_if($$params{'length'}  eq '60');
-okay_if($$params{'setting'} eq '6');
+check($params);
+check($$params{_}         eq 'default');
+check($$params{'name'}    eq 'X Files Test');
+check($$params{'length'}  eq '60');
+check($$params{'setting'} eq '6');
+
+#------------------------------------------------------------
+note "Output to a desired file";
+#------------------------------------------------------------
+open TMP, ">./testout/tmp.head" or die "open: $!";
+$head->print(\*TMP);
+close TMP;
+check((-s "./testout/tmp.head") > 50);      # looks okay
 
 # Done!
 exit(0);

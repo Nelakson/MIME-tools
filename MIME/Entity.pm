@@ -23,24 +23,31 @@ Create a MIME entity from an array, and output it as a MIME stream to STDOUT:
 Create a document for an ordinary 7-bit ASCII text file (lots of 
 stuff is defaulted for us):
 
-    $msg = build MIME::Entity Path=>"english-msg.txt";
-    $msg->print(\*STDOUT);
+    $ent = build MIME::Entity Path=>"english-msg.txt";
 
 Create a document for a text file with 8-bit (Latin-1) characters:
 
-    $msg = build MIME::Entity Path     =>"french-msg.txt",
+    $ent = build MIME::Entity Path     =>"french-msg.txt",
                               Encoding =>"quoted-printable";
-    $msg->print(\*STDOUT);
 
 Create a document for a GIF file (the description is completely optional,
 and note that we have to specify content-type and encoding since they're
 not the default values):
 
-    $gif = build MIME::Entity Description => "A pretty picture",
+    $ent = build MIME::Entity Description => "A pretty picture",
                               Path        => "./docs/mime-sm.gif",
                               Type        => "image/gif",
                               Encoding    => "base64";
-    $gif->print(\*STDOUT);
+
+Create a document that you already have the text for:
+
+    $ent = build MIME::Entity  Type        => "text/plain",
+                               Encoding    => "quoted-printable",
+                               Data        => [
+                                     "First line.\n",
+                                     "Second line.\n",
+                                     "Last line.\n",
+                               ];
 
 Create a multipart message (could it I<be> much easier?)
 
@@ -57,6 +64,9 @@ Create a multipart message (could it I<be> much easier?)
     attach $top  Path        => "./docs/mime-sm.gif",
                  Type        => "image/gif",
                  Encoding    => "base64";
+     
+    # Attachment #3: text we'll create with text we have on-hand:
+    attach $top Data=>$contents;
     
     # Output!
     $top->print(\*STDOUT);
@@ -146,6 +156,7 @@ use vars qw(@ISA $VERSION);
 use strict;
 
 # System modules:
+use FileHandle;
 use Carp;
 
 # Other modules:
@@ -167,7 +178,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.8 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Boundary counter:
 my $BCount = 0;
@@ -191,6 +202,7 @@ my $BCount = 0;
 
 I<Class method.>
 Create a new, empty MIME entity.
+Basically, this uses the Mail::Internet constructor...
 
 If SOURCE is an ARRAYREF, it is assumed to be an array of lines
 that will be used to create both the header and an in-core body.
@@ -247,9 +259,10 @@ If you omit this, a random string will be chosen... which is probably safer.
 =item Data
 
 I<Single-part entities only. Optional.>  
-An alternative to Path (q.v.): the actual data.  If an array reference, 
-the array's lines are joined into a private scalar.  The body is 
-then opened on that data using MIME::Body::Scalar.
+An alternative to Path (q.v.): the actual data, either as a scalar
+or an array reference (whose elements are joined together to make
+the actual scalar).  The body is opened on the data using 
+MIME::Body::Scalar.
 
 =item Description
 
@@ -332,12 +345,11 @@ sub build {
 	    ("------------".scalar(time)."-$$-".$BCount++);
     }
     else {                    # single part...
-
 	# Create body:
 	if ($params{Path}) {
 	    $self->bodyhandle(new MIME::Body::File $params{Path});
 	}
-	elsif ($params{Data}) {
+	elsif (defined($params{Data})) {
 	    $self->bodyhandle(new MIME::Body::Scalar $params{Data});
 	}
 	else { 
@@ -356,7 +368,7 @@ sub build {
     $field = new Mail::Field 'Content_type';         # not a typo :-(
     $field->type($type);
     $field->name($filename)      if ($filename ne '');
-    $field->boundary($boundary)  if ($boundary ne '');
+    $field->boundary($boundary)  if (defined($boundary));
     $head->add('Content-type', $field->stringify);
 
     # Add content-disposition field (if not multipart):
@@ -394,17 +406,20 @@ sub build {
 # add_part
 #------------------------------------------------------------
 
-=item add_part
+=item add_part ENTITY
 
 Assuming we are a multipart message, add a body part (a MIME::Entity)
 to the array of body parts.  Do B<not> call this for single-part messages;
 i.e., don't call it unless the header has a C<"multipart"> content-type.
+
+Returns the part that was just added.
 
 =cut
 
 sub add_part {
     my ($self, $part) = @_;
     push @{$self->{ME_Parts}}, $part;
+    $part;
 }
 
 #------------------------------------------------------------
@@ -685,11 +700,13 @@ sub packaging {
 =item parts
 
 Return an array of all sub parts (each of which is a MIME::Entity), 
-or the empty array if there are none.  
+or the empty array if there are none.
 
 For single-part messages, the empty array will be returned.
 For multipart messages, the preamble and epilogue parts are I<not> in the 
-list!  If you want them, use C<all_parts()> instead.
+list!
+
+Note that in a scalar context, this returns you the number of parts.
 
 =cut
 
@@ -723,28 +740,29 @@ See C<print_body()> for an important note on how the body is output.
 sub print {
     my ($self, $fh) = @_;
     $fh or $fh = select;
+    no strict 'refs';      # globrefs don't handle direct object syntax :-(
 
     # Output the head and its terminating blank line:
-    $self->head->print;
-    $fh->print("\n");  
+    $self->head->print($fh);
+    print $fh "\n";  
 
     # Output either the body or the parts:
     if ($self->is_multipart) {    # Multipart...
 	my $boundary = $self->head->multipart_boundary;     # get boundary
 
 	# Preamble:
-	$fh->print("This is a multi-part message in MIME format.\n");
+	print $fh "This is a multi-part message in MIME format.\n";
 	
 	# Parts:
 	my $part;
 	foreach $part ($self->parts) {
-	    $fh->print("\n--$boundary\n");
+	    print $fh "\n--$boundary\n";
 	    $part->print($fh);
 	}
-	$fh->print("\n--$boundary--\n\n");
+	print $fh "\n--$boundary--\n\n";
     }
     else {                        # Single part...
-	$self->print_body;             # body
+	$self->print_body($fh);          # body
     }
     1;
 }
@@ -904,7 +922,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.5 $ $Date: 1996/10/28 18:35:39 $
+$Revision: 2.8 $ $Date: 1996/11/03 00:19:30 $
 
 =cut
 

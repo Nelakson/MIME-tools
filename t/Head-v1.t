@@ -1,39 +1,34 @@
 BEGIN { 
-    push(@INC, "./blib/lib");
+    push(@INC, "./blib/lib", "./etc", "./t");
 }
 
 use MIME::ToolUtils;
 use MIME::Head;
+use Checker;
 MIME::ToolUtils->emulate_version(1.0);
-print STDERR "\n";
-
-
-sub okay_if { print( ($_[0] ? "ok\n" : "not ok\n")) }
-sub note    { print STDERR "\ttest ", @_, "\n" }
-my $head;
 
 
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
 print "1..11\n";
-
-
-#------------------------------------------------------------
-note "1: read a bogus file (this had better fail...)";
-#------------------------------------------------------------
-$head = MIME::Head->from_file('BLAHBLAH');
-okay_if(!$head);
+print STDERR "\n";
 
 #------------------------------------------------------------
-note "2: parse in the crlf.hdr file:";
+note "Read a bogus file (this had better fail...)";
+#------------------------------------------------------------
+my $head = MIME::Head->from_file('BLAHBLAH');
+check(!$head => "read failed, as it should have");
+
+#------------------------------------------------------------
+note "Parse in the crlf.hdr file:";
 #------------------------------------------------------------
 ($head = MIME::Head->from_file('./testin/crlf.hdr'))
     or die "couldn't parse input";  # stop now
-okay_if('HERE');
+check($head => "read okay");
 
 #------------------------------------------------------------
-note "3: did we get all the fields?";
+note "Did we get all the fields?";
 #------------------------------------------------------------
 my @actuals = qw(path
 		 from
@@ -55,40 +50,40 @@ my $actual = join '|', sort @actuals;
 my $parsed = join '|', sort($head->fields);
 # note "Actual = $actual";
 # note "Parsed = $parsed";
-okay_if($parsed eq $actual);
+check(($parsed eq $actual) => "all the fields check out");
 
 #------------------------------------------------------------
-note "4: could we get() the 'subject'?";
+note "Could we get() the 'subject'?";
 #------------------------------------------------------------
 my $subject = $head->get('subject');
-okay_if($subject eq 'EMPLOYMENT: CHICAGO, IL UNIX/CGI/WEB/DBASE');
+check($subject eq 'EMPLOYMENT: CHICAGO, IL UNIX/CGI/WEB/DBASE');
 
 #------------------------------------------------------------
-note "5: could we set() the 'Subject', and get it as 'SUBJECT'?";
+note "Could we set() the 'Subject', and get it as 'SUBJECT'?";
 #------------------------------------------------------------
 my $newsubject = 'Hellooooooo, nurse!';
 $head->set('Subject', $newsubject);
 $subject = $head->get('SUBJECT');
-okay_if($subject eq $newsubject);
+check($subject eq $newsubject);
 
 #------------------------------------------------------------
-note "6: does the exists() method work?";
+note "Does the exists() method work?";
 #------------------------------------------------------------
-okay_if($head->exists('NNTP-Posting-Host') and
-        $head->exists('nntp-POSTING-HOST') and
-        !($head->exists('Doesnt-Exist')));
+check($head->exists('NNTP-Posting-Host') and
+      $head->exists('nntp-POSTING-HOST') and
+      !($head->exists('Doesnt-Exist')));
 
 #------------------------------------------------------------
-note "7-11: create a custom structured field, and extract parameters";
+note "Create a custom structured field, and extract parameters";
 #------------------------------------------------------------
 $head->set('X-Files', 
 	'default ; (comment 1) name="X Files Test"(comment2); LENgth=60 ;setting="6"');
 my $params = $head->params('X-Files');
-okay_if($params);
-okay_if($$params{_}         eq 'default');
-okay_if($$params{'name'}    eq 'X Files Test');
-okay_if($$params{'length'}  eq '60');
-okay_if($$params{'setting'} eq '6');
+check($params);
+check($$params{_}         eq 'default');
+check($$params{'name'}    eq 'X Files Test');
+check($$params{'length'}  eq '60');
+check($$params{'setting'} eq '6');
 
 # Done!
 exit(0);

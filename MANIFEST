@@ -33,13 +33,16 @@ docs/ToolUtils.html
 docs/mime-lg.gif
 docs/mime-sm.gif
 docs/redbul.gif
+etc/Checker.pm
 etc/MIME/Base64.pm
 etc/MIME/QuotedPrint.pm
 etc/README
 examples/README
 examples/mimedump
 examples/mimeexplode
+t/Checker.pm
 t/Decoder.t
+t/Entity.t
 t/Head-v1.t
 t/Head-v2.t
 t/Parser.t

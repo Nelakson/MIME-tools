@@ -83,8 +83,7 @@ defaulted for us):
 <P>
 
 <PRE>
-    $msg = build MIME::Entity Path=&gt;&quot;english-msg.txt&quot;;
-    $msg-&gt;print(\*STDOUT);
+    $ent = build MIME::Entity Path=&gt;&quot;english-msg.txt&quot;;
 </PRE>
 
 <P>
@@ -95,9 +94,8 @@ Create a document for a text file with 8-bit (Latin-1) characters:
 <P>
 
 <PRE>
-    $msg = build MIME::Entity Path     =&gt;&quot;french-msg.txt&quot;,
+    $ent = build MIME::Entity Path     =&gt;&quot;french-msg.txt&quot;,
                               Encoding =&gt;&quot;quoted-printable&quot;;
-    $msg-&gt;print(\*STDOUT);
 </PRE>
 
 <P>
@@ -110,11 +108,27 @@ not the default values):
 <P>
 
 <PRE>
-    $gif = build MIME::Entity Description =&gt; &quot;A pretty picture&quot;,
+    $ent = build MIME::Entity Description =&gt; &quot;A pretty picture&quot;,
                               Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
                               Type        =&gt; &quot;image/gif&quot;,
                               Encoding    =&gt; &quot;base64&quot;;
-    $gif-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
+Create a document that you already have the text for:
+
+
+<P>
+
+<PRE>
+    $ent = build MIME::Entity  Type        =&gt; &quot;text/plain&quot;,
+                               Encoding    =&gt; &quot;quoted-printable&quot;,
+                               Data        =&gt; [
+                                     &quot;First line.\n&quot;,
+                                     &quot;Second line.\n&quot;,
+                                     &quot;Last line.\n&quot;,
+                               ];
 </PRE>
 
 <P>
@@ -139,6 +153,9 @@ Create a multipart message (could it <EM>be</EM>
     attach $top  Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
                  Type        =&gt; &quot;image/gif&quot;,
                  Encoding    =&gt; &quot;base64&quot;;
+     
+    # Attachment #3: text we'll create with text we have on-hand:
+    attach $top Data=&gt;$contents;
     
     # Output!
     $top-&gt;print(\*STDOUT);
@@ -296,7 +313,8 @@ multi-megabyte tar files.
 </A></STRONG><DD>
 <EM>Class method.</EM>
 
-Create a new, empty MIME entity.
+Create a new, empty MIME entity. Basically, this uses the Mail::Internet
+constructor...
 
 
 <P>
@@ -374,9 +392,10 @@ which is probably safer.
 </A></STRONG><DD>
 <EM>Single-part entities only. Optional.</EM>
   
-An alternative to Path (q.v.): the actual data. If an array reference, the
-array's lines are joined into a private scalar. The body is then opened on
-that data using <A HREF="Body.html">MIME::Body::Scalar.</A>
+An alternative to Path (q.v.): the actual data, either as a scalar or an
+array reference (whose elements are joined together to make the actual
+scalar). The body is opened on the data using <A
+HREF="Body.html">MIME::Body::Scalar.</A>
 
 
 <P>
@@ -459,13 +478,18 @@ as per RFC-1521.  <EM>Do yourself a favor: put it in.</EM>
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="instance_methods">Instance methods</A></H3>
 <DL>
-<DT><STRONG><A NAME="item_add_part">add_part
+<DT><STRONG><A NAME="item_add_part_entity">add_part ENTITY
 
 </A></STRONG><DD>
 Assuming we are a multipart message, add a body part (a <A
 HREF="Entity.html">MIME::Entity)</A> to the array of body parts. Do <STRONG>not</STRONG>
  call this for single-part messages; i.e., don't call it unless the header
 has a <CODE>"multipart"</CODE> content-type.
+
+
+<P>
+
+Returns the part that was just added.
 
 
 <P>
@@ -636,14 +660,19 @@ attributes, you still have to go to the <EM>head</EM>
 
 </A></STRONG><DD>
 Return an array of all sub parts (each of which is a <A
-HREF="Entity.html">MIME::Entity),</A> or the empty array if there are none.  
+HREF="Entity.html">MIME::Entity),</A> or the empty array if there are none.
 
 
 <P>
 
 For single-part messages, the empty array will be returned. For multipart
 messages, the preamble and epilogue parts are <EM>not</EM>
- in the list! If you want them, use <CODE>all_parts()</CODE> instead.
+ in the list!
+
+
+<P>
+
+Note that in a scalar context, this returns you the number of parts.
 
 
 <P>
@@ -896,7 +925,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.5 $ $Date: 1996/10/28 18:35:39 $
+$Revision: 2.8 $ $Date: 1996/11/03 00:19:30 $
 
 
 <P>
