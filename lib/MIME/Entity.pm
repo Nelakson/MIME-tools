@@ -237,7 +237,7 @@ use IO::Wrap;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.116 $, 10;
+$VERSION = substr q$Revision: 4.117 $, 10;
 
 # Boundary counter:
 my $BCount = 0;
@@ -1522,6 +1522,10 @@ sub dump_skeleton {
     my $path = ($self->bodyhandle ? $self->bodyhandle->path : undef);
     print $fh $ind, "Body-file: ", ($path || 'NONE'), "\n";
 
+    # The recommended file name (thanks to Allen Campbell):
+    my $filename = $self->head->recommended_filename;
+    print $fh $ind, "Recommended-filename: ", $filename, "\n" if ($filename);
+
     # The subject (note: already a newline if 2.x!)
     my $subj = $self->head->get('subject',0);
     defined($subj) or $subj = '';
@@ -2043,7 +2047,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.116 $ $Date: 1999/02/09 03:32:37 $
+$Revision: 4.117 $ $Date: 1999/05/12 15:20:25 $
 
 =cut
 

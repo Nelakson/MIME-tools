@@ -13,7 +13,7 @@ use ExtUtils::TBone;
 
 # Is gzip available?  Quick and dirty test:
 my $has_gzip;
-foreach (split ':', $ENV{PATH}) {
+foreach (split $^O eq "MSWin32" ? ';' : ':', $ENV{PATH}) {
     last if ($has_gzip = -x "$_/gzip");
 }
 if ($has_gzip) {
@@ -47,13 +47,14 @@ foreach $e (@encodings) {
     $decoder or next;
  
     $T->msg("Encoding/decoding of $e");
-    my $infile  = "./testin/fun.txt";
-    my $encfile = "./testout/fun.en$eno";    
-    my $decfile = "./testout/fun.de$eno";    
+    my $infile  = $T->catfile('.', 'testin', 'fun.txt');
+    my $encfile = $T->catfile('.', 'testout', "fun.en$eno");
+    my $decfile = $T->catfile('.', 'testout', "fun.de$eno");
 
     # Encode:
-    open IN, "<$infile" or die "open $infile: $!";
-    open OUT, ">$encfile" or die "open $encfile: $!";
+    open IN, "<$infile" or die "open $infile: $!";    
+    open OUT, ">$encfile" or die "open $encfile: $!"; 
+    binmode IN; binmode OUT;	 
     $decoder->encode(\*IN, \*OUT) or next;
     close OUT;
     close IN;
@@ -61,6 +62,7 @@ foreach $e (@encodings) {
     # Decode:
     open IN, "<$encfile" or die "open $encfile: $!";
     open OUT, ">$decfile" or die "open $decfile: $!";
+    binmode IN; binmode OUT;
     $decoder->decode(\*IN, \*OUT) or next;
     close OUT;
     close IN;

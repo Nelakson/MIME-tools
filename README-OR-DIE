@@ -4,6 +4,16 @@ READ THIS FILE BEFORE YOU DO A "make install", OR YOU MIGHT
 END UP BEING EXTREMELY UNHAPPY!
 
 ------------------------------------------------------------
+INSTALLING ON WIN32:
+
+Because of unix/Win32 file differences, the test file fun.txt, used in
+the t\Decoder.t test, is different when the distribution is unpacked
+with the cygwin tar/gunzip tools compared to when Winzip is used
+(using the default options). The one created with Winzip is the one to
+use to pass the tests.
+
+
+------------------------------------------------------------
 MAJOR CHANGES FROM 3.0 TO 4.0:
 
    Temp files

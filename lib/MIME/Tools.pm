@@ -12,7 +12,7 @@ use vars qw($VERSION);
 sub config { shift; MIME::ToolUtils->config(@_) }
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.122 $, 10;
+$VERSION = substr q$Revision: 4.124 $, 10;
 
 #------------------------------
 1;
@@ -637,6 +637,13 @@ Support for S/MIME and message/partial?
 
 =over 4
 
+
+=item Version 4.123
+
+Cleaned up some of the tests for non-Unix OS'es.
+Will require a few iterations, no doubt.
+
+
 =item Version 4.122
 
 B<Resolved CORE::open warnings for 5.005.>
@@ -1109,7 +1116,7 @@ Released as MIME-tools (4.0): Christmas 1997.
 
 =head1 VERSION
 
-$Revision: 4.122 $ 
+$Revision: 4.124 $ 
 
 
 =head1 ACKNOWLEDGMENTS
@@ -1131,6 +1138,7 @@ Not to mention the Accidental Beta Test Team, whose bug reports (and
 comments) have been invaluable in improving the whole:
 
     Phil Abercrombie
+    Mike Blazer
     Brandon Browning
     Kurt Freytag
     Steve Kilbane
