@@ -37,7 +37,7 @@ by setting up the two commands which
 
 =head1 AUTHOR
 
-Copyright (c) 1996, 1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -45,7 +45,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.104 $ $Date: 1998/01/25 19:57:25 $
+$Revision: 4.105 $ $Date: 1999/02/09 03:32:49 $
 
 =cut
 
@@ -62,7 +62,7 @@ use IO::Wrap;
 @ISA = qw(MIME::Decoder::Base64);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.104 $, 10;
+$VERSION = substr q$Revision: 4.105 $, 10;
 
 # How to compress stdin to stdout:
 $GZIP   = "gzip -c";

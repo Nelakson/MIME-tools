@@ -111,7 +111,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.110 $, 10;
+$VERSION = substr q$Revision: 4.111 $, 10;
 
 # How to catenate:
 $CAT = '/bin/cat';
@@ -1085,7 +1085,7 @@ For reasons discussed in MIME::Entity, we can't just discard the
 
 =head1 AUTHOR
 
-Copyright (c) 1996, 1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -1094,7 +1094,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.110 $ $Date: 1998/05/14 02:00:42 $
+$Revision: 4.111 $ $Date: 1999/02/09 03:32:38 $
 
 =cut
 

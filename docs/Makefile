@@ -1,6 +1,6 @@
 TRACE = 
 
-P2CH   = perl -I${HOME}/dev/perl/podpeople/lib ${HOME}/bin/pod2coolhtml
+P2CH   = pod2coolhtml
 LIBPOD = README.pod
 
 all: pod readme

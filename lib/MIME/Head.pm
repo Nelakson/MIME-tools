@@ -133,7 +133,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.104 $, 10;
+$VERSION = substr q$Revision: 4.105 $, 10;
 
 # Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -862,7 +862,7 @@ multiple times... and the different occurences had to be retrievable.
 
 =head1 AUTHOR
 
-Copyright (c) 1996, 1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -873,7 +873,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 4.104 $ $Date: 1998/02/14 21:33:58 $
+$Revision: 4.105 $ $Date: 1999/02/09 03:32:37 $
 
 =cut
 

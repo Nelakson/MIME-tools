@@ -58,7 +58,7 @@ Exporter::export_ok_tags('config', 'msgs', 'utils');
 #------------------------------ 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.103 $, 10;
+$VERSION = substr q$Revision: 4.104 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -398,7 +398,7 @@ someday may not be the case again.
 
 =head1 AUTHOR
 
-Copyright (c) 1996, 1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -406,7 +406,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.103 $ $Date: 1998/05/01 19:52:15 $
+$Revision: 4.104 $ $Date: 1999/02/09 03:32:38 $
 
 I<Note: this file is used to set the version of the entire MIME-tools 
 distribution.>

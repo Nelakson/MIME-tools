@@ -84,7 +84,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.102 $, 10;
+$VERSION = substr q$Revision: 4.103 $, 10;
 
 # Count of fake filenames generated:
 my $G_output_path = 0;
@@ -488,7 +488,7 @@ the desired output directory (where extracted and decoded files are placed).
 
 =head1 AUTHOR
 
-Copyright (c) 1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -496,7 +496,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.102 $ $Date: 1997/12/14 03:04:10 $
+$Revision: 4.103 $ $Date: 1999/02/09 03:32:38 $
 
 =cut
 

@@ -86,7 +86,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.102 $, 10;
+$VERSION = substr q$Revision: 4.104 $, 10;
 
 # Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -186,7 +186,7 @@ sub decode_mimewords {
 
 	# Case 1: are we looking at "=?..?..?="?
 	if ($encstr =~    m{\G                # from where we left off..
-			    =\?([^?]+)        # "=?" + charset +
+			    =\?([^?]*)        # "=?" + charset +
 			     \?([bq])         #  "?" + encoding +
 			     \?([^?]+)        #  "?" + data maybe with spcs +
 			     \?=              #  "?="
@@ -316,7 +316,7 @@ MIME::Base64 and MIME::QuotedPrint.
 
 =head1 AUTHOR
 
-Copyright (c) 1997 by Eryq, F<eryq@zeegee.com>.
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -332,7 +332,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 4.102 $ $Date: 1998/06/03 04:11:47 $
+$Revision: 4.104 $ $Date: 1999/02/09 03:32:39 $
 
 =cut
 

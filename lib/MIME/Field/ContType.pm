@@ -63,7 +63,7 @@ use vars qw($VERSION @ISA);
 @ISA = qw(MIME::Field::ParamVal);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.101 $, 10;
+$VERSION = substr q$Revision: 4.102 $, 10;
 
 # Install it: 
 bless([])->register('Content-type');
@@ -192,7 +192,7 @@ parameter is missing).
 
 =head1 AUTHOR
 
-Eryq, eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 =cut
 

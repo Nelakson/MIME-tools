@@ -1,4 +1,0 @@
-
-Instead of instantiating Decoder classes on the fly, let
-the user provide a hash of INSTANTIATED decoders?  TO
-enable possibly-message-specific attributes to get in there???!!!!

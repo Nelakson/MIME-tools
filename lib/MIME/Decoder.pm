@@ -110,7 +110,7 @@ use IO::Wrap;
 );
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.106 $, 10;
+$VERSION = substr q$Revision: 4.107 $, 10;
 
 
 
@@ -598,7 +598,7 @@ see L<"MIME::Decoder::Binary"> for details.
 
 =head1 AUTHOR
 
-Copyright (c) 1996,1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -606,7 +606,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.106 $ $Date: 1998/01/25 19:56:59 $
+$Revision: 4.107 $ $Date: 1999/02/09 03:32:36 $
 
 =cut
 

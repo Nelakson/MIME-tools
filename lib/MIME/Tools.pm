@@ -12,7 +12,7 @@ use vars qw($VERSION);
 sub config { shift; MIME::ToolUtils->config(@_) }
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.121 $, 10;
+$VERSION = substr q$Revision: 4.122 $, 10;
 
 #------------------------------
 1;
@@ -591,9 +591,13 @@ Latin-2, or any other 8-bit alphabet).
 
 =head1 TERMS AND CONDITIONS
 
-Copyright (c) 1996, 1997 by Eryq.  All rights reserved.  This program is free
-software; you can redistribute it and/or modify it under the same terms as
-Perl itself.  See the COPYING file in the distribution for details.
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
+
+Copyright (c) 1998, 1999 by ZeeGee Software Inc (www.zeegee.com).
+
+All rights reserved.  This program is free software; you can redistribute 
+it and/or modify it under the same terms as Perl itself.  
+See the COPYING file in the distribution for details.
 
 
 
@@ -632,6 +636,12 @@ Support for S/MIME and message/partial?
 =head2 Current events
 
 =over 4
+
+=item Version 4.122
+
+B<Resolved CORE::open warnings for 5.005.>
+        I<Thanks to several folks for this bug report.>
+
 
 =item Version 4.121
 
@@ -1087,19 +1097,19 @@ Added COPYING file, and improved README.
 MIME-tools was created by:
 
     ___  _ _ _   _  ___ _     
-   / _ \| '_| | | |/ _ ' /    Eryq (President, Zero G Inc.)
-  |  __/| | | |_| | |_| |     http://www.zeegee.com/
-   \___||_|  \__, |\__, |__   eryq@zeegee.com
-             |___/    |___/
+   / _ \| '_| | | |/ _ ' /    Eryq, (eryq@zeegee.com)
+  |  __/| | | |_| | |_| |     President, ZeeGee Software Inc.
+   \___||_|  \__, |\__, |__   http://www.zeegee.com/
+             |___/    |___/   
 
-Release as MIME-parser (1.0): 28 April 1996.
-Release as MIME-tools (2.0): Halloween 1996.
-Release of 4.0: Christmas 1997. 
+Released as MIME-parser (1.0): 28 April 1996.
+Released as MIME-tools (2.0): Halloween 1996.
+Released as MIME-tools (4.0): Christmas 1997. 
 
 
 =head1 VERSION
 
-$Revision: 4.121 $ 
+$Revision: 4.122 $ 
 
 
 =head1 ACKNOWLEDGMENTS

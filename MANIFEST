@@ -1,5 +1,4 @@
 COPYING
-IDEAS
 MANIFEST
 Makefile.PL
 README
@@ -73,7 +72,9 @@ testin/encoded.hdr
 testin/first.hdr
 testin/fun.txt
 testin/german.msg
+testin/infinite.msg
 testin/intl.msg
+testin/jt-0498.msg
 testin/lennie.msg
 testin/mime-lg.b64
 testin/mime-sm.b64

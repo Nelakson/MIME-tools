@@ -38,7 +38,7 @@ specifies.
 
 =head1 AUTHOR
 
-Copyright (c) 1996 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -46,7 +46,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.104 $ $Date: 1998/01/10 04:24:44 $
+$Revision: 4.105 $ $Date: 1999/02/09 03:32:49 $
 
 =cut
 
@@ -57,7 +57,7 @@ use MIME::Base64 2.04;
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.104 $, 10;
+$VERSION = substr q$Revision: 4.105 $, 10;
 
 # How many bytes to encode at a time (must be a multiple of 3, and
 # less than (76 * 0.75)!

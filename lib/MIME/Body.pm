@@ -127,10 +127,14 @@ filehandle.
 
 # Pragmas:
 use strict;
+use vars qw($VERSION); 
 
 # System modules:
 use Carp;
 use IO::Scalar;
+
+# The package version, both in 1.23 style *and* usable by MakeMaker:
+$VERSION = substr q$Revision: 4.109 $, 10;
 
 
 #------------------------------
@@ -560,7 +564,7 @@ if the user application is processing more than one MIME entity at a time.
 
 =head1 AUTHOR
 
-Copyright (c) 1996, 1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -572,7 +576,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 4.107 $ $Date: 1998/01/10 07:27:24 $
+$Revision: 4.109 $ $Date: 1999/02/09 03:32:36 $
 
 =cut
 

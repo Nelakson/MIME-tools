@@ -28,7 +28,7 @@ from input to output.
 
 =head1 AUTHOR
 
-Copyright (c) 1996, 1997 by Eryq / eryq@zeegee.com
+Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -36,7 +36,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.102 $ $Date: 1998/01/10 04:24:45 $
+$Revision: 4.103 $ $Date: 1999/02/09 03:32:49 $
 
 =cut
 
@@ -46,7 +46,7 @@ use vars qw(@ISA $VERSION);
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.102 $, 10;
+$VERSION = substr q$Revision: 4.103 $, 10;
 
 
 #------------------------------
