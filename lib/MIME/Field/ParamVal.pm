@@ -62,7 +62,7 @@ use strict;
 use vars qw($VERSION @ISA);
 
 # System modules:
-use Carp;
+
 
 # Other modules:
 use Mail::Field;
@@ -80,7 +80,7 @@ use MIME::Tools qw(:config :msgs);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+$VERSION = substr q$Revision: 5.203 $, 10;
 
 
 #------------------------------

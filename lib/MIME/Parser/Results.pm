@@ -141,10 +141,23 @@ sub msg {
 #
 # level [+1|-1]
 #
+# Return current parsing level.
+#
 sub level {
     my ($self, $lvl) = @_;
     $self->{MPI_Level} += $lvl if @_ > 1;
     $self->{MPI_Level};
+}
+
+#------------------------------
+#
+# indent
+#
+# Return indent for current parsing level.
+#
+sub indent {
+    my ($self) = @_;
+    '   ' x $self->{MPI_Level};
 }
 
 =back
@@ -165,7 +178,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.208 $
+$Revision: 5.209 $
 
 
 

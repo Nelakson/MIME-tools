@@ -131,11 +131,11 @@ use strict;
 use vars qw($VERSION); 
 
 ### System modules:
-use Carp;
 use IO::Scalar;
+use Carp;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.203 $, 10;
+$VERSION = substr q$Revision: 5.204 $, 10;
 
 
 #------------------------------
@@ -211,6 +211,7 @@ sub as_string {
     return $str;
 }
 *data = \&as_string;         ### silenty invoke preferred usage
+
 
 #------------------------------
 
@@ -463,10 +464,10 @@ Uses B<IO::Scalar> as the I/O handle.
 use vars qw(@ISA);
 use strict;
 
-use Carp;
 require FileHandle;
 
 use IO::Scalar;
+use Carp;
 
 @ISA = qw(MIME::Body);
 
@@ -534,10 +535,10 @@ Uses B<IO::ScalarArray> as the I/O handle.
 use vars qw(@ISA);
 use strict;
 
-use Carp;
 require FileHandle;
 
 use IO::ScalarArray;
+use Carp;
 
 @ISA = qw(MIME::Body);
 
@@ -663,7 +664,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 5.203 $ $Date: 2000/06/10 06:38:02 $
+$Revision: 5.204 $ $Date: 2000/09/05 04:03:18 $
 
 =cut
 

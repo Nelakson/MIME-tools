@@ -108,7 +108,6 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 
 ### System modules:
-use Carp;
 use IO::Wrap;
 
 ### Other modules:
@@ -134,7 +133,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.203 $, 10;
+$VERSION = substr q$Revision: 5.204 $, 10;
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -875,7 +874,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 5.203 $ $Date: 2000/07/04 06:43:13 $
+$Revision: 5.204 $ $Date: 2000/09/05 04:03:19 $
 
 =cut
 

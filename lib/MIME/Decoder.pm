@@ -73,13 +73,12 @@ use vars qw($VERSION %DecoderFor);
 
 ### System modules:
 use FileHandle;
-use Carp;
 use IPC::Open2;
 
 ### Kit modules:
 use MIME::Tools qw(:config :msgs);
 use IO::Wrap;
-
+use Carp;
 
 #------------------------------
 #
@@ -110,7 +109,7 @@ use IO::Wrap;
 );
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+$VERSION = substr q$Revision: 5.203 $, 10;
 
 ### Me:
 my $ME = 'MIME::Decoder';
@@ -180,7 +179,7 @@ sub best {
     my ($class, $enc, @args) = @_;
     my $self = $class->new($enc, @args);
     if (!$self) {
-	carp "unsupported encoding '$enc': using 'binary'";
+	usage "unsupported encoding '$enc': using 'binary'";
 	$self = $class->new('binary') || croak "ack! no binary decoder!";
     }
     $self;
@@ -621,7 +620,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.202 $ $Date: 2000/06/05 13:37:53 $
+$Revision: 5.203 $ $Date: 2000/09/05 04:03:18 $
 
 =cut
 

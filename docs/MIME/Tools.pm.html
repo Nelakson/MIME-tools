@@ -13,10 +13,12 @@
 <LI> <A HREF="#A_QUICK_TOUR">A QUICK TOUR</A>
 <UL>
 <LI> <A HREF="#Overview_of_the_classes">Overview of the classes</A>
-<LI> <A HREF="#Parsing_in_a_nutshell">Parsing, in a nutshell</A>
-<LI> <A HREF="#Composing_in_a_nutshell">Composing, in a nutshell</A>
-<LI> <A HREF="#Encoding_decoding_in_a_nutshell">Encoding/decoding, in a nutshell</A>
-<LI> <A HREF="#Configuring_this_toolkit">Configuring this toolkit</A>
+<LI> <A HREF="#Parsing_messages">Parsing messages</A>
+<LI> <A HREF="#Composing_messages">Composing messages</A>
+<LI> <A HREF="#Sending_email">Sending email</A>
+<LI> <A HREF="#Encoding_decoding_support">Encoding/decoding support</A>
+<LI> <A HREF="#Message-logging">Message-logging</A>
+<LI> <A HREF="#Configuring_the_toolkit">Configuring the toolkit</A>
 <LI> <A HREF="#Good_advice">Good advice</A>
 </UL>
 <LI> <A HREF="#NOTES">NOTES</A>
@@ -105,6 +107,10 @@ three parts: a text file, an attached GIF, and some more text:
     $top-&gt;print(\*MAIL);
     close MAIL;
 </PRE></FONT>
+
+<P>For more examples, look at the scripts in the <B>examples</B> directory
+of the MIME-tools distribution.
+
 
 
 <P><HR>
@@ -246,7 +252,7 @@ each of which would have its own MIME::Head.  Like this:
 
 
 <P><HR>
-<A NAME="Parsing_in_a_nutshell"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Parsing, in a nutshell</H3></A>
+<A NAME="Parsing_messages"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Parsing messages</H3></A>
 
 
 <P>You usually start by creating an instance of <B>MIME::Parser</B>
@@ -291,7 +297,7 @@ MIME::Decoder by itself.
 
 
 <P><HR>
-<A NAME="Composing_in_a_nutshell"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Composing, in a nutshell</H3></A>
+<A NAME="Composing_messages"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Composing messages</H3></A>
 
 
 <P>All message composition is done via the <B>MIME::Entity</B> class.
@@ -323,7 +329,20 @@ sent <CODE>quoted-printable</CODE> for reliability.
 
 
 <P><HR>
-<A NAME="Encoding_decoding_in_a_nutshell"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Encoding/decoding, in a nutshell</H3></A>
+<A NAME="Sending_email"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Sending email</H3></A>
+
+
+<P>Since MIME::Entity inherits directly from Mail::Internet,
+you can use the normal Mail::Internet mechanisms to send
+email.  For example,
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $entity-&gt;smtpsend;
+</PRE></FONT>
+
+
+<P><HR>
+<A NAME="Encoding_decoding_support"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Encoding/decoding support</H3></A>
 
 
 <P>The <B>MIME::Decoder</B> class can be used to <I>encode</I> as well; this is done
@@ -351,7 +370,70 @@ to be asking for trouble... or at least, for Mail::Cap...
 
 
 <P><HR>
-<A NAME="Configuring_this_toolkit"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Configuring this toolkit</H3></A>
+<A NAME="Message-logging"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Message-logging</H3></A>
+
+
+<P>MIME-tools is a large and complex toolkit which tries to deal with 
+a wide variety of external input.  It's sometimes helpful to see
+what's really going on behind the scenes.
+There are several kinds of messages logged by the toolkit itself:
+
+
+
+<DL>
+<P><DT><B><A NAME="item:Debug_messages">Debug messages</A></B></DT>
+<DD>
+These are printed directly to the STDERR, with a prefix of
+<CODE>&quot;MIME-tools: debug&quot;</CODE>.  
+
+
+<P>Debug message are only logged if you have turned
+<A HREF="#item:debugging">debugging</A> on in the MIME::Tools configuration.
+
+<P><DT><B><A NAME="item:Warning_messages">Warning messages</A></B></DT>
+<DD>
+These are logged by the standard Perl warn() mechanism
+to indicate an unusual situation.  
+They all have a prefix of <CODE>&quot;MIME-tools: warning&quot;</CODE>.
+
+
+<P>Warning messages are only logged if <CODE>$^W</CODE> is set true 
+and MIME::Tools is not configured to be <A HREF="#item:quiet">quiet</A>.
+
+<P><DT><B><A NAME="item:Error_messages">Error messages</A></B></DT>
+<DD>
+These are logged by the standard Perl warn() mechanism
+to indicate that something actually failed.
+They all have a prefix of <CODE>&quot;MIME-tools: error&quot;</CODE>.
+
+
+<P>Error messages are only logged if <CODE>$^W</CODE> is set true 
+and MIME::Tools is not configured to be <A HREF="#item:quiet">quiet</A>.
+
+<P><DT><B><A NAME="item:Usage_messages">Usage messages</A></B></DT>
+<DD>
+Unlike &quot;typical&quot; warnings above, which warn about problems processing
+data, usage-warnings are for alerting developers of deprecated methods 
+and suspicious invocations.  
+
+
+<P>Usage messages are currently only logged if <CODE>$^W</CODE> is set true 
+and MIME::Tools is not configured to be <A HREF="#item:quiet">quiet</A>.
+
+</DL>
+
+
+<P>When a MIME::Parser (or one of its internal helper classes)
+wants to report a message, it generally does so by recording 
+the message to the <B>MIME::Parser::Results</B> object
+immediately before invoking the appropriate function above.
+That means each parsing run has its own trace-log which 
+can be examined for problems.
+
+
+
+<P><HR>
+<A NAME="Configuring_the_toolkit"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Configuring the toolkit</H3></A>
 
 
 <P>If you want to tweak the way this toolkit works (for example, to
@@ -362,21 +444,23 @@ turn on debugging), use the routines in the <B>MIME::Tools</B> module.
 <DL>
 <P><DT><B><A NAME="item:debugging">debugging</A></B></DT>
 <DD>
-Turn debugging on/off.  Default is off.
+Turn debugging on or off.  
+Default is false (off).
 
 <FONT SIZE=3 FACE="courier"><PRE>
      MIME::Tools-&gt;debugging(1);
 </PRE></FONT>
 <P><DT><B><A NAME="item:quiet">quiet</A></B></DT>
 <DD>
-Turn warnings on/off.  Default is quiet, meaning that warnings are silenced.
+Turn the reporting of warning/error messages on or off.  
+Default is true, meaning that these message are silenced.
 
 <FONT SIZE=3 FACE="courier"><PRE>
      MIME::Tools-&gt;quiet(1);
 </PRE></FONT>
 <P><DT><B><A NAME="item:version">version</A></B></DT>
 <DD>
-Return the toolkit version
+Return the toolkit version.
 
 <FONT SIZE=3 FACE="courier"><PRE>
      print MIME::Tools-&gt;version, &quot;\n&quot;;
@@ -729,7 +813,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.311 $
+<P>$Revision: 5.313 $
 
 
 
@@ -739,6 +823,36 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.313   (2000/09/05)</A></B></DT>
+<DD>
+<B>Fixed nasty bug with evil filenames.</B>
+Certain evil filenames were getting replaced by internally-generated
+filenames which were just as evil... ouch!  If your parser occasionally
+throws a fatal exception with a &quot;write-open&quot; error message, then
+you have this bug.
+<I>Thanks to Julian Field for delivering the evidence!</I> 
+
+<FONT SIZE=3 FACE="courier"><PRE>
+       Beware the doctor
+          who cures seasonal head cold
+       by killing patient
+</PRE></FONT>
+
+<P><B>Improved naming of extracted files.</B>
+If a filename is regarded as evil, we guess that it might just
+be because of part information, and attempt to find and use the
+final path element.  
+
+
+<P><B>Simplified message logging and made it more consistent.</B>
+For details, see <A HREF="#Message-logging">Message-logging</A>.
+
+<P><DT><B><A NAME="item:Version">Version 5.312   (2000/09/03)</A></B></DT>
+<DD>
+<B>Fixed a Perl 5.7 select() incompatibility</B> 
+which caused &quot;make test&quot; to fail.  
+<I>Thanks to Nick Ing-Simmons for the patch.</I>
+
 <P><DT><B><A NAME="item:Version">Version 5.311   (2000/08/16)</A></B></DT>
 <DD>
 <B>Blind fix for Win32 uudecoding bug.</B>
@@ -1651,7 +1765,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Wed Aug 16 00:51:06 2000 by cvu_pod2html
+Generated Tue Sep  5 00:05:05 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

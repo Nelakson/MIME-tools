@@ -243,7 +243,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.209 $, 10;
+$VERSION = substr q$Revision: 5.211 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -1551,7 +1551,7 @@ Currently unimplemented for MIME messages.  Does nothing, returns false.
 =cut
 
 sub tidy_body {
-    carp "MIME::Entity::tidy_body currently does nothing" if $^W;
+    usage "MIME::Entity::tidy_body currently does nothing";
     0;
 }
 
@@ -1697,9 +1697,12 @@ some sort of email handler, it's up to you to save this information.
 
 =cut
 
+use Symbol;
 sub print {
     my ($self, $out) = @_;
-    $out = wraphandle($out || select);             ### get a printable output
+    $out = select if @_ < 2;
+    $out = Symbol::qualify($out,scalar(caller)) unless ref($out);
+    $out = wraphandle($out);             ### get a printable output
     
     $self->print_header($out);   ### the header
     $out->print("\n");
@@ -2187,7 +2190,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.209 $ $Date: 2000/07/20 06:25:47 $
+$Revision: 5.211 $ $Date: 2000/09/05 04:03:18 $
 
 =cut
 

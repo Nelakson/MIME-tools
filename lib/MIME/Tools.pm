@@ -6,7 +6,8 @@ package MIME::Tools;
 #------------------------------
 
 use strict;
-use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION $ME));
+use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION $ME
+	     $M_DEBUG $M_WARNING $M_ERROR));
 
 require Exporter;
 use FileHandle;
@@ -19,14 +20,15 @@ $ME = "MIME-tools";
 
 # Exporting (importing should only be done by modules in this toolkit!):
 %EXPORT_TAGS = (
-    'config' => [qw(%CONFIG)],
-    'msgs'   => [qw(usage debug whine error)],
-    'utils'  => [qw(benchmark catfile shellquote textual_type tmpopen )],
+    'config'  => [qw(%CONFIG)],
+    'msgs'    => [qw(usage debug whine error)],
+    'msgtypes'=> [qw($M_DEBUG $M_WARNING $M_ERROR)],		
+    'utils'   => [qw(benchmark catfile shellquote textual_type tmpopen )],
     );
-Exporter::export_ok_tags('config', 'msgs', 'utils');
+Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.311 $, 10;
+$VERSION = substr q$Revision: 5.313 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -36,8 +38,11 @@ $VERSION = substr q$Revision: 5.311 $, 10;
      QUIET           => 1,
      );
 
-# Was this whine given?
-my %AlreadySaid;
+# Message-logging constants:
+$M_DEBUG   = 'debug';
+$M_WARNING = 'warning';
+$M_ERROR   = 'error';
+
 
 
 #------------------------------
@@ -85,22 +90,23 @@ sub version {
 #
 # debug MESSAGE...
 #
-# Private: output a debug message.
+# Function, private.
+# Output a debug message.
 #
 sub debug {
-    print STDERR "DEBUG: ", @_, "\n"      if $CONFIG{DEBUGGING};
+    print STDERR "$ME: $M_DEBUG: ", @_, "\n"      if $CONFIG{DEBUGGING};
 }
 
 #------------------------------
 #
 # whine MESSAGE...
 #
-# Private: issue a whine, but only if $^W (-w) is true, and
-# we're not being QUIET.
+# Function, private.
+# Something doesn't look right: issue a warning.
+# Only output if $^W (-w) is true, and we're not being QUIET.
 #
 sub whine {
-    my ( $p,  $f,  $l,  $s) = caller(1);
-    my $msg = "$ME: warning: ".join('', @_)."\n";
+    my $msg = "$ME: $M_WARNING: ".join('', @_)."\n";
     warn $msg if ($^W && !$CONFIG{QUIET});
     return (wantarray ? () : undef);
 }
@@ -109,11 +115,14 @@ sub whine {
 #
 # error MESSAGE...
 #
-# Private: something failed; register general unhappiness.
+# Function, private.
+# Something failed, but not so badly that we want to throw an
+# exception.  Just report our general unhappiness.
+# Only output if $^W (-w) is true, and we're not being QUIET.
 #
 sub error {
-    my $msg = "$ME: error: ".join('', @_)."\n";
-    warn $msg if $^W;
+    my $msg = "$ME: $M_ERROR: ".join('', @_)."\n";
+    warn $msg if ($^W && !$CONFIG{QUIET});
     return (wantarray ? () : undef);
 }
 
@@ -121,15 +130,15 @@ sub error {
 #
 # usage MESSAGE...
 #
-# Register unhappiness about usage (once per).
+# Register unhappiness about usage.
 #
 sub usage {
     my ( $p,  $f,  $l,  $s) = caller(1);
     my ($cp, $cf, $cl, $cs) = caller(2);
     my $msg = join('', (($s =~ /::/) ? "$s() " : "${p}::$s() "), @_, "\n");
     my $loc = ($cf ? "\tin code called from $cf l.$cl" : '');
-    warn "$msg$loc\n" if ($^W && !$CONFIG{QUIET} && !$AlreadySaid{$msg});
-    $AlreadySaid{$msg} = 1;
+
+    warn "$msg$loc\n" if ($^W && !$CONFIG{QUIET});
     return (wantarray ? () : undef);
 }
 
@@ -275,6 +284,10 @@ three parts: a text file, an attached GIF, and some more text:
     close MAIL;
 
 
+For more examples, look at the scripts in the B<examples> directory
+of the MIME-tools distribution.
+
+
 
 =head1 DESCRIPTION
 
@@ -403,7 +416,7 @@ each of which would have its own MIME::Head.  Like this:
 
 
 
-=head2 Parsing, in a nutshell
+=head2 Parsing messages
 
 You usually start by creating an instance of B<MIME::Parser>
 and setting up certain parsing parameters: what directory to save
@@ -443,7 +456,7 @@ to try out new/experiment encodings.  You can also use
 MIME::Decoder by itself.
 
 
-=head2 Composing, in a nutshell
+=head2 Composing messages
 
 All message composition is done via the B<MIME::Entity> class.
 For single-part messages, you can use the B<MIME::Entity/build>
@@ -469,7 +482,17 @@ See the section on encoding/decoding for more details, as well as
 L<"A MIME PRIMER">.
 
 
-=head2 Encoding/decoding, in a nutshell
+=head2 Sending email
+
+Since MIME::Entity inherits directly from Mail::Internet,
+you can use the normal Mail::Internet mechanisms to send
+email.  For example,
+
+    $entity->smtpsend;
+
+
+
+=head2 Encoding/decoding support
 
 The B<MIME::Decoder> class can be used to I<encode> as well; this is done
 when printing MIME entities.  All the standard encodings are supported
@@ -499,7 +522,65 @@ can be automatically inferred from the file's path, but that seems
 to be asking for trouble... or at least, for Mail::Cap...
 
 
-=head2 Configuring this toolkit
+
+=head2 Message-logging
+
+MIME-tools is a large and complex toolkit which tries to deal with 
+a wide variety of external input.  It's sometimes helpful to see
+what's really going on behind the scenes.
+There are several kinds of messages logged by the toolkit itself:
+
+=over 4
+
+=item Debug messages
+
+These are printed directly to the STDERR, with a prefix of
+C<"MIME-tools: debug">.  
+
+Debug message are only logged if you have turned
+L</debugging> on in the MIME::Tools configuration.
+
+
+=item Warning messages
+
+These are logged by the standard Perl warn() mechanism
+to indicate an unusual situation.  
+They all have a prefix of C<"MIME-tools: warning">.
+
+Warning messages are only logged if C<$^W> is set true 
+and MIME::Tools is not configured to be L</quiet>.
+
+
+=item Error messages
+
+These are logged by the standard Perl warn() mechanism
+to indicate that something actually failed.
+They all have a prefix of C<"MIME-tools: error">.
+
+Error messages are only logged if C<$^W> is set true 
+and MIME::Tools is not configured to be L</quiet>.
+
+
+=item Usage messages
+
+Unlike "typical" warnings above, which warn about problems processing
+data, usage-warnings are for alerting developers of deprecated methods 
+and suspicious invocations.  
+
+Usage messages are currently only logged if C<$^W> is set true 
+and MIME::Tools is not configured to be L</quiet>.
+
+=back
+
+When a MIME::Parser (or one of its internal helper classes)
+wants to report a message, it generally does so by recording 
+the message to the B<MIME::Parser::Results> object
+immediately before invoking the appropriate function above.
+That means each parsing run has its own trace-log which 
+can be examined for problems.
+
+
+=head2 Configuring the toolkit
 
 If you want to tweak the way this toolkit works (for example, to
 turn on debugging), use the routines in the B<MIME::Tools> module.
@@ -508,19 +589,23 @@ turn on debugging), use the routines in the B<MIME::Tools> module.
 
 =item debugging
 
-Turn debugging on/off.  Default is off.
+Turn debugging on or off.  
+Default is false (off).
 
      MIME::Tools->debugging(1);
 
+
 =item quiet
 
-Turn warnings on/off.  Default is quiet, meaning that warnings are silenced.
+Turn the reporting of warning/error messages on or off.  
+Default is true, meaning that these message are silenced.
 
      MIME::Tools->quiet(1);
 
+
 =item version
 
-Return the toolkit version
+Return the toolkit version.
 
      print MIME::Tools->version, "\n";
 
@@ -849,12 +934,41 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.311 $
+$Revision: 5.313 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.313   (2000/09/05)
+
+B<Fixed nasty bug with evil filenames.>
+Certain evil filenames were getting replaced by internally-generated
+filenames which were just as evil... ouch!  If your parser occasionally
+throws a fatal exception with a "write-open" error message, then
+you have this bug.
+I<Thanks to Julian Field for delivering the evidence!> 
+
+       Beware the doctor
+          who cures seasonal head cold
+       by killing patient
+
+B<Improved naming of extracted files.>
+If a filename is regarded as evil, we guess that it might just
+be because of part information, and attempt to find and use the
+final path element.  
+
+B<Simplified message logging and made it more consistent.>
+For details, see L<"Message-logging">.
+
+
+=item Version 5.312   (2000/09/03)
+
+B<Fixed a Perl 5.7 select() incompatibility> 
+which caused "make test" to fail.  
+I<Thanks to Nick Ing-Simmons for the patch.>
+
 
 =item Version 5.311   (2000/08/16)
 

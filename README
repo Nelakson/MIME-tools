@@ -44,6 +44,9 @@ SYNOPSIS
         $top->print(\*MAIL);
         close MAIL;
 
+    For more examples, look at the scripts in the examples directory of the
+    MIME-tools distribution.
+
 DESCRIPTION
     MIME-tools is a collection of Perl5 MIME:: modules for parsing,
     decoding, *and generating* single- or multipart (even nested multipart)
@@ -148,7 +151,7 @@ A QUICK TOUR
                       `--------' Content-disposition: inline;
                                    filename="hs.gif"
 
-  Parsing, in a nutshell
+  Parsing messages
 
     You usually start by creating an instance of MIME::Parser and setting up
     certain parsing parameters: what directory to save extracted files to,
@@ -177,7 +180,7 @@ A QUICK TOUR
     instances can decode them. You can add to this mapping to try out
     new/experiment encodings. You can also use MIME::Decoder by itself.
 
-  Composing, in a nutshell
+  Composing messages
 
     All message composition is done via the MIME::Entity class. For single-
     part messages, you can use the MIME::Entity/build constructor to create
@@ -201,7 +204,14 @@ A QUICK TOUR
     See the section on encoding/decoding for more details, as well as the
     section on "A MIME PRIMER".
 
-  Encoding/decoding, in a nutshell
+  Sending email
+
+    Since MIME::Entity inherits directly from Mail::Internet, you can use
+    the normal Mail::Internet mechanisms to send email. For example,
+
+        $entity->smtpsend;
+
+  Encoding/decoding support
 
     The MIME::Decoder class can be used to *encode* as well; this is done
     when printing MIME entities. All the standard encodings are supported
@@ -230,24 +240,70 @@ A QUICK TOUR
     automatically inferred from the file's path, but that seems to be asking
     for trouble... or at least, for Mail::Cap...
 
-  Configuring this toolkit
+  Message-logging
+
+    MIME-tools is a large and complex toolkit which tries to deal with a
+    wide variety of external input. It's sometimes helpful to see what's
+    really going on behind the scenes. There are several kinds of messages
+    logged by the toolkit itself:
+
+    Debug messages
+        These are printed directly to the STDERR, with a prefix of `"MIME-
+        tools: debug"'.
+
+        Debug message are only logged if you have turned the debugging entry
+        elsewhere in this document on in the MIME::Tools configuration.
+
+    Warning messages
+        These are logged by the standard Perl warn() mechanism to indicate
+        an unusual situation. They all have a prefix of `"MIME-tools:
+        warning"'.
+
+        Warning messages are only logged if `$^W' is set true and
+        MIME::Tools is not configured to be the quiet entry elsewhere in
+        this document .
+
+    Error messages
+        These are logged by the standard Perl warn() mechanism to indicate
+        that something actually failed. They all have a prefix of `"MIME-
+        tools: error"'.
+
+        Error messages are only logged if `$^W' is set true and MIME::Tools
+        is not configured to be the quiet entry elsewhere in this document .
+
+    Usage messages
+        Unlike "typical" warnings above, which warn about problems
+        processing data, usage-warnings are for alerting developers of
+        deprecated methods and suspicious invocations.
+
+        Usage messages are currently only logged if `$^W' is set true and
+        MIME::Tools is not configured to be the quiet entry elsewhere in
+        this document .
+
+    When a MIME::Parser (or one of its internal helper classes) wants to
+    report a message, it generally does so by recording the message to the
+    MIME::Parser::Results object immediately before invoking the appropriate
+    function above. That means each parsing run has its own trace-log which
+    can be examined for problems.
+
+  Configuring the toolkit
 
     If you want to tweak the way this toolkit works (for example, to turn on
     debugging), use the routines in the MIME::Tools module.
 
     debugging
-        Turn debugging on/off. Default is off.
+        Turn debugging on or off. Default is false (off).
 
              MIME::Tools->debugging(1);
 
     quiet
-        Turn warnings on/off. Default is quiet, meaning that warnings are
-        silenced.
+        Turn the reporting of warning/error messages on or off. Default is
+        true, meaning that these message are silenced.
 
              MIME::Tools->quiet(1);
 
     version
-        Return the toolkit version
+        Return the toolkit version.
 
              print MIME::Tools->version, "\n";
 
@@ -478,9 +534,31 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.311 $
+    $Revision: 5.313 $
 
 CHANGE LOG
+    Version 5.313   (2000/09/05)
+        Fixed nasty bug with evil filenames. Certain evil filenames were
+        getting replaced by internally-generated filenames which were just
+        as evil... ouch! If your parser occasionally throws a fatal
+        exception with a "write-open" error message, then you have this bug.
+        *Thanks to Julian Field for delivering the evidence!*
+
+               Beware the doctor
+                  who cures seasonal head cold
+               by killing patient
+
+        Improved naming of extracted files. If a filename is regarded as
+        evil, we guess that it might just be because of part information,
+        and attempt to find and use the final path element.
+
+        Simplified message logging and made it more consistent. For details,
+        see the section on "Message-logging".
+
+    Version 5.312   (2000/09/03)
+        Fixed a Perl 5.7 select() incompatibility which caused "make test"
+        to fail. *Thanks to Nick Ing-Simmons for the patch.*
+
     Version 5.311   (2000/08/16)
         Blind fix for Win32 uudecoding bug. A missing binmode seems to be
         the culprit here; let's see if this fixes it. *Thanks to ajos1 for

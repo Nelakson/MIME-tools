@@ -120,7 +120,6 @@ use vars (qw($VERSION $CAT $CRLF $BM));
 
 ### Built-in modules:
 use FileHandle ();
-use Carp;
 use IO::Wrap;
 use IO::Scalar       1.117;
 use IO::ScalarArray  1.114;
@@ -130,9 +129,10 @@ use IO::InnerFile;
 use File::Spec;
 use File::Path;
 use Config qw(%Config);
+use Carp;
 
 ### Kit modules:
-use MIME::Tools qw(:config :utils);
+use MIME::Tools qw(:config :utils :msgtypes usage);
 use MIME::Head;
 use MIME::Body;
 use MIME::Entity;
@@ -171,7 +171,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.218 $, 10;
+$VERSION = substr q$Revision: 5.219 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -356,7 +356,7 @@ sub extract_nested_messages {
 }
 
 sub parse_nested_messages {
-    carp "$ME: parse_nested_messages() is now extract_nested_messages()\n";
+    usage "parse_nested_messages() is now extract_nested_messages()";
     shift->extract_nested_messages(@_);
 }
 
@@ -414,19 +414,13 @@ sub ignore_errors {
 
 #------------------------------
 #
-# error PROBLEM...
+# debug MESSAGE...
 #
-# Possibly-forgivable parse error occurred.
-# Normally raise a fatal exception; might just warn and continue.
-#
-sub error {
+sub debug {
     my $self = shift;
-    $self->results->msg('error', @_);     ### record it
-    if ($self->{MP5_IgnoreErrors}) {
-	&MIME::Tools::whine("error: ", @_);   ### say it
-	return undef;
-    }
-    die @_;
+    unshift @_, $self->results->indent;
+    $self->results->msg($M_DEBUG, @_);     ### record it
+    MIME::Tools::debug(@_);               ### say it
 }
 
 #------------------------------
@@ -435,20 +429,26 @@ sub error {
 #
 sub whine {
     my $self = shift;
-    $self->results->msg('warning', @_);   ### record it
+    unshift @_, $self->results->indent;
+    $self->results->msg($M_WARNING, @_);   ### record it
     &MIME::Tools::whine(@_);              ### say it
 }
 
 #------------------------------
 #
-# debug MESSAGE...
+# error PROBLEM...
 #
-sub debug {
+# Possibly-forgivable parse error occurred.
+# Raises a fatal exception unless we are ignoring errors.
+#
+sub error {
     my $self = shift;
-    unshift @_, ('   ' x $self->results->level);
-    $self->results->msg('debug', @_);     ### record it
-    MIME::Tools::debug(@_);               ### say it
+    unshift @_, $self->results->indent;
+    $self->results->msg($M_ERROR, @_);     ### record it
+    &MIME::Tools::error(@_);              ### say it
+    $self->{MP5_IgnoreErrors} ? return undef : die @_;
 }
+
 
 
 
@@ -468,7 +468,7 @@ sub process_preamble {
     my ($self, $in, $rdr, $ent) = @_;
 
     ### Sanity:
-    ($rdr->depth > 0) or die "internal logic error";
+    ($rdr->depth > 0) or die "$ME: internal logic error";
     
     ### Parse preamble:
     my @saved;
@@ -1053,7 +1053,7 @@ sub parse_open {
 
 ### Backcompat:
 sub parse_in { 
-    carp "$ME: parse_in() is now parse_open()\n"; 
+    usage "parse_in() is now parse_open()"; 
     shift->parse_open(@_); 
 }
 
@@ -1083,7 +1083,7 @@ sub parse_two {
     my ($self, $headfile, $bodyfile) = @_;
     my @lines;
     foreach ($headfile, $bodyfile) {
-	open IN, "<$_" or die "open $_: $!";
+	open IN, "<$_" or die "$ME: open $_: $!";
 	push @lines, <IN>;
 	close IN;
     }
@@ -1493,7 +1493,7 @@ sub new_tmpfile {
 	    truncate($io, 0);
 	}
 	else {                                 ### Return a new one:
-	    $io = IO::File->new_tmpfile || die "can't open tmpfile: $!\n";
+	    $io = IO::File->new_tmpfile || die "$ME: can't open tmpfile: $!\n";
 	    binmode($io);
 	}
     }
@@ -1841,7 +1841,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.218 $ $Date: 2000/08/16 04:49:54 $
+$Revision: 5.219 $ $Date: 2000/09/05 04:03:20 $
 
 =cut
 

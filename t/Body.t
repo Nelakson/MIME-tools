@@ -13,11 +13,13 @@ config MIME::Tools DEBUGGING=>0;
 
 # Create checker:
 my $T = typical ExtUtils::TBone;
-$T->begin(18);
+$T->begin(2 * 9);
 
 # Check bodies:
 my $sbody = new MIME::Body::Scalar;
+my $ibody = new MIME::Body::InCore;
 my $fbody = new MIME::Body::File "./testout/fbody";
+
 my $buf;
 my @lines;
 my $line;

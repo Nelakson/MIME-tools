@@ -84,7 +84,7 @@ This is the abstract superclass of all "filer" objects.
 use strict;
 
 ### Kit modules:
-use MIME::Tools qw();
+use MIME::Tools qw(:msgtypes);
 use File::Spec;
 
 ### Output path uniquifiers:
@@ -227,16 +227,28 @@ parser to avoid circular reference!
 
 sub results {
     my ($self, $results) = @_;
-    $self->{MPF_Results} = $results;
+    $self->{MPF_Results} = $results if (@_ > 1);
+    $self->{MPF_Results};
 }
 
+### Log debug messages:
 sub debug {
     my $self = shift;
-    $self->{MPF_Results}->msg('debug', @_) if $self->{MPF_Results};
+    if ($self->{MPF_Results}) {
+	unshift @_, $self->{MPF_Results}->indent;
+	$self->{MPF_Results}->msg($M_DEBUG, @_);
+    }
+    MIME::Tools::debug(@_);
 }
+
+### Log warning messages:
 sub whine {
     my $self = shift;
-    $self->{MPF_Results}->msg('warning', @_) if $self->{MPF_Results};
+    if ($self->{MPF_Results}) {
+	unshift @_, $self->{MPF_Results}->indent;
+	$self->{MPF_Results}->msg($M_WARNING, @_);
+    }
+    MIME::Tools::whine(@_);
 }
 
 #------------------------------
@@ -284,9 +296,12 @@ eye of the beholder.>
 sub evil_filename {
     my ($self, $name) = @_;
 
+    $self->debug("is this evil? '$name'");
+
     return 1 if (!defined($name) or ($name eq ''));   ### empty
     return 1 if ($name =~ m{^\.+\Z});         ### dots
     return 1 if ($name =~ tr{\\/:[]}{});      ### path characters
+    $self->debug("it's ok");
     0;
 }
 
@@ -350,7 +365,9 @@ sub output_filename {
 
     ### Get content type:
     my ($type, $subtype) = split m{/}, $head->mime_type; $subtype ||= '';
-    my $recommended_ext = (($recommended and ($recommended =~ m{(.[^\.]+)\Z}))
+
+    ### Get recommended extension, being quite conservative:
+    my $recommended_ext = (($recommended and ($recommended =~ m{(\.\w+)\Z}))
 			   ? $1 
 			   : undef);
 
@@ -476,13 +493,25 @@ sub output_path {
 	$fname = $self->output_filename($head);
     }
     elsif ($self->ignore_filename) {
+	$self->debug("ignoring all external filenames: synthesizing our own");
 	$fname = $self->output_filename($head);
     }
     elsif ($self->evil_filename($fname)) {
-	$self->whine("Provided filename '$fname' is regarded as evil by\n",
-		     "this parser... I'm ignoring it and supplying my own.");
-	$fname = $self->output_filename($head);
+
+	### Can we save it by just taking the last element?
+	my $last = $fname; $last =~ s{^.*[/\\\[\]:]}{};
+	if ($last and !$self->evil_filename($last)) {
+	    $self->whine("Provided filename '$fname' is regarded as evil, ",
+			 "but it looks like I can use the last path element.");
+	    $fname = $last;
+	}
+	else {
+	    $self->whine("Provided filename '$fname' is regarded as evil; ",
+			 "I'm ignoring it and supplying my own.");
+	    $fname = $self->output_filename($head);
+	}
     }
+    $self->debug("planning to use '$fname'");
 
     ### Resolve collisions and return final path:
     return $self->find_unused_path($dir, $fname);
@@ -521,11 +550,13 @@ sub find_unused_path {
     my ($self, $dir, $fname) = @_;
     my $i = 0;
     while (1) {
+
+	### Create suffixed name (from filename), and see if we can use it:
 	my $suffix = ($i ? "-$i" : "");
 	my $sname = $fname; $sname =~ s/^(.*?)(\.|\Z)/$1$suffix$2/;
 	my $path = File::Spec->catfile($dir, $sname);
-	if (! -e $path) {
-	    $self->whine("collision with $sname in $dir: using $path");
+	if (! -e $path) {   ### it's good!
+	    $i and $self->whine("collision with $fname in $dir: using $path");
 	    return $path;
 	}
 	$self->debug("$path already taken");
@@ -712,5 +743,5 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.7 $
+$Revision: 5.8 $
 
