@@ -1,0 +1,9 @@
+Entity tree should always be valid for output.
+
+Allow ability to "rewrite" MIME when it is created; e.g.,
+to take a message and produce a different MIME tree from it
+as a replacement.
+
+	$parser->rewrite($entity);
+
+

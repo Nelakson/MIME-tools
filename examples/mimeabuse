@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl -w
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ destructed automatically when it exited scope.  :-(
 
 =head1 AUTHOR
 
-Eryq
+Eryq, eryq@zeegee.com
 
 =cut
 
@@ -50,3 +50,4 @@ foreach $input (
 }
 
 print "Who-hooo! Done!\n";
+

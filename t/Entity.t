@@ -1,6 +1,5 @@
-BEGIN { 
-    push(@INC, "./blib/lib", "./etc", "./t");
-}
+use lib "./blib/lib", "./t";
+
 use MIME::Entity;
 use MIME::Parser;
 use Checker;
@@ -23,8 +22,10 @@ my $gif_this;
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
-print "1..13\n";
 
+# Create checker:
+my $T = new Checker "./testout/Entity.tlog";
+$T->begin(17);
 
 #------------------------------------------------------------
 note "Create an entity";
@@ -33,15 +34,17 @@ note "Create an entity";
 # Create the top-level, and set up the mail headers in a couple
 # of different ways:
 $top = build MIME::Entity Type  => "multipart/mixed",
-	                     -From => "me\@myhost.com",
-	                     -To   => "you\@yourhost.com";
+	                  -From => "me\@myhost.com",
+	                  -To   => "you\@yourhost.com";
 $top->head->add('subject', "Hello, nurse!");
+$top->preamble([]);
+$top->epilogue([]);
 
 # Attachment #0: a simple text document: 
 attach $top  Path=>"./testin/short.txt";
 
 # Attachment #1: a GIF file:
-attach $top  Path        => "./docs/mime-sm.gif",
+attach $top  Path        => "./testin/mime-sm.gif",
              Type        => "image/gif",
              Encoding    => "base64",
 	     Disposition => "attachment";
@@ -66,8 +69,17 @@ $top->add_part($attach);
 $LINE = "This is the first and last line, with no CR at the end.";
 $attach = attach $top Data=>$LINE;
 
-check("here", "built a message");
+$T->test("here", 
+	 "built a message");
 unlink <testout/entity.msg*>;
+
+#------------------------------------------------------------
+note "Check body";
+#------------------------------------------------------------
+my $bodylines = $top->parts(0)->body;
+$T->test($bodylines > 0, "old-style body call ok");
+my $preamble_len = length(join '', @{$top->preamble || []});
+my $epilogue_len = length(join '', @{$top->epilogue || []});
 
 #------------------------------------------------------------
 note "Output msg1 to explicit filehandle glob";
@@ -75,7 +87,7 @@ note "Output msg1 to explicit filehandle glob";
 open TMP, ">testout/entity.msg1" or die "open: $!";
 $top->print(\*TMP);
 close TMP;
-check((-s "testout/entity.msg1"), "wrote msg1 to filehandle glob");
+$T->test((-s "testout/entity.msg1"), "wrote msg1 to filehandle glob");
 
 #------------------------------------------------------------
 note "Output msg2 to selected filehandle";
@@ -85,13 +97,13 @@ $oldfh = select TMP;
 $top->print;
 select $oldfh;
 close TMP;
-check((-s "testout/entity.msg2"), "write msg2 to selected filehandle");
+$T->test((-s "testout/entity.msg2"), "write msg2 to selected filehandle");
 
 #------------------------------------------------------------
 note "Compare";
 #------------------------------------------------------------
 # Same?
-check(((-s "testout/entity.msg1") == (-s "testout/entity.msg2")),
+$T->test(((-s "testout/entity.msg1") == (-s "testout/entity.msg2")),
 	"message files are same length");
 
 #------------------------------------------------------------
@@ -101,22 +113,29 @@ $parser = new MIME::Parser;
 $parser->output_dir("testout");
 open IN, "./testout/entity.msg1" or die "open: $!";
 $top = $parser->read(\*IN);
-check($top, "parsed msg1 back in");
+$T->test($top, "parsed msg1 back in");
+
+my $preamble_len2 = length(join '', @{$top->preamble || []});
+my $epilogue_len2 = length(join '', @{$top->epilogue || []});
+$T->test(($preamble_len == $preamble_len2), 
+	"preambles match ($preamble_len == $preamble_len2)");
+$T->test(($epilogue_len == $epilogue_len2), 
+	"epilogues match ($epilogue_len == $epilogue_len2)");
 
 #------------------------------------------------------------
 note "Check the number of parts";
 #------------------------------------------------------------
-check(($top->parts == 4), "number of parts is correct (4)");
+$T->test(($top->parts == 4), "number of parts is correct (4)");
 
 #------------------------------------------------------------
 note "Check attachment 1 [the GIF]";
 #------------------------------------------------------------
-$gif_real = (-s "./docs/mime-sm.gif");
+$gif_real = (-s "./testin/mime-sm.gif");
 $gif_this = (-s "./testout/mime-sm.gif");
-check(($gif_real == $gif_this),
+$T->test(($gif_real == $gif_this),
 	"GIF is right size (real = $gif_real, this = $gif_this)");
 $part = ($top->parts)[1];
-check(($part->head->mime_type eq 'image/gif'), 
+$T->test(($part->head->mime_type eq 'image/gif'), 
 	"GIF has correct MIME type");
 
 #------------------------------------------------------------
@@ -126,11 +145,11 @@ $part = ($top->parts)[3];
 $io = $part->bodyhandle->open("r");
 $line = ($io->getline);
 $io->close;
-check(($line eq $LINE), 
+$T->test(($line eq $LINE), 
 	"getline gets correct value (IO = $io, <$line>, <$LINE>)");
-check(($part->head->mime_type eq 'text/plain'), 
+$T->test(($part->head->mime_type eq 'text/plain'), 
 	"MIME type okay");
-check(($part->head->mime_encoding eq '7bit'),
+$T->test(($part->head->mime_encoding eq '7bit'),
 	"MIME encoding okay");
 
 #------------------------------------------------------------
@@ -139,8 +158,20 @@ note "Write it out, and compare";
 open TMP, ">testout/entity.msg3" or die "open: $!";
 $top->print(\*TMP);
 close TMP;
-check(((-s "testout/entity.msg2") == (-s "testout/entity.msg3")),
+$T->test(((-s "testout/entity.msg2") == (-s "testout/entity.msg3")),
 	"msg2 same size as msg3");
+
+#------------------------------------------------------------
+note "Duplicate";
+#------------------------------------------------------------
+my $dup = $top->dup;
+open TMP, ">testout/entity.dup3" or die "open: $!";
+$dup->print(\*TMP);
+close TMP;
+my $msg3_s = -s "testout/entity.msg3";
+my $dup3_s = -s "testout/entity.dup3";
+$T->test(($msg3_s == $dup3_s),
+	"msg3 size ($msg3_s) is same as dup3 size ($dup3_s)");
 
 #------------------------------------------------------------
 note "Test signing";
@@ -163,7 +194,7 @@ close TMP;
 note "Purge the files";
 #------------------------------------------------------------
 $top->purge;
-check((! -e "./testout/mime-sm.gif"), "purge worked");
+$T->test((! -e "./testout/mime-sm.gif"), "purge worked");
 
 # Done!
 exit(0);

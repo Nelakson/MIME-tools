@@ -1,14 +1,15 @@
-BEGIN { 
-    push(@INC, "./blib/lib", "./etc", "./t");
-}
-use MIME::ToolUtils;
+use lib "./blib/lib", "./t";
+use MIME::Tools;
+
 use Checker;
+use Globby;
+
 use strict;
-config MIME::ToolUtils DEBUGGING=>0;
+config MIME::Tools DEBUGGING=>0;
 
 use MIME::Parser;
 
-# Set the counter:
+# Set the counter, for filenames:
 my $Counter = 0;
 
 # Messages we know about:
@@ -94,17 +95,17 @@ sub check_entity {
     my $t_type = ($info->{Type} || 'text/plain');
     my $t_enc  = ($info->{Enc}  || '7bit');
 
-    check($ent => "$name parsed");
-    check((($type = $ent->head->mime_type || '') eq $t_type) =>
+    check($ent, "$name parsed");
+    check((($type = $ent->head->mime_type || '') eq $t_type),
 	  "$name: verified type $t_type?")
 	if $ent;
-    check((($enc = $ent->head->mime_encoding || '') eq $t_enc) =>
+    check((($enc = $ent->head->mime_encoding || '') eq $t_enc),
 	  "$name: verified encoding $t_enc?")
 	if $ent;
-    check((-s "testout/$info->{File}") =>
+    check((-s "testout/$info->{File}"),
 	  "$name: nonzero output file $info->{File}?")
 	if ($ent and $info->{File});
-    check(((-s "testout/$info->{File}") == $info->{Size}) =>
+    check(((-s "testout/$info->{File}") == $info->{Size}),
 	  "$name: got expected size of $info->{Size}?")
 	if ($ent and $info->{Size});
 
@@ -124,7 +125,7 @@ sub simple_output_path {
 
     # Get the recommended filename:
     my $filename = $head->recommended_filename;
-    if (defined($filename) && MIME::Parser::evil_name($filename)) {
+    if (defined($filename) && $parser->evil_filename($filename)) {
 	note "Parser.t: ignoring an evil recommended filename ($filename)";
 	$filename = undef;      # forget it: it was evil
     }
@@ -141,13 +142,16 @@ sub simple_output_path {
 # Check and clear the output directory:
 my $DIR = "./testout";
 ((-d $DIR) && (-w $DIR)) or die "no output directory $DIR";
-unlink <$DIR/[a-z]*>;
+unlink globby("$DIR/[a-z]*");
 
 
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
-print "1..61\n";
+
+# Create checker:
+my $T = new Checker "./testout/Parser.tlog";
+$T->begin(61);
 
 my $parser;
 my $entity;
@@ -172,26 +176,27 @@ note "Read a nested multipart MIME message";
 #------------------------------------------------------------
 open IN, "./testin/multi-nested.msg" or die "open: $!";
 $entity = $parser->read(\*IN);
-check($entity => "parse of nested multipart");
+check($entity, "parse of nested multipart");
 
 #------------------------------------------------------------
 note "Check the various output files";
 #------------------------------------------------------------
-check((-s "$DIR/3d-vise.gif" == 419) => "vise gif");
-check((-s "$DIR/3d-eye.gif" == 357)  => "3d-eye gif");
+check((-s "$DIR/3d-vise.gif" == 419), "vise gif");
+check((-s "$DIR/3d-eye.gif" == 357) , "3d-eye gif");
 for $msgno (1..4) {
-    check((-s "$DIR/message-$msgno.dat") => "message $msgno");
+    check((-s "$DIR/message-$msgno.dat"), "message $msgno");
 }
 
 #------------------------------------------------------------
 note "Same message, but CRLF-terminated and no output path hook";
 #------------------------------------------------------------
 $parser = new MIME::Parser;
+{ local $^W = undef;
 $parser->output_dir($DIR);
 open IN, "./testin/multi-nested2.msg" or die "open: $!";
 $entity = $parser->read(\*IN);
-check($entity => "parse of CRLF-terminated message");
-
+check($entity, "parse of CRLF-terminated message");
+}
 
 #------------------------------------------------------------
 note "Read a simple in-core MIME message, three ways";
@@ -209,7 +214,7 @@ my $data_test;
 $parser->output_to_core('ALL');
 foreach $data_test ($data_scalar, $data_scalarref, $data_arrayref) {
     $entity = $parser->parse_data($data_test);
-    check(($entity and $entity->head->mime_type eq 'text/html') =>
+    check(($entity and $entity->head->mime_type eq 'text/html') ,
 	((ref($data_test)||'NO') . "-REF"));
 }
 $parser->output_to_core('NONE');
@@ -219,10 +224,12 @@ $parser->output_to_core('NONE');
 note "Simple message, in two parts";
 #------------------------------------------------------------
 $entity = $parser->parse_two("./testin/simple.msgh", "./testin/simple.msgb");
-check($entity => "parse of 2-part simple message");
+my $es = ($entity ? $entity->head->get('subject',0) : '');
+check(($es =~ /^Request for Leave$/),
+      "parse of 2-part simple message (subj <$es>)");
 
 #------------------------------------------------------------
-# Check various messages
+note "Check various messages";
 #------------------------------------------------------------
 $parser = new MIME::Parser;
 $parser->output_dir($DIR);
@@ -244,3 +251,5 @@ foreach $message (sort keys %MESSAGES) {
 # Done!
 exit(0);
 1;
+
+

@@ -40,7 +40,7 @@ None yet.
 
 =head1 AUTHOR
 
-Eryq C<eryq@rhine.gsfc.nasa.gov>, in a big hurry...
+Eryq C<eryq@zeegee.com>, in a big hurry...
 
 =cut
 
@@ -103,6 +103,7 @@ sub main {
 
 	# Create a new parser object:
 	my $parser = new MIME::Parser;
+	### $parser->parse_nested_messages('REPLACE');
     
 	# Optional: set up parameters that will affect how it extracts 
 	#   documents from the input stream:
@@ -116,6 +117,7 @@ sub main {
 
 	# Congratulations: you now have a (possibly multipart) MIME entity!
 	dump_entity($entity) if $entity;
+	### $entity->dump_skeleton if $entity;
     }
     1;
 }

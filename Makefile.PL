@@ -1,18 +1,24 @@
 #!/usr/bin/perl
 use ExtUtils::MakeMaker;
 WriteMakefile(
-      NAME         => "MIME",
-      VERSION_FROM => "MIME/ToolUtils.pm",
-      DISTNAME     => "MIME-tools",
+      NAME         => "MIME-tools",
+      VERSION_FROM => "lib/MIME/Tools.pm",
       PREREQ_PM    => {"Mail::Header"      => 1.01,
 		       "Mail::Internet"    => 1.0203,
-		       "MIME::QuotedPrint" => 1.05,
-		       "MIME::Base64"      => 1.03
+		       "Mail::Field"       => 1.05,
+		       "MIME::QuotedPrint" => 2.03,
+		       "MIME::Base64"      => 2.04,
+		       "IO::Scalar"        => 1.104,
+		       "IO::ScalarArray"   => 1.105,
 		       },
       'dist'       => {
-	  PREOP        =>'(cd docs ; make )',
+	  PREOP        => q{(cd docs ; make)},
 	  COMPRESS     =>'gzip',
 	  SUFFIX       =>'gz',	      
       },
 );
+
+
+
+
 

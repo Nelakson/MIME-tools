@@ -21,11 +21,12 @@ Eryq perverted the hell out of it.
 
 use MIME::Parser;
 
-
-#------------------------------------------------------------
-# dump_entity - idempotent routine for dumping an entity
-#------------------------------------------------------------
-
+#------------------------------
+#
+# dump_entity ENTITY, NAME
+#
+# Recursive routine for dumping an entity.
+#
 sub dump_entity {
     my ($entity, $name) = @_;
     defined($name) or $name = "'anonymous'";
@@ -69,10 +70,10 @@ sub dump_entity {
     1;
 }
 
-#------------------------------------------------------------
+#------------------------------
+#
 # main
-#------------------------------------------------------------
-
+#
 sub main {
     
     # Create a new MIME parser:
@@ -89,10 +90,9 @@ sub main {
     # Dump it out:
     dump_entity($entity);
 }
-
 exit(&main ? 0 : -1);
 
-#------------------------------------------------------------
+#------------------------------
 1;
 
 

@@ -1,14 +1,51 @@
-1. FileHandle::tmpfile is emulated
+*IMPORTANT* *IMPORTANT* *IMPORTANT* *IMPORTANT* *IMPORTANT* 
 
-	A bug was discovered in FileHandle::tmpfile that affects
-	5.002 and 5.003 at least: it causes a descriptor leak.
-	A new tmpfile routine is used in this package, but it has
-	not been tested outside of Linux.  You can control this emulation
-	in your code: see MIME::ToolUtils for details.
+READ THIS FILE BEFORE YOU DO A "make install", OR YOU MIGHT
+END UP BEING EXTREMELY UNHAPPY!
 
-2. Major changes between 1.0 and 2.0:
+------------------------------------------------------------
+MAJOR CHANGES FROM 3.0 TO 4.0:
 
-	As of MIME-parser 2.0...
+   Temp files
+	FileHandle::tmpfile is no longer emulated if you have Perl5.004,
+	which has fixed the tmpfile() problem; you should (especially
+	if running under Win32) get Perl5.004 ASAP.  Otherwise, the
+        fairly-portable (if ugly) opendup() emulation is hardcoded.
+
+   Module structure
+        MIME::Latin1 is deprecated.
+     
+        MIME::IO is deprecated; its functionality has been replaced 
+        by the IO::Scalar, IO::ScalarArray, and IO::Wrap modules.
+	You will need these to run the toolkit.
+
+	New encodings x-uuencode (x-uu) and x-gzip64 
+	are now supported.
+
+        MIME::Decoder has been split into a tree of modules.
+   
+   Encodings
+        The '7bit' encoder now *strips out* 8-bit characters by default;
+        it does not use the deprecated MIME::Latin1.
+	
+	The 'quoted-printable' decoder now uses the newest MIME::QuotedPrint,
+	and amends its output with guideline #8 from RFC2049 (From/.).
+
+   Output
+        Output format is slightly-different (but more sensible)
+        if you use parse_nested_messages() or have singlepart entities
+        with parts attached.  
+	See MIME::Entity::print for details.
+
+   Debugging
+        All toolkit warnings may be turned off with config 'QUIET'.
+        See MIME::ToolUtils for details.
+
+------------------------------------------------------------
+MAJOR CHANGES FROM 1.0 TO 2.0:
+
+   Module structure
+	As of MIME-tools 2.0...
 
 		MIME::Head is a subclass of Mail::Header
 		MIME::Entity is a subclass of Mail::Internet
@@ -18,11 +55,8 @@
 	constructs in your code... much your stuff should (hopefully) 
 	still work... you'll just see a lot of warnings.  
 
-	HOWEVER...
-
 	There are some true incompatibilities between MIME::Head 1.0 and 
 	Mail::Header.  Please read the full documentation before proceeding!
 
-	If you desperately need to upgrade, you can emulate the old version's
-	behavior.  See the MIME::ToolUtils package for details.
+
 

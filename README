@@ -2,55 +2,8 @@ NAME
     MIME-tools - modules for parsing (and creating!) MIME entities
 
 SYNOPSIS
-    Here's some pretty basic code for parsing a MIME message, and outputting
-    its decoded components to a given directory:
-
-        use MIME::Parser;
-
-        # Create parser, and set the output directory:
-        my $parser = new MIME::Parser;
-        $parser->output_dir("$ENV{HOME}/mimemail");
-
-        # Parse input:
-        $entity = $parser->read(\*STDIN) or die "couldn't parse MIME stream";
-
-        # Take a look at the top-level entity (and any parts it has):
-        $entity->dump_skeleton; 
-
-
-    Here's some code which composes and sends a MIME message containing
-    three parts: a text file, an attached GIF, and some more text:
-
-        use MIME::Entity;
-
-        # Create the top-level, and set up the mail headers:
-        $top = build MIME::Entity Type   =>"multipart/mixed",
-                                  -From    => "me\@myhost.com",
-    	                      -To      => "you\@yourhost.com",
-                                  -Subject => "Hello, nurse!";
-
-        # Attachment #1: a simple text document: 
-        attach $top  Path=>"./testin/short.txt";
-
-        # Attachment #2: a GIF file:
-        attach $top  Path        => "./docs/mime-sm.gif",
-                     Type        => "image/gif",
-                     Encoding    => "base64";
-
-        # Attachment #3: some literal text:
-        attach $top  Data=>$message;
-
-        # Send it:
-        open MAIL, "| /usr/lib/sendmail -t -i" or die "open: $!";
-        $top->print(\*MAIL);
-        close MAIL;
-
-
-DESCRIPTION
-    MIME-tools is a collection of Perl5 MIME:: modules for parsing,
-    decoding, *and generating* single- or multipart (even nested multipart)
-    MIME messages. (Yes, kids, that means you can send messages with
-    attached GIF files).
+    For coding examples, see the MIME::Tools module. This manpage is for
+    installers.
 
 CONTENTS
   Modules in this toolkit
@@ -63,94 +16,79 @@ CONTENTS
         ::Entity     bdpO   An extracted and decoded MIME entity         ERYQ
         ::Field::*   bdpO   Mail::Field subclasses for parsing fields    ERYQ
         ::Head       bdpO   A parsed MIME header (Mail::Header subclass) ERYQ
-        ::IO         adpO   Simple I/O handles for filehandles/scalars   ERYQ
-        ::Latin1     adpO   Encoding 8-bit Latin-1 as 7-bit ASCII        ERYQ
         ::Parser     bdpO   Parses streams to create MIME entities       ERYQ
         ::ParserBase bdpO   For building your own MIME parser            ERYQ
-        ::ToolUtils  adpO   For tweaking the MIME-tools library          ERYQ
-
+        ::ToolUtils  bdpO   Utilities for the MIME-tools kit             ERYQ
+        ::Tools      bdpO   For configuring the MIME-tools library       ERYQ
+        ::Words      bdpO   Decode encoded words in MIME headers         ERYQ
+        
+        ::IO         ****   DEPRECATED; now done via IO:: modules        ERYQ
+        ::Latin1     ****   DEPRECATED; may be moved to Text::           ERYQ
 
   Programs in this toolkit
 
-        mimedump    - dump out a summary of the contents of a MIME message
-        mimeexplode - parse/decode a MIME message into its component files
-        mimesend    - send a message with attachments from the command line
+        mimeabuse   - try hard to break MIME parsing
+        mimedump    - dump out summary of the contents of a parsed MIME message
+        mimeencode  - encode a file
+        mimeexplode - explode one or more MIME messages
+        mimeprint   - parse a MIME stream, and print the parsed entity
+        mimesend    - send files via MIME mail, from the command line
+        mimetour    - tour the possible encodings
 
+  Layout of the distribution
+
+        ./lib/MIME/         the MIME-tools classes
+        ./Makefile.PL       the input to MakeMaker
+        ./COPYING           terms and conditions for copying/using the software
+        ./README            this file
+        ./docs/             HTMLized documentation
+        ./etc/              convenient copies of other modules you may need
+        ./examples          sample executables
+        ./t/*.t             the "make test" scripts
+        ./testin/           files you can use for testing (as in "make test")
+        ./testout/          the output of "make test"
 
 REQUIREMENTS
-    You'll need Perl5.002 or better.
+    You'll need Perl5.002 or better, but you *should* get 5.004 as soon as
+    possible... sorry, but it's the first release I know of with a non-broken
+    FileHandle->new_tmpfile method. It's extremely worth upgrading to if you're
+    using MIME-tools.
 
-    You'll need to obtain and install the following kits from the CPAN:
+    You'll also need to obtain and install the following kits from the CPAN:
 
-    MIME::(QuotedPrint, Base64)
-        These perform the low-level MIME decoding. Get these from Gisle Aas'
-        author directory. They are also reported to be in the LWP
-        distribution.
+    IO-stringy
+        This provides us with filehandle-like interfaces to scalars, and the
+        ability to "wrap" foreign filehandles.
 
-    MailTools (1.06 or higher)
-        This is Graham Barr's revamped set of Mail:: modules. Many of them
-        are now superclasses of the MIME:: modules, and perform the core
+    MIME-Base64 (2.04 or higher)
+        This kit contains MIME::Base64 and MIME::QuotedPrint, which perform the
+        low-level MIME decoding. Get these from Gisle Aas' author directory.
+        They are also reported to be in the LWP distribution.
+
+    MailTools (1.09 or higher)
+        This is Graham Barr's revamped set of Mail:: modules. Many of them are
+        now superclasses of the MIME:: modules, and perform the core
         functionality of manipulating headers and fields.
-
 
     For your convenience, possibly-old copies of the MIME:: modules are
     provided in the ./etc directory, of the distribution, but they are NOT
     installed for you during the installation procedure.
 
-CHANGES
-  Version 3.204
-
-    Bug in MIME::Head::original_text fixed. Well, it took a while, but
-    another bug surfaced from my transition from 1.x to 2.x. This method
-    was, quite idiotically, sorting the header fields. *Thanks, as usual, to
-    Andreas Koenig for spotting this one.*
-
-    MIME::ParserBase no longer defaults to RFC-1522-decoding headers. The
-    documentation correctly stated that the default setting was to *not*
-    RFC-1522-decode the headers. The code, on the other hand, was init'ing
-    this parser option in the "on" position. This has been fixed.
-
-    MIME::ParserBase::parse_nested_messages reexamined. If you use this
-    feature, please re-read the documentation. It explains a little more
-    precisely what the ramifications are.
-
-    MIME::Entity tries harder to ensure MIME compliance. It is now a fatal
-    error to use certain bad combinations of content type and encoding when
-    "building", or to attempt to "attach" to anything that is not a
-    multipart document. My apologies if this inconveniences anyone, but it
-    was just too darn easy before for folks to create bad MIME, and gosh
-    darn it, good libraries should at least *try* to protect you from
-    mistakes.
-
-    The "make" now halts if you don't have the right stuff, provided your
-    MakeMaker supports PREREQ_PM. See the the section on "REQUIREMENTS"
-    section for what you need to install this package. I still provide old
-    courtesy copies of the MIME:: decoding modules. *Thanks to Hugo van der
-    Sanden for suggesting this.*
-
-    The "make test" is far less chatty. Okay, okay, STDERR is evil. Now a
-    `"make test"' will just give you the important stuff: do a `"make test
-    TEST_VERBOSE=1"' if you want the gory details (advisable if sending me a
-    bug report). *Thanks to Andreas Koenig for suggesting this.*
-
-SUPPORT
-    Please email me directly with questions/problems (see AUTHOR below).
-
-    If you want to be placed on an email distribution list (not a mailing
-    list!) for MIME-tools, and receive bug reports, patches, and updates as
-    to when new MIME-tools releases are planned, just email me and say so.
-    If your project is using MIME-tools, it might not be a bad idea to find
-    out about those bugs *before* they become problems...
-
 AUTHOR
     MIME-tools was created by:
 
         ___  _ _ _   _  ___ _     
-       / _ \| '_| | | |/ _ ' /    Eryq
-      |  __/| | | |_| | |_| |     http://www.mcs.net/~eryq
-       \___||_|  \__, |\__, |__   eryq@enteract.com
-                 |___/    |___/   eryq@rhine.gsfc.nasa.gov 
+       / _ \| '_| | | |/ _ ' /    Eryq (President, Zero G Inc.)
+      |  __/| | | |_| | |_| |     http://www.zeegee.com/
+       \___||_|  \__, |\__, |__   eryq@zeegee.com
+                 |___/    |___/
 
+    For full credits, see the MIME::Tools module.
 
-    Initial release (1.0): 28 April 1996. Re-release (2.0): Halloween 1996.
+CHANGES
+  Version 4.110
+
+    Added make_multipart() and make_singlepart() in MIME::Entity.
+
+    Improved handling/saving of preamble/epilogue.
 

@@ -1,27 +1,45 @@
-BEGIN { 
-    push(@INC, "./blib/lib", "./etc", "./t");
-}
-use MIME::ToolUtils;
-# config MIME::ToolUtils DEBUGGING=>1;
-use Checker;
+use lib "./blib/lib", "./t";
+
+use MIME::Tools;
 use MIME::Decoder;
+config MIME::Tools QUIET=>1;
+
+# config MIME::Tools DEBUGGING=>1;
+use Checker;
 
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
-print "1..5\n";
 
-#------------------------------------------------------------
-note "Encode and decode...";
-#------------------------------------------------------------
-my @encodings = qw(base64 quoted-printable 7bit 8bit binary);
+# Is gzip available?  Quick and dirty test:
+my $has_gzip = which('gzip');
+
+# Get list of encodings we think we provide:
+my @encodings = ('base64',
+		 'quoted-printable',
+		 '7bit',
+		 '8bit',
+		 'binary',
+		 ($has_gzip ? 'x-gzip64' : ()),
+		 'x-uuencode');
+
+# Create checker:
+my $T = new Checker "./testout/Decoder.tlog";
+$T->begin(scalar(@encodings));
+
+# Report what tests we may be skipping:
+$T->msg($has_gzip 
+	? "Using gzip: $has_gzip"
+	: "No gzip: skipping x-gzip64 test");
+
+# Test each encoding in turn:
 my ($e, $eno) = (undef, 0);
 foreach $e (@encodings) {
     ++$eno;
     my $decoder = new MIME::Decoder $e;
     $decoder or next;
-
-    note "encoding/decoding of $e";
+ 
+    $T->msg("Encoding/decoding of $e");
     my $infile  = "./testin/fun.txt";
     my $encfile = "./testout/fun.en$eno";    
     my $decfile = "./testout/fun.de$eno";    
@@ -41,17 +59,20 @@ foreach $e (@encodings) {
     close IN;
 
     # Can we compare?
-    if ($e =~ /^(base64|quoted-printable|binary)$/i) {
-	okay_if((-s $infile) == (-s $decfile));
+    if ($e =~ /^(base64|quoted-printable|binary|x-gzip64|x-uuencode)$/i) {
+	$T->test(((-s $infile) == (-s $decfile)),
+		  "size of $infile == size of $decfile");
     }
     else {
-	okay_if('here');
+	$T->test_ok;
     }
 }
 
 # Done!
+$T->end;
 exit(0);
 1;
+
 
 
 
