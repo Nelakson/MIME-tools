@@ -80,7 +80,7 @@ use MIME::Tools qw(:config :msgs);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.203 $, 10;
+$VERSION = substr q$Revision: 5.403 $, 10;
 
 
 #------------------------------
@@ -101,6 +101,9 @@ my $FIRST    = '[^\s\;\x00-\x1f\x80-\xff]+';
 #
 my $TSPECIAL = '()<>@,;:\</[]?="';
 my $TOKEN    = '[^ \x00-\x1f\x80-\xff' . "\Q$TSPECIAL\E" . ']+';
+
+# Encoded token:
+my $ENCTOKEN = "=\\?[^?]*\\?[A-Za-z]\\?[^?]+\\?=";
 
 # Pattern to match spaces or comments:
 my $SPCZ     = '(?:\s|\([^\)]*\))*';
@@ -194,12 +197,13 @@ sub parse_params {
     # Extract subsequent parameters.
     # No, we can't just "split" on semicolons: they're legal in quoted strings!
     while (1) {                     # keep chopping away until done...
-	$raw =~ m/$SPCZ\;$SPCZ/og or last;             # skip leading separator
-	$raw =~ m/($PARAMNAME)\s*=\s*/og or last;      # give up if not a param
+	$raw =~ m/\G$SPCZ\;$SPCZ/og or last;             # skip leading separator
+	$raw =~ m/\G($PARAMNAME)\s*=\s*/og or last;      # give up if not a param
 	$param = lc($1);
-	$raw =~ m/(\"([^\"]+)\")|($TOKEN)/g or last;   # give up if no value
-	$params{$param} = defined($1) ? $2 : $3;
-	# debug "   field param <$param> = <$params{$param}>";
+	$raw =~ m/\G(\"([^\"]+)\")|\G($TOKEN)|\G($ENCTOKEN)/g or last;   # give up if no value
+	my ($qstr, $str, $token, $enctoken) = ($1, $2, $3, $4);
+	$params{$param} = defined($qstr) ? $str : (defined($token) ? $token : $enctoken);
+	debug "   field param <$param> = <$params{$param}>";
     }
 
     # Done:

@@ -314,7 +314,7 @@ THINGS YOU SHOULD DO
     scripts in there are basically just tossed-together, but they'll give
     you some ideas of how to use the parser.
 
-  Run with -w
+  Run with `-w'
 
     If you see a warning about a deprecated method, change your code ASAP.
     This will ease upgrades tremendously.
@@ -359,6 +359,33 @@ THINGS YOU SHOULD DO
     If you're using MIME::Tools to process email, remember to save the data
     you parse if you want to send it on unchanged. This is vital for things
     like PGP-signed email.
+
+  Understand how international characters are represented
+
+    The MIME standard allows for text strings in headers to contain
+    characters from any character set, by using special sequences which look
+    like this:
+
+        =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?=
+
+    To be consistent with the existing Mail::Field classes, MIME::Tools does
+    *not* automatically unencode these strings, since doing so would lose
+    the character-set information (unless the strings were unencoded to
+    something like Unicode) and interfere with the parsing of fields (see
+    the "decode_headers" entry in the MIME::Parser manpage for a full
+    explanation).
+
+    That means you should be prepared to deal with these encoded sequences.
+    If you just want the unencode them into their byte representation, you
+    can use the functions in MIME::Words (see the MIME::Words manpage). The
+    simplest way is by using `unmime()', as follows:
+
+        use MIME::Words qw(unmime);
+        ...
+        $subject = unmime $entity->head->get('subject');
+
+    One place this *is* done automatically is in extracting the recommended
+    filename for a part while parsing.
 
 THINGS I DO THAT YOU SHOULD KNOW ABOUT
   Fuzzing of CRLF and newline on input
@@ -615,9 +642,23 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.316 $
+    $Revision: 5.404 $
 
 CHANGE LOG
+    Version 5.404   (2000/11/04)
+        Added new automatic MIME-decoding of recommended filenames.
+        Hopefully this will do more good than harm. The use of
+        MIME::Parser::decode_headers() and MIME::Head::decode() has been
+        deprecated in favor of the new MIME::Words "unmime" mechanism.
+        Please see the "unmime" entry in the MIME::Words manpage.
+
+        Added tolerance for unquoted =?...?= in param values. This is in
+        violation of the RFCs, but then, so are some MUAs. *Thanks to desti
+        for bringing this to my attention.*
+
+        Fixed supposedly-bad B-encoding. *Thanks to Otto Frost for bringing
+        this to my attention.*
+
     Version 5.316   (2000/09/21)
         Increased tolerance in MIME::Parser. Now will ignore bogus POP3
         "+OK" line before header, as well as bogus mailbox "From " line
@@ -1340,7 +1381,7 @@ ACKNOWLEDGMENTS
     me, and I'll put you in.
 
 SEE ALSO
-    At the time of this writing ($Date: 2000/09/21 06:02:17 $), the MIME-
+    At the time of this writing ($Date: 2000/11/05 18:05:31 $), the MIME-
     tools homepage was http://www.zeegee.com/code/perl/MIME-tools. Check
     there for updates and support.
 

@@ -119,7 +119,7 @@ Go on, do it now.  I'll wait.
     ### Get rid of internal newlines in fields:
     $head-&gt;unfold;
     
-    ### Decode any Q- or B-encoded-text in fields:
+    ### Decode any Q- or B-encoded-text in fields (DEPRECATED):
     $head-&gt;decode;
      
 </PRE></FONT>
@@ -287,16 +287,33 @@ tells you whether a given field exists:
 This method returns some false value if the field doesn't exist,
 and some true value if it does.
 
-<P><DT><B><A NAME="item:decode">decode</A></B></DT>
+<P><DT><B><A NAME="item:decode">decode [FORCE]</A></B></DT>
 <DD>
-<I>Instance method.</I>
+<I>Instance method, DEPRECATED.</I>
 Go through all the header fields, looking for RFC-1522-style &quot;Q&quot;
 (quoted-printable, sort of) or &quot;B&quot; (base64) encoding, and decode them
 in-place.  Fellow Americans, you probably don't know what the hell I'm
 talking about.  Europeans, Russians, et al, you probably do.  <CODE>:-)</CODE>. 
 
 
-<P>For example, here's a valid header you might get:
+<P><B>This method has been deprecated.</B>
+See <A HREF="../MIME/Parser.pm.html#item:decode_headers">decode_headers</A> for the full reasons.
+If you absolutely must use it and don't like the warning, then
+provide a FORCE:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+   &quot;I_NEED_TO_FIX_THIS&quot;
+          Just shut up and do it.  Not recommended.
+          Provided only for those who need to keep old scripts functioning.
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
+   &quot;I_KNOW_WHAT_I_AM_DOING&quot;
+          Just shut up and do it.  Not recommended.
+          Provided for those who REALLY know what they are doing.
+</PRE></FONT>
+
+<P><B>What this method does.</B>
+For an example, let's consider a valid email header you might get:
 
 <FONT SIZE=3 FACE="courier"><PRE>
     From: =?US-ASCII?Q?Keith_Moore?= &lt;moore@cs.utk.edu&gt;
@@ -321,7 +338,7 @@ Latin characters with 7 bit sequences /o and 'e):
 character set: thus, the Q-encoding <CODE>=F8</CODE> is simply translated to the
 octet (hexadecimal <CODE>F8</CODE>), period.  For piece-by-piece decoding
 of a given field, you want the array context of 
-<A HREF="../MIME/Word/decode_mimewords().pm.html">MIME::Word::decode_mimewords()</A>.
+<CODE>MIME::Word::decode_mimewords()</CODE>.
 
 
 <P><B>Warning:</B> the CRLF+SPACE separator that splits up long encoded words 
@@ -681,11 +698,11 @@ Lee E. Brotzman, Advanced Data Solutions.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.205 $ $Date: 2000/09/21 05:54:14 $
+<P>$Revision: 5.403 $ $Date: 2000/11/04 19:54:46 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Sep 21 02:06:28 2000 by cvu_pod2html
+Generated Sun Nov  5 13:06:42 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

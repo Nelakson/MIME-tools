@@ -84,6 +84,7 @@ lib/MIME/Parser/Reader.pm
 lib/MIME/Parser/Results.pm
 lib/MIME/Tools.pm
 lib/MIME/Words.pm
+patch
 t/Body.t
 t/Decoder.t
 t/Entity.t
@@ -184,6 +185,8 @@ testmsgs/multi-weirdspace.msg
 testmsgs/multi-weirdspace.ref
 testmsgs/re-fwd.msg
 testmsgs/re-fwd.ref
+testmsgs/russian.msg
+testmsgs/russian.ref
 testmsgs/simple.msg
 testmsgs/simple.ref
 testmsgs/uu-junk-extracted.ref

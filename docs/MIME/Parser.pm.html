@@ -230,15 +230,61 @@ is called, to reset the parser to a &quot;ready&quot; state.
 <P><DT><B><A NAME="item:decode_headers">decode_headers [YESNO]</A></B></DT>
 <DD>
 <I>Instance method.</I>
-Controls whether the parser will attempt to decode the MIME headers
-(as per RFC-1522) the moment it sees them.  This will probably be of
-most use to those of you who expect some international mail,
-especially mail from individuals with 8-bit characters in their names.
+Controls whether the parser will attempt to decode all the MIME headers
+(as per RFC-1522) the moment it sees them.  <B>This is not advisable
+for two very important reasons:</B>
 
 
-<P>If YESNO is true, decoding is done.
-If YESNO is false (the default), no attempt at decoding will be done.
+
+<UL>
+<P><LI>
+<P><B>It screws up the extraction of information from MIME fields.</B>
+If you fully decode the headers into bytes, you can inadvertently 
+transform a parseable MIME header like this:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    Content-type: text/plain; filename=&quot;=?ISO-8859-1?Q?Hi=22Ho?=&quot; 
+</PRE></FONT>
+
+<P>into unparseable gobbledygook; in this case:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    Content-type: text/plain; filename=&quot;Hi&quot;Ho&quot;
+</PRE></FONT>
+<P><LI>
+<P><B>It is information-lossy.</B>  An encoded string which contains
+both Latin-1 and Cyrillic characters will be turned into a binary
+mishmosh which simply can't be rendered.
+
+</UL>
+
+
+<P><B>History.</B>
+This method was once the only out-of-the-box way to deal with attachments
+whose filenames had non-ASCII characters.  However, since MIME-tools 5.4xx 
+this is no longer necessary.
+
+
+<P><B>Parameters.</B>
+If YESNO is true, decoding is done.  However, you will get a warning 
+unless you use one of the special &quot;true&quot; values:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+   &quot;I_NEED_TO_FIX_THIS&quot;
+          Just shut up and do it.  Not recommended.
+          Provided only for those who need to keep old scripts functioning.
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
+   &quot;I_KNOW_WHAT_I_AM_DOING&quot;
+          Just shut up and do it.  Not recommended.
+          Provided for those who REALLY know what they are doing.
+</PRE></FONT>
+
+<P>If YESNO is false (the default), no attempt at decoding will be done.
 With no argument, just returns the current setting.
+<B>Remember:</B> you can always decode the headers <I>after</I> the parsing
+has completed (see <A HREF="../MIME/Head.pm.html#item:decode">MIME::Head::decode()</A>), or
+decode the words on demand (see <A HREF="../MIME/Words.pm.html">MIME::Words</A>).
 
 <P><DT><B><A NAME="item:extract_nested_messages">extract_nested_messages OPTION</A></B></DT>
 <DD>
@@ -989,11 +1035,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.220 $ $Date: 2000/09/21 05:54:14 $
+<P>$Revision: 5.403 $ $Date: 2000/11/04 19:54:47 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Sep 21 02:06:31 2000 by cvu_pod2html
+Generated Sun Nov  5 13:06:44 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

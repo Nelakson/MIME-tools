@@ -133,6 +133,22 @@ Name of the mail field this string came from.  <I>Currently ignored.</I>
 
 </DL>
 
+<P><DT><B><A NAME="item:unmime">unmime STRING</A></B></DT>
+<DD>
+<I>Function, exported.</I>
+Unencode a string if it <I>looks</I> like it <I>might</I> contain encoded words.
+For example, assume this header:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    Subject: Here is =?US-ASCII?Q?=46=4F=4F.doc?=
+</PRE></FONT>
+
+<P>You can access it in either of two ways:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $subj =        $head-&gt;get(&quot;subject&quot;);   ### gets: &quot;Here is =?....?=&quot;
+    $subj = unmime $head-&gt;get(&quot;subject&quot;);   ### gets: &quot;Here is FOO.doc&quot;
+</PRE></FONT>
 <P><DT><B><A NAME="item:encode_mimeword">encode_mimeword RAW, [ENCODING], [CHARSET]</A></B></DT>
 <DD>
 Encode a single RAW &quot;word&quot; that has unsafe characters.
@@ -224,11 +240,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.207 $ $Date: 2000/09/21 05:54:15 $
+<P>$Revision: 5.403 $ $Date: 2000/11/04 19:54:48 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Sep 21 02:06:47 2000 by cvu_pod2html
+Generated Sun Nov  5 13:07:01 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

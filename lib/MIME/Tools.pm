@@ -28,7 +28,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.316 $, 10;
+$VERSION = substr q$Revision: 5.404 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -628,7 +628,7 @@ The scripts in there are basically just tossed-together, but
 they'll give you some ideas of how to use the parser.
 
 
-=head2 Run with -w
+=head2 Run with C<-w>
 
 If you see a warning about a deprecated method, change your 
 code ASAP.  This will ease upgrades tremendously.
@@ -680,6 +680,32 @@ the data you parse if you want to send it on unchanged.
 This is vital for things like PGP-signed email.
 
 
+=head2 Understand how international characters are represented
+
+The MIME standard allows for text strings in headers to contain 
+characters from any character set, by using special sequences
+which look like this:
+
+    =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?=
+
+To be consistent with the existing Mail::Field classes, MIME::Tools
+does I<not> automatically unencode these strings, since doing so would
+lose the character-set information (unless the strings were unencoded
+to something like Unicode) and interfere with the parsing of fields
+(see L<MIME::Parser/decode_headers> for a full explanation).
+
+That means you should be prepared to deal with these encoded
+sequences.  If you just want the unencode them into their byte
+representation, you can use the functions in MIME::Words (see
+L<MIME::Words>).  The simplest way is by using C<unmime()>, as
+follows:
+
+    use MIME::Words qw(unmime);
+    ...
+    $subject = unmime $entity->head->get('subject');
+
+One place this I<is> done automatically is in extracting the recommended
+filename for a part while parsing.
 
 
 
@@ -1004,12 +1030,28 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.316 $
+$Revision: 5.404 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.404   (2000/11/04)
+
+B<Added new automatic MIME-decoding of recommended filenames.>
+Hopefully this will do more good than harm.  The use of 
+MIME::Parser::decode_headers() and MIME::Head::decode() has
+been deprecated in favor of the new MIME::Words "unmime"
+mechanism.  Please see L<MIME::Words/unmime>.
+
+B<Added tolerance for unquoted =?...?= in param values.>
+This is in violation of the RFCs, but then, so are some MUAs.
+I<Thanks to desti for bringing this to my attention.>
+
+B<Fixed supposedly-bad B-encoding.>
+I<Thanks to Otto Frost for bringing this to my attention.>
+
 
 =item Version 5.316   (2000/09/21)
 
@@ -1895,7 +1937,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date: 2000/09/21 06:02:17 $), the MIME-tools homepage was
+At the time of this writing ($Date: 2000/11/05 18:05:31 $), the MIME-tools homepage was
 F<http://www.zeegee.com/code/perl/MIME-tools>.
 Check there for updates and support.
 

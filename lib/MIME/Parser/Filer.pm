@@ -92,6 +92,7 @@ use strict;
 ### Kit modules:
 use MIME::Tools qw(:msgtypes);
 use File::Spec;
+use MIME::Words qw(unmime);
 
 ### Output path uniquifiers:
 my $GFileNo = 0;
@@ -367,7 +368,7 @@ sub output_filename {
     my ($self, $head) = @_;
 
     ### Get the recommended name:
-    my $recommended = $head->recommended_filename;
+    my $recommended = unmime $head->recommended_filename;
 
     ### Get content type:
     my ($type, $subtype) = split m{/}, $head->mime_type; $subtype ||= '';
@@ -493,7 +494,7 @@ sub output_path {
     my $dir = $self->output_dir($head);
     
     ### Get the output filename:
-    my $fname = $head->recommended_filename;
+    my $fname = unmime $head->recommended_filename;
     if    (!defined($fname)) {
 	$self->debug("no filename recommended: synthesizing our own");
 	$fname = $self->output_filename($head);
@@ -749,5 +750,5 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.9 $
+$Revision: 5.403 $
 

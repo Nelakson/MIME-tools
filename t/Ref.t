@@ -5,6 +5,7 @@ use File::Path;
 use File::Basename;
 use ExtUtils::TBone;
 use Globby;
+use MIME::Words qw(unmime);
 
 use strict;
 config MIME::Tools DEBUGGING=>0;
@@ -162,7 +163,7 @@ sub check_ref {
 		$got = $head->mime_encoding;
 	    }
 	    elsif (/^Filename$/) {
-		$got = $head->recommended_filename; 
+		$got = unmime $head->recommended_filename; 
 	    }
 	    elsif (/^BodyFilename$/) {
 		$got = (($body and $body->path) 

@@ -69,7 +69,7 @@ Ready?  Ok...
     ### Get rid of internal newlines in fields:
     $head->unfold;
     
-    ### Decode any Q- or B-encoded-text in fields:
+    ### Decode any Q- or B-encoded-text in fields (DEPRECATED):
     $head->decode;
      
 
@@ -130,7 +130,6 @@ use MIME::Field::ContType;
 @ISA = qw(Mail::Header);
 
 
-
 #------------------------------
 #
 # Public globals...
@@ -138,7 +137,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.205 $, 10;
+$VERSION = substr q$Revision: 5.403 $, 10;
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -322,15 +321,29 @@ and some true value if it does.
 
 #------------------------------
 
-=item decode
+=item decode [FORCE]
 
-I<Instance method.>
+I<Instance method, DEPRECATED.>
 Go through all the header fields, looking for RFC-1522-style "Q"
 (quoted-printable, sort of) or "B" (base64) encoding, and decode them
 in-place.  Fellow Americans, you probably don't know what the hell I'm
 talking about.  Europeans, Russians, et al, you probably do.  C<:-)>. 
 
-For example, here's a valid header you might get:
+B<This method has been deprecated.>
+See L<MIME::Parser/decode_headers> for the full reasons.
+If you absolutely must use it and don't like the warning, then
+provide a FORCE:
+
+   "I_NEED_TO_FIX_THIS"
+          Just shut up and do it.  Not recommended.
+          Provided only for those who need to keep old scripts functioning.
+
+   "I_KNOW_WHAT_I_AM_DOING"
+          Just shut up and do it.  Not recommended.
+          Provided for those who REALLY know what they are doing.
+
+B<What this method does.>
+For an example, let's consider a valid email header you might get:
 
     From: =?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>
     To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>
@@ -351,7 +364,7 @@ B<Note:> currently, the decodings are done without regard to the
 character set: thus, the Q-encoding C<=F8> is simply translated to the
 octet (hexadecimal C<F8>), period.  For piece-by-piece decoding
 of a given field, you want the array context of 
-L<MIME::Word::decode_mimewords()>.
+C<MIME::Word::decode_mimewords()>.
 
 B<Warning:> the CRLF+SPACE separator that splits up long encoded words 
 into shorter sequences (see the Subject: example above) gets lost
@@ -368,6 +381,14 @@ RFC-1522-decoding code.>
 
 sub decode {
     my $self = shift;
+
+    ### Warn if necessary:
+    my $force = shift || 0;
+    unless (($force eq "I_NEED_TO_FIX_THIS") ||
+	    ($force eq "I_KNOW_WHAT_I_AM_DOING")) {
+	usage "decode is deprecated for safety";
+    }
+
     my ($tag, $i, @decoded);
     foreach $tag ($self->tags) {
 	@decoded = map { scalar(decode_mimewords($_, Field=>$tag))
@@ -376,6 +397,7 @@ sub decode {
 	    $self->replace($tag, $decoded[$i], $i);
 	}
     }
+    $self->{MH_Decoded} = 1;
     $self;
 }
 
@@ -755,7 +777,6 @@ sub recommended_filename {
     undef;
 }
 
-
 #------------------------------
 
 =back
@@ -879,7 +900,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 5.205 $ $Date: 2000/09/21 05:54:14 $
+$Revision: 5.403 $ $Date: 2000/11/04 19:54:46 $
 
 =cut
 

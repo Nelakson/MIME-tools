@@ -177,7 +177,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.220 $, 10;
+$VERSION = substr q$Revision: 5.403 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -295,20 +295,75 @@ sub init_parse {
 =item decode_headers [YESNO]
 
 I<Instance method.>
-Controls whether the parser will attempt to decode the MIME headers
-(as per RFC-1522) the moment it sees them.  This will probably be of
-most use to those of you who expect some international mail,
-especially mail from individuals with 8-bit characters in their names.
+Controls whether the parser will attempt to decode all the MIME headers
+(as per RFC-1522) the moment it sees them.  B<This is not advisable
+for two very important reasons:>
 
-If YESNO is true, decoding is done.
+=over
+
+=item *
+
+B<It screws up the extraction of information from MIME fields.>
+If you fully decode the headers into bytes, you can inadvertently 
+transform a parseable MIME header like this:
+
+    Content-type: text/plain; filename="=?ISO-8859-1?Q?Hi=22Ho?=" 
+
+into unparseable gobbledygook; in this case:
+
+    Content-type: text/plain; filename="Hi"Ho"
+
+=item *
+
+B<It is information-lossy.>  An encoded string which contains
+both Latin-1 and Cyrillic characters will be turned into a binary
+mishmosh which simply can't be rendered.
+
+=back
+
+B<History.>
+This method was once the only out-of-the-box way to deal with attachments
+whose filenames had non-ASCII characters.  However, since MIME-tools 5.4xx 
+this is no longer necessary.
+
+B<Parameters.>
+If YESNO is true, decoding is done.  However, you will get a warning 
+unless you use one of the special "true" values:
+
+   "I_NEED_TO_FIX_THIS"
+          Just shut up and do it.  Not recommended.
+          Provided only for those who need to keep old scripts functioning.
+
+   "I_KNOW_WHAT_I_AM_DOING"
+          Just shut up and do it.  Not recommended.
+          Provided for those who REALLY know what they are doing.
+
 If YESNO is false (the default), no attempt at decoding will be done.
 With no argument, just returns the current setting.
+B<Remember:> you can always decode the headers I<after> the parsing
+has completed (see L<MIME::Head::decode()|MIME::Head/decode>), or
+decode the words on demand (see L<MIME::Words>).
 
 =cut
 
 sub decode_headers {
     my ($self, $yesno) = @_;
-    $self->{MP5_DecodeHeaders} = $yesno if (@_ > 1);
+    if (@_ > 1) {
+	$self->{MP5_DecodeHeaders} = $yesno;
+	if ($yesno) {
+	    if (($yesno eq "I_KNOW_WHAT_I_AM_DOING") ||
+		($yesno eq "I_NEED_TO_FIX_THIS")) {
+		### ok
+	    }
+	    else {
+		$self->whine("as of 5.4xx, decode_headers() should NOT be ".
+			     "set true... if you are doing this to make sure ".
+			     "that non-ASCII filenames are translated, ".
+			     "that's now done automatically; for all else, ".
+			     "use MIME::Words.");
+	    }
+	}
+    }
     $self->{MP5_DecodeHeaders};
 }
 
@@ -574,7 +629,7 @@ sub process_header {
     ###    This shouldn't affect non-encoded headers; however, it will decode
     ###    headers with international characters.  WARNING: currently, the
     ###    character-set information is LOST after decoding.
-    $head->decode if $self->{MP5_DecodeHeaders};
+    $head->decode($self->{MP5_DecodeHeaders}) if $self->{MP5_DecodeHeaders};
 
     ### If this is the top-level head, save it:
     $self->results->top_head($head) if !$self->results->top_head;
@@ -1860,7 +1915,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.220 $ $Date: 2000/09/21 05:54:14 $
+$Revision: 5.403 $ $Date: 2000/11/04 19:54:47 $
 
 =cut
 
