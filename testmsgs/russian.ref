@@ -7,5 +7,6 @@
   "Parser" => {
     "Message" => "testmsgs/russian.msg",	
     "OutputToCore" => "0",
+    "Charset" => "KOI8-R",
   }
 }

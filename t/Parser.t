@@ -75,7 +75,7 @@ $parser->output_dir($DIR);
 #------------------------------------------------------------
 $T->msg("Read a nested multipart MIME message");
 #------------------------------------------------------------
-open IN, "./testin/multi-nested.msg" or die "open: $!";
+open IN, "./testmsgs/multi-nested.msg" or die "open: $!";
 $entity = $parser->parse(\*IN);
 $T->ok($entity, "parse of nested multipart");
 
@@ -94,7 +94,7 @@ $T->msg("Same message, but CRLF-terminated and no output path hook");
 $parser = new MIME::Parser;
 { local $^W = undef;
 $parser->output_dir($DIR);
-open IN, "./testin/multi-nested2.msg" or die "open: $!";
+open IN, "./testmsgs/multi-nested2.msg" or die "open: $!";
 $entity = $parser->parse(\*IN);
 $T->ok($entity, "parse of CRLF-terminated message");
 }

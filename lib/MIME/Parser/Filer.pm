@@ -132,7 +132,7 @@ use strict;
 use MIME::Tools qw(:msgtypes);
 use File::Spec;
 use File::Path qw(rmtree);
-use MIME::Words qw(unmime);
+use MIME::WordDecoder;
 
 ### Output path uniquifiers:
 my $GFileNo = 0;
@@ -855,5 +855,5 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.404 $
+$Revision: 5.405 $
 

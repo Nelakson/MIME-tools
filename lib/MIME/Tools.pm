@@ -28,7 +28,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.405 $, 10;
+$VERSION = substr q$Revision: 5.408 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -628,8 +628,9 @@ The scripts in there are basically just tossed-together, but
 they'll give you some ideas of how to use the parser.
 
 
-=head2 Run with C<-w>
+=head2 Run with warnings enabled
 
+I<Always> run your Perl script with C<-w>.
 If you see a warning about a deprecated method, change your 
 code ASAP.  This will ease upgrades tremendously.
 
@@ -690,22 +691,32 @@ which look like this:
 
 To be consistent with the existing Mail::Field classes, MIME::Tools
 does I<not> automatically unencode these strings, since doing so would
-lose the character-set information (unless the strings were unencoded
-to something like Unicode) and interfere with the parsing of fields
-(see L<MIME::Parser/decode_headers> for a full explanation).
+lose the character-set information and interfere with the parsing 
+of fields (see L<MIME::Parser/decode_headers> for a full explanation).
+That means you should be prepared to deal with these encoded strings.
 
-That means you should be prepared to deal with these encoded
-sequences.  If you just want the unencode them into their byte
-representation, you can use the functions in MIME::Words (see
-L<MIME::Words>).  The simplest way is by using C<unmime()>, as
-follows:
+The most common question then is, B<how do I decode these encoded strings?>
+The answer depends on what you want to decode them I<to>:
+ASCII, Latin1, UTF-8, etc.  Be aware that your "target" representation
+may not support all possible character sets you might encounter; 
+for example, Latin1 (ISO-8859-1) has no way of representing Big5 
+(Chinese) characters.  A common practice is to represent "untranslateable"
+characters as "?"s, or to ignore them completely.
 
-    use MIME::Words qw(unmime);
+To unencode the strings into some of the more-popular Western byte 
+representations (e.g., Latin1, Latin2, etc.), you can use the decoders 
+in MIME::WordDecoder (see L<MIME::WordDecoder>).  
+The simplest way is by using C<unmime()>, a function wrapped
+around your "default" decoder, as follows:
+
+    use MIME::WordDecoder;    
     ...
     $subject = unmime $entity->head->get('subject');
 
 One place this I<is> done automatically is in extracting the recommended
-filename for a part while parsing.
+filename for a part while parsing.  That's why you should start by
+setting up the best "default" decoder if the default targer of Latin1
+isn't to your liking.
 
 
 
@@ -1030,12 +1041,19 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.405 $
+$Revision: 5.408 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.408   (2000/11/10)
+
+B<Added new Beta unmime() mechanism.>
+See L<MIME::WordDecoder> for full details.
+Also see L<"Understand how international characters are represented">.
+
 
 =item Version 5.405   (2000/11/05)
 
@@ -1947,7 +1965,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date: 2000/11/06 11:58:54 $), the MIME-tools homepage was
+At the time of this writing ($Date: 2000/11/10 16:47:55 $), the MIME-tools homepage was
 F<http://www.zeegee.com/code/perl/MIME-tools>.
 Check there for updates and support.
 

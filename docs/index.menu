@@ -61,6 +61,9 @@ HREF MIME/Parser/Reader.pm.html
 ITEM MIME::Parser::Results
 HREF MIME/Parser/Results.pm.html
 
+ITEM MIME::WordDecoder
+HREF MIME/WordDecoder.pm.html
+
 ITEM MIME::Words
 HREF MIME/Words.pm.html
 

@@ -33,6 +33,7 @@ docs/MIME/Parser/icons/h1bullet.gif
 docs/MIME/Parser/icons/h2bullet.gif
 docs/MIME/Parser/icons/zeegee.gif
 docs/MIME/Tools.pm.html
+docs/MIME/WordDecoder.pm.html
 docs/MIME/Words.pm.html
 docs/MIME/icons/h1bullet.gif
 docs/MIME/icons/h2bullet.gif
@@ -83,6 +84,7 @@ lib/MIME/Parser/Filer.pm
 lib/MIME/Parser/Reader.pm
 lib/MIME/Parser/Results.pm
 lib/MIME/Tools.pm
+lib/MIME/WordDecoder.pm
 lib/MIME/Words.pm
 patch
 t/Body.t
@@ -96,6 +98,7 @@ t/Misc.t
 t/Parser.t
 t/Ref.t
 t/Tmpfile.topt
+t/WordDecoder.t
 t/Words.t
 testin/ak-0696.msg
 testin/andreas-1296.txt

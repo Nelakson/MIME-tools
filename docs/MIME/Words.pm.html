@@ -5,7 +5,8 @@
 <BODY 
        bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
 <FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Words</H1>
-</A><UL>
+</A>
+<P><B>This module is <FONT COLOR="#990000">BETA</FONT> code, which means that the interfaces are fairly stable BUT it has not been out in the community long enough to guarantee much testing. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
@@ -30,7 +31,7 @@
 
 <P>Before reading further, you should see <A HREF="../MIME/Tools.pm.html">MIME::Tools</A> to make sure that 
 you understand where this module fits into the grand scheme of things.
-Go on, do it now.  I'll wait.
+Go on, do it now.  I'll wait.  
 
 
 <P>Ready?  Ok...
@@ -94,6 +95,7 @@ Latin characters with 7 bit sequences /o and 'e):
 <DL>
 <P><DT><B><A NAME="item:decode_mimewords">decode_mimewords ENCODED, [OPTS...]</A></B></DT>
 <DD>
+<I>Function.</I>
 Go through the string looking for RFC-1522-style &quot;Q&quot;
 (quoted-printable, sort of) or &quot;B&quot; (base64) encoding, and decode them.
 
@@ -112,8 +114,10 @@ CHARSET of <CODE>undef</CODE>.
 
 <P><B>In a scalar context,</B> joins the &quot;data&quot; elements of the above 
 list together, and returns that.  <I>Warning: this is information-lossy,</I>
-but if you know that all charsets in the ENCODED string are identical, 
-it might be useful to you.
+and probably <I>not</I> what you want, but if you know that all charsets 
+in the ENCODED string are identical, it might be useful to you.
+(Before you use this, please see <A HREF="../MIME/WordDecoder.pm.html#item:unmime">unmime</A>,
+which is probably what you want.)
 
 
 <P>In the event of a syntax error, $@ will be set to a description 
@@ -133,24 +137,9 @@ Name of the mail field this string came from.  <I>Currently ignored.</I>
 
 </DL>
 
-<P><DT><B><A NAME="item:unmime">unmime STRING</A></B></DT>
-<DD>
-<I>Function, exported.</I>
-Unencode a string if it <I>looks</I> like it <I>might</I> contain encoded words.
-For example, assume this header:
-
-<FONT SIZE=3 FACE="courier"><PRE>
-    Subject: Here is =?US-ASCII?Q?=46=4F=4F.doc?=
-</PRE></FONT>
-
-<P>You can access it in either of two ways:
-
-<FONT SIZE=3 FACE="courier"><PRE>
-    $subj =        $head-&gt;get(&quot;subject&quot;);   ### gets: &quot;Here is =?....?=&quot;
-    $subj = unmime $head-&gt;get(&quot;subject&quot;);   ### gets: &quot;Here is FOO.doc&quot;
-</PRE></FONT>
 <P><DT><B><A NAME="item:encode_mimeword">encode_mimeword RAW, [ENCODING], [CHARSET]</A></B></DT>
 <DD>
+<I>Function.</I>
 Encode a single RAW &quot;word&quot; that has unsafe characters.
 The &quot;word&quot; will be encoded in its entirety.
 
@@ -164,6 +153,7 @@ You may specify the CHARSET, which defaults to <CODE>iso-8859-1</CODE>.
 
 <P><DT><B><A NAME="item:encode_mimewords">encode_mimewords RAW, [OPTS]</A></B></DT>
 <DD>
+<I>Function.</I>
 Given a RAW string, try to find and encode all &quot;unsafe&quot; sequences 
 of characters:
 
@@ -240,11 +230,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.403 $ $Date: 2000/11/04 19:54:48 $
+<P>$Revision: 5.404 $ $Date: 2000/11/10 16:45:12 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Mon Nov  6 07:00:08 2000 by cvu_pod2html
+Generated Fri Nov 10 11:59:51 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

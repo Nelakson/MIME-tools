@@ -14,7 +14,7 @@ WriteMakefile(
 		       "File::Path"        => 1,
 		       },
       'dist'       => {
-	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools", 
+	  PREOP        =>"cvu_perl_preop -B -f -m MIME::Tools", 
 	  COMPRESS     =>'gzip',
 	  SUFFIX       =>'gz',	      
       },

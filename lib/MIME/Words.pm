@@ -10,9 +10,10 @@ MIME::Words - deal with RFC-1522 encoded words
 
 Before reading further, you should see L<MIME::Tools> to make sure that 
 you understand where this module fits into the grand scheme of things.
-Go on, do it now.  I'll wait.
+Go on, do it now.  I'll wait.  
 
 Ready?  Ok...
+
 
     use MIME::Words qw(:all);   
      
@@ -31,6 +32,7 @@ Ready?  Ok...
     
     ### Encode a string, trying to find the unsafe words inside it: 
     $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB in town");
+
 
 
 =head1 DESCRIPTION
@@ -73,7 +75,6 @@ use Exporter;
 %EXPORT_TAGS = (all => [qw(decode_mimewords
 			   encode_mimeword
 			   encode_mimewords
-                           unmime
 			   )]);
 Exporter::export_ok_tags('all');
 
@@ -93,7 +94,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 5.404 $, 10;
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -140,6 +141,7 @@ sub _encode_B {
 
 =item decode_mimewords ENCODED, [OPTS...]
 
+I<Function.>
 Go through the string looking for RFC-1522-style "Q"
 (quoted-printable, sort of) or "B" (base64) encoding, and decode them.
 
@@ -155,8 +157,10 @@ CHARSET of C<undef>.
 
 B<In a scalar context,> joins the "data" elements of the above 
 list together, and returns that.  I<Warning: this is information-lossy,>
-but if you know that all charsets in the ENCODED string are identical, 
-it might be useful to you.
+and probably I<not> what you want, but if you know that all charsets 
+in the ENCODED string are identical, it might be useful to you.
+(Before you use this, please see L<MIME::WordDecoder/unmime>,
+which is probably what you want.)
 
 In the event of a syntax error, $@ will be set to a description 
 of the error, but parsing will continue as best as possible (so as to
@@ -235,32 +239,9 @@ sub decode_mimewords {
 
 #------------------------------
 
-=item unmime STRING
-
-I<Function, exported.>
-Unencode a string if it I<looks> like it I<might> contain encoded words.
-For example, assume this header:
-
-    Subject: Here is =?US-ASCII?Q?=46=4F=4F.doc?=
-
-You can access it in either of two ways:
-
-    $subj =        $head->get("subject");   ### gets: "Here is =?....?="
-    $subj = unmime $head->get("subject");   ### gets: "Here is FOO.doc"
-
-=cut
-
-sub unmime {
-    my ($value) = @_;
-    ((defined($value) && ($value =~ m{=\?.*?\?.*\?=}s))
-     ?  scalar(decode_mimewords($value))
-     :  $value);
-}
-
-#------------------------------
-
 =item encode_mimeword RAW, [ENCODING], [CHARSET]
 
+I<Function.>
 Encode a single RAW "word" that has unsafe characters.
 The "word" will be encoded in its entirety.
 
@@ -284,6 +265,7 @@ sub encode_mimeword {
 
 =item encode_mimewords RAW, [OPTS]
 
+I<Function.>
 Given a RAW string, try to find and encode all "unsafe" sequences 
 of characters:
 
@@ -336,6 +318,7 @@ sub encode_mimewords {
     }xeg;
     $rawstr;
 }
+
 1;
 __END__
 
@@ -366,7 +349,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:48 $
+$Revision: 5.404 $ $Date: 2000/11/10 16:45:12 $
 
 =cut
 

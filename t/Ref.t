@@ -5,7 +5,7 @@ use File::Path;
 use File::Basename;
 use ExtUtils::TBone;
 use Globby;
-use MIME::Words qw(unmime);
+use MIME::WordDecoder qw(unmime);
 
 use strict;
 config MIME::Tools DEBUGGING=>0;
@@ -53,6 +53,20 @@ foreach my $refpath (@refpaths) {
     $parser->output_to_core(0);
     $parser->ignore_errors(0);
 
+    ### Set character set:
+    my $tgt = $ref->{Parser}{Charset} || 'ISO-8859-1';
+    my $wd;
+    if ($tgt =~ /^ISO-8859-(\d+)/) {
+	$wd = new MIME::WordDecoder::ISO_8859 $1;
+    }
+    else {
+	$wd = new MIME::WordDecoder([uc($tgt)   => 'KEEP',
+				     'US-ASCII' => 'KEEP',
+      				     '*'        => 'WARN']);
+    }
+    $T->log("Default charset: $tgt");
+    MIME::WordDecoder->default($wd);
+	
     ### Pre-clean:    
     rmtree($output_dir);
     (-d $output_dir) or mkpath($output_dir) or die "mkpath $output_dir: $!\n";

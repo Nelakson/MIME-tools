@@ -5,7 +5,8 @@
 <BODY 
        bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
 <FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME-tools</H1>
-</A><UL>
+</A>
+<P><B>This module is <FONT COLOR="#990000">BETA</FONT> code, which means that the interfaces are fairly stable BUT it has not been out in the community long enough to guarantee much testing. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
@@ -23,7 +24,7 @@
 <LI> <A HREF="#THINGS_YOU_SHOULD_DO">THINGS YOU SHOULD DO</A>
 <UL>
 <LI> <A HREF="#Take_a_look_at_the_examples">Take a look at the examples</A>
-<LI> <A HREF="#Run_with_C_-w">Run with C&lt;-w&gt;</A>
+<LI> <A HREF="#Run_with_warnings_enabled">Run with warnings enabled</A>
 <LI> <A HREF="#Avoid_non-standard_encodings">Avoid non-standard encodings</A>
 <LI> <A HREF="#Plan_for_thrown_exceptions">Plan for thrown exceptions</A>
 <LI> <A HREF="#Check_the_parser_results_for_warnings_errors">Check the parser results for warnings/errors</A>
@@ -500,10 +501,11 @@ they'll give you some ideas of how to use the parser.
 
 
 <P><HR>
-<A NAME="Run_with_-w"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Run with <CODE>-w</CODE></H3></A>
+<A NAME="Run_with_warnings_enabled"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Run with warnings enabled</H3></A>
 
 
-<P>If you see a warning about a deprecated method, change your 
+<P><I>Always</I> run your Perl script with <CODE>-w</CODE>.
+If you see a warning about a deprecated method, change your 
 code ASAP.  This will ease upgrades tremendously.
 
 
@@ -584,25 +586,36 @@ which look like this:
 
 <P>To be consistent with the existing Mail::Field classes, MIME::Tools
 does <I>not</I> automatically unencode these strings, since doing so would
-lose the character-set information (unless the strings were unencoded
-to something like Unicode) and interfere with the parsing of fields
-(see <A HREF="../MIME/Parser.pm.html#item:decode_headers">decode_headers</A> for a full explanation).
+lose the character-set information and interfere with the parsing 
+of fields (see <A HREF="../MIME/Parser.pm.html#item:decode_headers">decode_headers</A> for a full explanation).
+That means you should be prepared to deal with these encoded strings.
 
 
-<P>That means you should be prepared to deal with these encoded
-sequences.  If you just want the unencode them into their byte
-representation, you can use the functions in MIME::Words (see
-<A HREF="../MIME/Words.pm.html">MIME::Words</A>).  The simplest way is by using <CODE>unmime()</CODE>, as
-follows:
+<P>The most common question then is, <B>how do I decode these encoded strings?</B>
+The answer depends on what you want to decode them <I>to</I>:
+ASCII, Latin1, UTF-8, etc.  Be aware that your &quot;target&quot; representation
+may not support all possible character sets you might encounter; 
+for example, Latin1 (ISO-8859-1) has no way of representing Big5 
+(Chinese) characters.  A common practice is to represent &quot;untranslateable&quot;
+characters as &quot;?&quot;s, or to ignore them completely.
+
+
+<P>To unencode the strings into some of the more-popular Western byte 
+representations (e.g., Latin1, Latin2, etc.), you can use the decoders 
+in MIME::WordDecoder (see <A HREF="../MIME/WordDecoder.pm.html">MIME::WordDecoder</A>).  
+The simplest way is by using <CODE>unmime()</CODE>, a function wrapped
+around your &quot;default&quot; decoder, as follows:
 
 <FONT SIZE=3 FACE="courier"><PRE>
-    use MIME::Words qw(unmime);
+    use MIME::WordDecoder;    
     ...
     $subject = unmime $entity-&gt;head-&gt;get('subject');
 </PRE></FONT>
 
 <P>One place this <I>is</I> done automatically is in extracting the recommended
-filename for a part while parsing.
+filename for a part while parsing.  That's why you should start by
+setting up the best &quot;default&quot; decoder if the default targer of Latin1
+isn't to your liking.
 
 
 
@@ -988,7 +1001,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.405 $
+<P>$Revision: 5.408 $
 
 
 
@@ -998,6 +1011,12 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.408   (2000/11/10)</A></B></DT>
+<DD>
+<B>Added new Beta unmime() mechanism.</B>
+See <A HREF="../MIME/WordDecoder.pm.html">MIME::WordDecoder</A> for full details.
+Also see <A HREF="#Understand_how_international_characters_are_represented">Understand how international characters are represented</A>.
+
 <P><DT><B><A NAME="item:Version">Version 5.405   (2000/11/05)</A></B></DT>
 <DD>
 <B>Added a purge() that does what people want it to.</B>
@@ -1978,7 +1997,7 @@ Better yet, email me, and I'll put you in.
 <A NAME="SEE_ALSO"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SEE ALSO</H2></A>
 
 
-<P>At the time of this writing ($Date: 2000/11/06 11:58:54 $), the MIME-tools homepage was
+<P>At the time of this writing ($Date: 2000/11/10 16:47:55 $), the MIME-tools homepage was
 <I><FILE><A HREF="http://www.zeegee.com/code/perl/MIME-tools">http://www.zeegee.com/code/perl/MIME-tools</A></FILE></I>.
 Check there for updates and support.
 
@@ -1996,7 +2015,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Mon Nov  6 07:00:02 2000 by cvu_pod2html
+Generated Fri Nov 10 11:59:42 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>
