@@ -1,0 +1,502 @@
+    <HTML>
+
+    <HEAD>
+    <TITLE>MIME::Parser</TITLE>
+    </HEAD>
+
+    <BODY>
+
+    <A NAME="#__top"> <P></A>
+<CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Entity.html">MIME::Entity</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
+</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Latin1.html">MIME::Latin1</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::Parser</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ParserBase.html">MIME::ParserBase</A></FONT>
+</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ToolUtils.html">MIME::ToolUtils</A></FONT>
+</B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
+      <TR>
+	<TD VALIGN=TOP ALIGN=CENTER>
+	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>Parser</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="MIME">
+	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+        <TD VALIGN=TOP>
+<!-- INDEX BEGIN -->
+<UL>
+	<LI><A HREF="#name">NAME</A>
+	<LI><A HREF="#synopsis">SYNOPSIS</A>
+	<LI><A HREF="#description">DESCRIPTION</A>
+	<LI><A HREF="#warnings">WARNINGS</A>
+	<LI><A HREF="#public_interface">PUBLIC INTERFACE</A>
+	<LI><A HREF="#writing_subclasses">WRITING SUBCLASSES</A>
+	<LI><A HREF="#see_also">SEE ALSO</A>
+	<LI><A HREF="#author">AUTHOR</A>
+	<LI><A HREF="#version">VERSION</A>
+</UL>
+<!-- INDEX END -->
+
+    </TABLE>
+<HR>
+<P>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<A HREF="Parser.html">MIME::Parser</A> - split MIME mail into decoded
+components
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<PRE>
+    use MIME::Parser;
+    
+    # Create a new parser object:
+    my $parser = new MIME::Parser;
+        
+    # Set up output directory for files:
+    $parser-&gt;output_dir(&quot;$ENV{HOME}/mimemail&quot;);
+    
+    # Set up the prefix for files with auto-generated names:
+    $parser-&gt;output_prefix(&quot;part&quot;);
+    
+    # If content length is this or below, write to in-core scalar;
+    # Else, write to a disk file (the default action):
+    $parser-&gt;output_to_core(20000);
+         
+    # Parse an input stream:
+    $entity = $parser-&gt;read(\*STDIN) or die &quot;couldn't parse MIME stream&quot;;
+    
+    # Congratulations: you now have a (possibly multipart) MIME entity!
+    $entity-&gt;dump_skeleton;          # for debugging 
+</PRE>
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+A subclass of <A HREF="ParserHead.html">MIME::ParserHead,</A> providing one
+useful way to parse MIME streams and obtain <A
+HREF="Entity.html">MIME::Entity</A> objects. This particular parser class
+outputs the different parts as files on disk, in the directory of your
+choice.
+
+
+<P>
+
+If you don't like the way files are named... it's object-oriented and
+subclassable. If you want to do something <EM>really</EM>
+ different, perhaps you want to subclass <A
+HREF="ParserBase.html">MIME::ParserBase</A> instead.
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="warnings">WARNINGS</A></H2>
+The organization of the <A HREF="#item_output_path">output_path</A> code changed in version 1.11 of this module. If you are upgrading from a
+previous version, and you use inheritance to override the <A HREF="#item_output_path">output_path</A> method, please take a moment to familiarize yourself with the new code.
+Everything <EM>should</EM>
+ still work, but you never know...
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<DL>
+<DT><STRONG><A NAME="item_new_body_for_head">new_body_for HEAD
+
+</A></STRONG><DD>
+Based on the HEAD of a part we are parsing, return a new body object (any
+desirable subclass of <A HREF="Body.html">MIME::Body)</A> for receiving
+that part's data.
+
+
+<P>
+
+The default behavior is to examine the HEAD for a recommended filename
+(generating a random one if none is available), and create a new <A
+HREF="Body.html">MIME::Body::File</A> on that filename in the parser's
+current <A HREF="#item_output_dir">output_dir</A>.
+
+
+<P>
+
+If you use the <CODE>output_to_core</CODE> method (q.v.) before parsing, you can force this method to output some or
+all or a message's parts to in-core data structures, based on their size.
+
+
+<P>
+
+If you want the parser to do something else entirely, you should override
+this method in a subclass.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_to_core_cutoff">output_to_core [CUTOFF]
+
+</A></STRONG><DD>
+Normally, instances of this class output all their decoded body data to
+disk files (via <A HREF="Body.html">MIME::Body::File).</A> However, you can
+change this behaviour by invoking this method before parsing:
+
+
+<P>
+
+<STRONG>If CUTOFF is an integer,</STRONG>
+ then we examine the <CODE>Content-length</CODE> of each entity being parsed. If the content-length is known to be CUTOFF or
+below, the body data will go to an in-core data structure; If the
+content-length is unknown or if it exceeds CUTOFF, then the body data will
+go to a disk file.
+
+
+<P>
+
+<STRONG>If the CUTOFF is the string ``NONE'',</STRONG>
+ then all body data goes to disk files regardless of the content-length.
+This is the default behaviour.
+
+
+<P>
+
+<STRONG>If the CUTOFF is the string ``ALL'',</STRONG>
+ then all body data goes to in-core data structures regardless of the
+content-length.  
+<STRONG>This is very risky</STRONG>
+ (what if someone emails you an MPEG or a tar file, hmmm?) but people seem
+to want this bit of noose-shaped rope, so I'm providing it.
+
+
+<P>
+
+Without argument, returns the current cutoff: ``ALL'', ``NONE'' (the
+default), or a number.
+
+
+<P>
+
+See the <A HREF="#item_new_body_for">new_body_for</A> method for more details.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_dir_directory">output_dir [DIRECTORY]
+
+</A></STRONG><DD>
+Get/set the output directory for the parsing operation. This is the
+directory where the extracted and decoded body parts will go. The default
+is <CODE>"."</CODE>.
+
+
+<P>
+
+If <CODE>DIRECTORY</CODE>  <EM>is not</EM>
+ given, the current output directory is returned. If <CODE>DIRECTORY</CODE>  <EM>is</EM>
+ given, the output directory is set to the new value, and the previous value
+is returned.
+
+
+<P>
+
+<STRONG>Note:</STRONG>
+ this is used by the <A HREF="#item_output_path">output_path</A> method in this class. It should also be used by subclasses, but if a
+subclass decides to output parts in some completely different manner, this
+method may of course be completely ignored.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_evil_filename_filename">evil_filename FILENAME
+
+</A></STRONG><DD>
+<EM>Instance method.</EM>
+
+Is this an evil filename? It is if it contains path info or non-ASCII
+characters. Returns true or false.
+
+
+<P>
+
+<STRONG>Note:</STRONG>
+ Override this method in a subclass if you just want to change which
+externally-provided filenames are allowed, and which are not.
+
+
+<P>
+
+<EM>Thanks to Andrew Pimlott for finding a real dumb bug. :-)</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_path_head">output_path HEAD
+
+</A></STRONG><DD>
+<EM>Instance method.</EM>
+
+Given a MIME head for a file to be extracted, come up with a good output
+pathname for the extracted file.
+
+
+<P>
+
+The ``directory'' portion of the returned path will be the <A HREF="#item_output_dir">output_dir</A>, and the ``filename'' portion will be determined as follows:
+
+
+<P>
+
+<UL>
+<LI><STRONG></STRONG>
+If the MIME header contains a recommended filename, and it is
+<EM>not</EM>
+ judged to be ``evil'' (evil filenames are ones which contain things like
+``/'' or ``..'' or non-ASCII characters), then that filename will be used.
+
+
+<P>
+
+<LI><STRONG></STRONG>
+If the MIME header contains a recommended filename, but it <EM>is</EM>
+
+judged to be ``evil'', then a warning is issued and we pretend that there
+was no recommended filename. In which case...
+
+
+<P>
+
+<LI><STRONG></STRONG>
+If the MIME header does not specify a recommended filename, then a simple
+temporary file name, starting with the <A HREF="#item_output_prefix">output_prefix</A>, will be used.
+
+
+<P>
+
+</UL>
+<STRONG>Note:</STRONG>
+ If you don't like the behavior of this function, you can define your own
+subclass of <A HREF="Parser.html">MIME::Parser</A> and override it there:
+
+
+<P>
+
+<PRE>
+     package MIME::MyParser;
+     
+     require 5.002;                # for SUPER
+     use package MIME::Parser;
+     
+     @MIME::MyParser::ISA = ('MIME::Parser');
+     
+     sub output_path {
+         my ($self, $head) = @_;
+         
+         # Your code here; FOR EXAMPLE...
+         if (i_have_a_preference) {
+	     return my_custom_path;
+         }
+	 else {                      # return the default path:
+             return $self-&gt;SUPER::output_path($head);
+         }
+     }
+     1;
+</PRE>
+
+<P>
+
+<EM>Thanks to Laurent Amon for pointing out problems with the original
+implementation, and for making some good suggestions. Thanks also to Achim
+Bohnet for pointing out that there should be a hookless, OO way of
+overriding the output_path.</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_path_hook_subref">output_path_hook SUBREF
+
+</A></STRONG><DD>
+<EM>Instance method: DEPRECATED.</EM>
+
+Install a different function to generate the output filename for extracted
+message data. Declare it like this:
+
+
+<P>
+
+<PRE>
+    sub my_output_path_hook {
+        my $parser = shift;   # this MIME::Parser
+	my $head = shift;     # the MIME::Head for the current message
+</PRE>
+
+<P>
+
+<PRE>
+        # Your code here: it must return a path that can be 
+        # open()ed for writing.  Remember that you can ask the
+        # $parser about the output_dir, and you can ask the
+        # $head about the recommended_filename!
+    }
+</PRE>
+
+<P>
+
+And install it immediately before parsing the input stream, like this:
+
+
+<P>
+
+<PRE>
+    # Create a new parser object, and install my own output_path hook:
+    my $parser = new MIME::Parser;
+    $parser-&gt;output_path_hook(\&amp;my_output_path_hook);
+    
+    # NOW we can parse an input stream:
+    $entity = $parser-&gt;read(\*STDIN);
+</PRE>
+
+<P>
+
+This method is intended for people who are squeamish about creating
+subclasses. See the <A HREF="#item_output_path">output_path</A> documentation for a cleaner, OOish way to do this.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_prefix_prefix">output_prefix [PREFIX]
+
+</A></STRONG><DD>
+Get/set the output prefix for the parsing operation. This is a short string
+that all filenames for extracted and decoded body parts will begin with.
+The default is <EM>``msg''</EM>
+.
+
+
+<P>
+
+If <CODE>PREFIX</CODE>  <EM>is not</EM>
+ given, the current output prefix is returned. If <CODE>PREFIX</CODE>  <EM>is</EM>
+ given, the output directory is set to the new value, and the previous value
+is returned.
+
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="writing_subclasses">WRITING SUBCLASSES</A></H2>
+Authors of subclasses can consider overriding the following methods. They
+are listed in approximate order of most-to-least impact.
+
+
+<P>
+
+<DL>
+<DT><STRONG><A NAME="item_new_body_for">new_body_for
+
+</A></STRONG><DD>
+Override this if you want to change the <EM>entire</EM>
+ mechanism for choosing the output destination. You may want to use
+information in the MIME header to determine how files are named, and
+whether or not their data goes to a disk file or to an in-core scalar. (You
+have the MIME header object at your disposal.)
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_path">output_path
+
+</A></STRONG><DD>
+Override this if you want to completely change how the output path
+(containing both the directory and filename) is determined for those parts
+being output to disk files. (You have the MIME header object at your
+disposal.)
+
+
+<P>
+
+<DT><STRONG><A NAME="item_evil_filename">evil_filename
+
+</A></STRONG><DD>
+Override this if you want to change the test that determines whether or not
+a filename obtained from the header is permissible.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_prefix">output_prefix
+
+</A></STRONG><DD>
+Override this if you want to change the mechanism for getting/setting the
+desired output prefix (used in naming files when no other names are
+suggested).
+
+
+<P>
+
+<DT><STRONG><A NAME="item_output_dir">output_dir
+
+</A></STRONG><DD>
+Override this if you want to change the mechanism for getting/setting the
+desired output directory (where extracted and decoded files are placed).
+
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
+<A HREF="Decoder.html">MIME::Decoder,</A> <A
+HREF="Entity.html">MIME::Entity,</A> <A HREF="Head.html">MIME::Head,</A> <A
+HREF="Parser.html">MIME::Parser.</A>
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+Copyright (c) 1996 by Eryq / <A
+HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
+
+
+<P>
+
+All rights reserved. This program is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 2.1 $ $Date: 1996/10/18 06:52:28 $
+
+
+<P>
+
+    <P>
+    <HR>       
+    <FONT COLOR=#F00000>*</FONT>
+    <FONT SIZE=-1>
+    Artwork and slogan from Warner Bros' "Animaniacs". 
+    Neither this code nor its author are connected with or
+    endorsed by Warner Bros. in any way. Narf. Poit. 
+    </FONT>
+    </BODY>
+
+    </HTML>

@@ -1,0 +1,916 @@
+    <HTML>
+
+    <HEAD>
+    <TITLE>MIME::Entity</TITLE>
+    </HEAD>
+
+    <BODY>
+
+    <A NAME="#__top"> <P></A>
+<CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::Entity</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
+</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Latin1.html">MIME::Latin1</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Parser.html">MIME::Parser</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ParserBase.html">MIME::ParserBase</A></FONT>
+</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ToolUtils.html">MIME::ToolUtils</A></FONT>
+</B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
+      <TR>
+	<TD VALIGN=TOP ALIGN=CENTER>
+	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>Entity</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="MIME">
+	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+        <TD VALIGN=TOP>
+<!-- INDEX BEGIN -->
+<UL>
+	<LI><A HREF="#name">NAME</A>
+	<LI><A HREF="#synopsis">SYNOPSIS</A>
+	<LI><A HREF="#description">DESCRIPTION</A>
+	<LI><A HREF="#public_interface">PUBLIC INTERFACE</A>
+	<UL>
+		<LI><A HREF="#constructors_and_converters">Constructors and converters</A>
+		<LI><A HREF="#instance_methods">Instance methods</A>
+		</UL>
+	<LI><A HREF="#notes">NOTES</A>
+	<UL>
+		<LI><A HREF="#under_the_hood">Under the hood</A>
+		<LI><A HREF="#design_issues">Design issues</A>
+		</UL>
+	<LI><A HREF="#see_also">SEE ALSO</A>
+	<LI><A HREF="#author">AUTHOR</A>
+	<LI><A HREF="#version">VERSION</A>
+</UL>
+<!-- INDEX END -->
+
+    </TABLE>
+<HR>
+<P>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<A HREF="Entity.html">MIME::Entity</A> - class for parsed-and-decoded MIME
+message
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+Create a MIME entity from an array, and output it as a MIME stream to
+STDOUT:
+
+
+<P>
+
+<PRE>
+    $ent = new MIME::Entity [
+			  &quot;Subject: Greetings\n&quot;,
+			  &quot;Content-type: text/plain\n&quot;,
+			  &quot;Content-transfer-encoding: 7bit\n&quot;,
+			  &quot;\n&quot;,
+			  &quot;Hi there!\n&quot;, 
+			  &quot;Bye there!\n&quot;
+        		  ];
+    $ent-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
+Create a document for an ordinary 7-bit ASCII text file (lots of stuff is
+defaulted for us):
+
+
+<P>
+
+<PRE>
+    $msg = build MIME::Entity Path=&gt;&quot;english-msg.txt&quot;;
+    $msg-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
+Create a document for a text file with 8-bit (Latin-1) characters:
+
+
+<P>
+
+<PRE>
+    $msg = build MIME::Entity Path     =&gt;&quot;french-msg.txt&quot;,
+                              Encoding =&gt;&quot;quoted-printable&quot;;
+    $msg-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
+Create a document for a GIF file (the description is completely optional,
+and note that we have to specify content-type and encoding since they're
+not the default values):
+
+
+<P>
+
+<PRE>
+    $gif = build MIME::Entity Description =&gt; &quot;A pretty picture&quot;,
+                              Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
+                              Type        =&gt; &quot;image/gif&quot;,
+                              Encoding    =&gt; &quot;base64&quot;;
+    $gif-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
+Create a multipart message (could it <EM>be</EM>
+ much easier?)
+
+
+<P>
+
+<PRE>
+    # Create the top-level:
+    $top = build MIME::Entity Type=&gt;&quot;multipart/mixed&quot;;
+    
+    # Attachment #1: a simple text document: 
+    attach $top  Path=&gt;&quot;./testin/short.txt&quot;;
+    
+    # Attachment #2: a GIF file:
+    attach $top  Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
+                 Type        =&gt; &quot;image/gif&quot;,
+                 Encoding    =&gt; &quot;base64&quot;;
+    
+    # Maybe add some mail-related stuff...
+    $top-&gt;head-&gt;add('from',    &quot;me@myhost.com&quot;);
+    $top-&gt;head-&gt;add('to',      &quot;you@yourhost.com&quot;);
+    $top-&gt;head-&gt;add('subject', &quot;Hello, nurse!&quot;);
+    
+    # Output:
+    $top-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
+Extract information from MIME entities:
+
+
+<P>
+
+<PRE>
+    # Get the head, a MIME::Head:
+    $head = $ent-&gt;head;
+    
+    # Get the body, as a MIME::Body;
+    $bodyh = $ent-&gt;bodyhandle;
+</PRE>
+
+<P>
+
+See <A HREF="Parser.html">MIME::Parser</A> for additional examples of
+usage.
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+A subclass of <STRONG>Mail::Internet</STRONG>
+.
+
+
+<P>
+
+This package provides a class for representing MIME message entities, as
+specified in RFC 1521, <EM>Multipurpose Internet Mail Extensions</EM>
+.
+
+
+<P>
+
+Here are some excerpts from RFC-1521 explaining the terminology: each is
+accompanied by the equivalent in MIME:: terms:
+
+
+<P>
+
+<DL>
+<DT><STRONG><A NAME="item_message">Message
+
+</A></STRONG><DD>
+From RFC-1521:
+
+
+<P>
+
+<PRE>
+    The term &quot;message&quot;, when not further qualified, means either the
+    (complete or &quot;top-level&quot;) message being transferred on a network, or
+    a message encapsulated in a body of type &quot;message&quot;.
+</PRE>
+
+<P>
+
+There currently is no explicit package for messages; under MIME::, messages
+may be read in from readable files or filehandles. A future extension will
+allow them to be read from any object reference that responds to a special
+``next line'' method.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_body_part">Body part
+
+</A></STRONG><DD>
+From RFC-1521:
+
+
+<P>
+
+<PRE>
+    The term &quot;body part&quot;, in this document, means one of the parts of the
+    body of a multipart entity. A body part has a header and a body, so
+    it makes sense to speak about the body of a body part.
+</PRE>
+
+<P>
+
+Since a body part is just a kind of entity (see below), a body part is
+represented by an instance of <A HREF="Entity.html">MIME::Entity.</A>
+
+
+<P>
+
+<DT><STRONG><A NAME="item_entity">Entity
+
+</A></STRONG><DD>
+From RFC-1521:
+
+
+<P>
+
+<PRE>
+    The term &quot;entity&quot;, in this document, means either a message or a body
+    part.  All kinds of entities share the property that they have a
+    header and a body.
+</PRE>
+
+<P>
+
+An entity is represented by an instance of <A
+HREF="Entity.html">MIME::Entity.</A> There are instance methods for
+recovering the header (a <A HREF="Head.html">MIME::Head)</A> and the body
+(see below).
+
+
+<P>
+
+<DT><STRONG><A NAME="item_body">Body
+
+</A></STRONG><DD>
+From RFC-1521:
+
+
+<P>
+
+<PRE>
+    The term &quot;body&quot;, when not further qualified, means the body of an
+    entity, that is the body of either a message or of a body part.
+</PRE>
+
+<P>
+
+Well, this is a toughie. Both Mail::Internet (1.17) and Mail::MIME (1.03)
+represent message bodies in-core; unfortunately, this is not always the
+best way to handle things, especially for MIME streams that contain
+multi-megabyte tar files.
+
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="constructors_and_converters">Constructors and converters</A></H3>
+<DL>
+<DT><STRONG><A NAME="item_new_source">new [SOURCE]
+
+</A></STRONG><DD>
+<EM>Class method.</EM>
+
+Create a new, empty MIME entity.
+
+
+<P>
+
+If SOURCE is an ARRAYREF, it is assumed to be an array of lines that will
+be used to create both the header and an in-core body.
+
+
+<P>
+
+Else, if SOURCE is defined, it is assumed to be a filehandle from which the
+header and in-core body is to be read. 
+
+
+<P>
+
+<STRONG>Note:</STRONG>
+ in either case, the body will not be <EM>parsed:</EM>
+ merely read!
+
+
+<P>
+
+<DT><STRONG><A NAME="item_build_paramhash">build PARAMHASH
+
+</A></STRONG><DD>
+<EM>Class/instance method.</EM>
+
+A quick-and-easy catch-all way to create an entity. Use it like this to
+build a ``normal'' single-part entity:
+
+
+<P>
+
+<PRE>
+   $ent = build MIME::Entity Type     =&gt; &quot;image/gif&quot;,
+		             Encoding =&gt; &quot;base64&quot;,
+                             Path     =&gt; &quot;/path/to/xyz12345.gif&quot;,
+                             Filename =&gt; &quot;saveme.gif&quot;;
+</PRE>
+
+<P>
+
+And like this to build a ``multipart'' entity:
+
+
+<P>
+
+<PRE>
+   $ent = build MIME::Entity Type     =&gt; &quot;multipart/mixed&quot;,
+                             Boundary =&gt; &quot;---1234567&quot;;
+</PRE>
+
+<P>
+
+A minimal MIME header will be created. The params are:
+
+
+<P>
+
+<DL>
+<DT><STRONG><A NAME="item_boundary">Boundary
+
+</A></STRONG><DD>
+<EM>Multipart entities only. Optional.</EM>
+  
+The boundary string. If you omit this, a random string will be chosen...
+which is probably safer.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_data">Data
+
+</A></STRONG><DD>
+<EM>Single-part entities only. Optional.</EM>
+  
+An alternative to Path (q.v.): the actual data. If an array reference, the
+array's lines are joined into a private scalar. The body is then opened on
+that data using <A HREF="Body.html">MIME::Body::Scalar.</A>
+
+
+<P>
+
+<DT><STRONG><A NAME="item_description">Description
+
+</A></STRONG><DD>
+<EM>Optional.</EM>
+  
+The text of the content-description. If you don't specify it, the field is
+not put in the header.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_encoding">Encoding
+
+</A></STRONG><DD>
+<EM>Optional.</EM>
+  
+The content-transfer-encoding. If you don't specify it, the field is not
+put in the header... which means that the encoding implicitly defaults to <CODE>"7bit"</CODE> as per RFC-1521.  <EM>Do yourself a favor: put it in.</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_filename">Filename
+
+</A></STRONG><DD>
+<EM>Single-part entities only. Optional.</EM>
+  
+The recommended filename. Overrides any name extracted from <A HREF="#item_path">Path</A>. The information is stored both the deprecated (content-type) and
+preferred (content-disposition) locations.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_path">Path
+
+</A></STRONG><DD>
+<EM>Single-part entities only. Optional.</EM>
+  
+The path to the file to attach. The body is opened on that file using <A
+HREF="Body.html">MIME::Body::File.</A>
+
+
+<P>
+
+<DT><STRONG><A NAME="item_top">Top
+
+</A></STRONG><DD>
+<EM>Optional.</EM>
+  
+Is this a top-level entity? If so, it must sport a MIME-Version. The
+default is true.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_type">Type
+
+</A></STRONG><DD>
+<EM>Optional.</EM>
+  
+The content-type. If you don't specify it, it defaults to <CODE>"text/plain"</CODE> 
+as per RFC-1521.  <EM>Do yourself a favor: put it in.</EM>
+
+
+
+
+
+<P>
+
+</DL>
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="instance_methods">Instance methods</A></H3>
+<DL>
+<DT><STRONG><A NAME="item_add_part">add_part
+
+</A></STRONG><DD>
+Assuming we are a multipart message, add a body part (a <A
+HREF="Entity.html">MIME::Entity)</A> to the array of body parts. Do <STRONG>not</STRONG>
+ call this for single-part messages; i.e., don't call it unless the header
+has a <CODE>"multipart"</CODE> content-type.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_attach_paramhash">attach PARAMHASH
+
+</A></STRONG><DD>
+The real quick-and-easy way to create multipart messages. Basically
+equivalent to:
+
+
+<P>
+
+<PRE>
+    $entity-&gt;add_part(ref($entity)-&gt;build(PARAMHASH));
+</PRE>
+
+<P>
+
+Except that it's a lot nicer to look at.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_body_value">body [VALUE]
+
+</A></STRONG><DD>
+<DL>
+<DT><STRONG><A NAME="item_if_emulating_version_1x">If emulating version 1.x:
+
+</A></STRONG><DD>
+Get or set the path to the file containing the body.
+
+
+<P>
+
+If <CODE>VALUE</CODE>  <EM>is not</EM>
+ given, the current body file is returned. If <CODE>VALUE</CODE>  <EM>is</EM>
+ given, the body file is set to the new value, and the previous value is
+returned.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_otherwise">Otherwise:
+
+</A></STRONG><DD>
+Get or set the body, as an array of lines. This should be regarded as a
+read-only data structure: changing its contents will have unpredictable
+results (you can, of course, make your own copy, and work with that).  
+
+
+<P>
+
+Provided for compatibility with Mail::Internet, and it might not be as
+efficient as you'd like. Also, it's somewhat silly/wrongheaded for binary
+bodies, like GIFs and tar files.
+
+
+<P>
+
+</DL>
+Both forms are deprecated for MIME entities: instead, use the
+<CODE>bodyhandle()</CODE> method to get and use a <A
+HREF="Body.html">MIME::Body.</A> The content-type of the entity will tell
+you whether that body is best read as text (via <CODE>getline())</CODE> or
+raw data (via <CODE>read()).</CODE>
+
+
+<P>
+
+<DT><STRONG><A NAME="item_bodyhandle_value">bodyhandle [VALUE]
+
+</A></STRONG><DD>
+Get or set an abstract object representing the body.
+
+
+<P>
+
+If <CODE>VALUE</CODE>  <EM>is not</EM>
+ given, the current bodyhandle is returned. If <CODE>VALUE</CODE>  <EM>is</EM>
+ given, the bodyhandle is set to the new value, and the previous value is
+returned.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_dump_skeleton_filehandle">dump_skeleton [FILEHANDLE]
+
+</A></STRONG><DD>
+Dump the skeleton of the entity to the given FILEHANDLE, or to the
+currently-selected one if none given. This is really just useful for
+debugging purposes.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_head_value">head [VALUE]
+
+</A></STRONG><DD>
+Get/set the head. 
+
+
+<P>
+
+If there is no VALUE given, returns the current head. If none exists, an
+empty instance of <A HREF="Head.html">MIME::Head</A> is created, set, and
+returned.
+
+
+<P>
+
+<STRONG>Note:</STRONG>
+ This is a patch over a bug in Mail::Internet, which doesn't provide a
+method for setting the head to some given object.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_is_multipart">is_multipart
+
+</A></STRONG><DD>
+Does this entity's MIME type indicate that it's a multipart entity? Returns
+undef (false) if the answer couldn't be determined, 0 (false) if it was
+determined to be false, and true otherwise.
+
+
+<P>
+
+Note that this says nothing about whether or not parts were extracted.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_mime_type">mime_type
+
+</A></STRONG><DD>
+A purely-for-convenience method. This simply relays the request to the
+associated <A HREF="Head.html">MIME::Head</A> object. The following are
+identical:
+
+
+<P>
+
+<PRE>
+    $x = $entity-&gt;mime_type;
+    
+    $x = $entity-&gt;head-&gt;mime_type;
+</PRE>
+
+<P>
+
+If there is no head, returns undef in a scalar context and the empty array
+in a list context.
+
+
+<P>
+
+Note that, while parsed entities still have MIME types, they do not have
+MIME encodings, or MIME versions, or fields, etc., etc... for those
+attributes, you still have to go to the <EM>head</EM>
+ explicitly.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_parts">parts
+
+</A></STRONG><DD>
+Return an array of all sub parts (each of which is a <A
+HREF="Entity.html">MIME::Entity),</A> or the empty array if there are none.  
+
+
+<P>
+
+For single-part messages, the empty array will be returned. For multipart
+messages, the preamble and epilogue parts are <EM>not</EM>
+ in the list! If you want them, use <CODE>all_parts()</CODE> instead.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_print_filehandle">print [FILEHANDLE]
+
+</A></STRONG><DD>
+<EM>Instance method, override.</EM>
+
+Print the entity to the given FILEHANDLE, or to the currently-selected one
+if none given.  
+
+
+<P>
+
+<STRONG>If a single-part entity,</STRONG>
+
+the header and the body are both output, with the body being output
+according to the encoding specified by the header.
+
+
+<P>
+
+<STRONG>If a multipart entity,</STRONG>
+
+this is invoked recursively on all its parts, with appropriate boundaries
+and a preamble generated for you.
+
+
+<P>
+
+See <CODE>print_body()</CODE> for an important note on how the body is output.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_print_body_filehandle">print_body [FILEHANDLE]
+
+</A></STRONG><DD>
+<EM>Instance method, override.</EM>
+
+Print the body of the entity to the given FILEHANDLE, or to the
+currently-selected one if none given.  
+
+
+<P>
+
+<STRONG>Important note:</STRONG>
+ the body is output according to the encoding specified by the header (<CODE>'binary'</CODE> if no encoding given). This means that the following code:
+
+
+<P>
+
+<PRE>
+    $ent = new MIME::Entity [&quot;Subject: Greetings\n&quot;,
+			     &quot;Content-transfer-encoding: base64\n&quot;,
+			     &quot;\n&quot;,
+			     &quot;Hi there!\n&quot;, 
+			     &quot;Bye there!\n&quot;
+			     ];
+    $ent-&gt;print;   # uses print_body() internally
+</PRE>
+
+<P>
+
+Prints this:
+
+
+<P>
+
+<PRE>
+    Subject: Greetings
+    Content-transfer-encoding: base64
+</PRE>
+
+<P>
+
+<PRE>
+    SGkgdGhlcmUhCkJ5ZSB0aGVyZSEK
+</PRE>
+
+<P>
+
+The body is <EM>stored</EM>
+ in an unencoded form; however, the idea is that the transfer encoding is
+used to determine how it should be <EM>output.</EM>
+
+This means that the <CODE>print()</CODE> method is always guaranteed to get you a sendmail-ready stream whose body
+is consistent with its head.
+
+
+<P>
+
+If you want the raw body data to be output, you can either read it from the
+bodyhandle yourself, or use:
+
+
+<P>
+
+<PRE>
+    $ent-&gt;bodyhandle-&gt;print;
+</PRE>
+
+<P>
+
+which uses <CODE>read()</CODE> calls to extract the information, and thus
+will work with both text and binary bodies.
+
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="under_the_hood">Under the hood</A></H3>
+A <STRONG><A HREF="Entity.html">MIME::Entity</A></STRONG>
+ is composed of the following elements:
+
+
+<P>
+
+<UL>
+<LI><STRONG></STRONG>
+A <EM>head</EM>
+, which is a reference to a <A HREF="Head.html">MIME::Head</A> object
+containing the header information.
+
+
+<P>
+
+<LI><STRONG></STRONG>
+A <EM>bodyhandle</EM>
+, which is a reference a <A HREF="Body.html">MIME::Body</A> object
+containing the decoded body data. (In pre-2.0 releases, this was accessed
+via <EM>body</EM>
+, which was a path to a file containing the decoded body. Integration with
+Mail::Internet has forced this to change.)
+
+
+<P>
+
+<LI><STRONG></STRONG>
+A list of zero or more <EM>parts</EM>
+, each of which is a <A HREF="Entity.html">MIME::Entity</A> object. The
+number of parts will only be nonzero if the content-type is some subtype of <CODE>"multipart"</CODE>.
+
+
+<P>
+
+Note that, in 2.0+, a multipart entity does <EM>not</EM>
+ have a body. Of course, any/all of its component parts can have bodies.
+
+
+<P>
+
+</UL>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="design_issues">Design issues</A></H3>
+<DL>
+<DT><STRONG><A NAME="item_some_things_just_cant_be_ignored">Some things just can't be ignored
+
+</A></STRONG><DD>
+In multipart messages, the <EM>``preamble''</EM>
+ is the portion that precedes the first encapsulation boundary, and the <EM>``epilogue''</EM>
+ is the portion that follows the last encapsulation boundary.
+
+
+<P>
+
+According to RFC-1521:
+
+
+<P>
+
+<PRE>
+    There appears to be room for additional information prior to the
+    first encapsulation boundary and following the final boundary.  These
+    areas should generally be left blank, and implementations must ignore
+    anything that appears before the first boundary or after the last one.
+</PRE>
+
+<P>
+
+<PRE>
+    NOTE: These &quot;preamble&quot; and &quot;epilogue&quot; areas are generally not used
+    because of the lack of proper typing of these parts and the lack
+    of clear semantics for handling these areas at gateways,
+    particularly X.400 gateways.  However, rather than leaving the
+    preamble area blank, many MIME implementations have found this to
+    be a convenient place to insert an explanatory note for recipients
+    who read the message with pre-MIME software, since such notes will
+    be ignored by MIME-compliant software.
+</PRE>
+
+<P>
+
+In the world of standards-and-practices, that's the standard. Now for the
+practice: 
+
+
+<P>
+
+<EM>Some ``MIME'' mailers may incorrectly put a ``part'' in the preamble</EM>
+. Since we have to parse over the stuff <EM>anyway</EM>
+, in the future I
+<EM>may</EM>
+ allow the parser option of creating special <A
+HREF="Entity.html">MIME::Entity</A> objects for the preamble and epilogue,
+with bogus <A HREF="Head.html">MIME::Head</A> objects.
+
+
+<P>
+
+For now, though, we're MIME-compliant, so I probably won't change how we
+work.
+
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
+<A HREF="Decoder.html">MIME::Decoder,</A> <A
+HREF="Entity.html">MIME::Entity,</A> <A HREF="Head.html">MIME::Head,</A> <A
+HREF="Parser.html">MIME::Parser.</A>
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+Copyright (c) 1996 by Eryq / <A
+HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
+
+
+<P>
+
+All rights reserved. This program is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 2.3 $ $Date: 1996/10/18 06:48:45 $
+
+
+<P>
+
+    <P>
+    <HR>       
+    <FONT COLOR=#F00000>*</FONT>
+    <FONT SIZE=-1>
+    Artwork and slogan from Warner Bros' "Animaniacs". 
+    Neither this code nor its author are connected with or
+    endorsed by Warner Bros. in any way. Narf. Poit. 
+    </FONT>
+    </BODY>
+
+    </HTML>

@@ -1,0 +1,18 @@
+
+As of MIME-parser 2.0...
+
+	MIME::Head is a subclass of Mail::Header
+	MIME::Entity is a subclass of Mail::Internet
+
+If you are upgrading from the MIME-parser 1.0 package, and you used 
+these module directly, you may notice some warnings about deprecated 
+constructs in your code... much your stuff should (hopefully) 
+still work... you'll just see a lot of warnings.  
+
+HOWEVER...
+
+There are some true incompatibilities between MIME::Head 1.0 and 
+Mail::Header.  Please read the full documentation before proceeding!
+
+If you desperately need to upgrade, you can emulate the old version's
+behavior.  See the MIME::ToolUtils package for details.

@@ -1,0 +1,181 @@
+    <HTML>
+
+    <HEAD>
+    <TITLE>MIME::Latin1</TITLE>
+    </HEAD>
+
+    <BODY>
+
+    <A NAME="#__top"> <P></A>
+<CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Entity.html">MIME::Entity</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
+</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::Latin1</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Parser.html">MIME::Parser</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ParserBase.html">MIME::ParserBase</A></FONT>
+</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ToolUtils.html">MIME::ToolUtils</A></FONT>
+</B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
+      <TR>
+	<TD VALIGN=TOP ALIGN=CENTER>
+	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>Latin1</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="MIME">
+	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+        <TD VALIGN=TOP>
+<!-- INDEX BEGIN -->
+<UL>
+	<LI><A HREF="#name">NAME</A>
+	<LI><A HREF="#synopsis">SYNOPSIS</A>
+	<LI><A HREF="#description">DESCRIPTION</A>
+	<LI><A HREF="#public_interface">PUBLIC INTERFACE </A>
+	<LI><A HREF="#author">AUTHOR</A>
+	<LI><A HREF="#version">VERSION</A>
+</UL>
+<!-- INDEX END -->
+
+    </TABLE>
+<HR>
+<P>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<A HREF="Latin1.html">MIME::Latin1</A> - translate ISO-8859-1 into 7-bit
+approximations
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<PRE>
+    use MIME::Latin1 qw(latin1_to_ascii);
+    
+    $dirty = &quot;Fran\347ois&quot;;
+    print latin1_to_ascii($dirty);      # prints out &quot;Fran\c,ois&quot;
+</PRE>
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+This is a small package used by the <CODE>"7bit"</CODE> encoder/decoder for handling the case where a user wants to 7bit-encode a
+document that contains 8-bit (presumably Latin-1) characters.
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE </A></H2>
+<DL>
+<DT><STRONG><A NAME="item_latin1_to_ascii_stringopts">latin1_to_ascii STRING,[OPTS]
+
+</A></STRONG><DD>
+Map the Latin-1 characters in the string to sequences of the form:
+
+
+<P>
+
+<PRE>
+     \xy
+</PRE>
+
+<P>
+
+Where <CODE>xy</CODE> is a two-character sequence that visually approximates the Latin-1
+character. For example:
+
+
+<P>
+
+<PRE>
+     c cedilla      =&gt; \c,
+     n tilde        =&gt; \n~
+     AE ligature    =&gt; \AE
+     small o slash  =&gt; \o/
+</PRE>
+
+<P>
+
+The sequences are taken almost exactly from the Sun character composition
+sequences for generating these characters. The translation may be further
+tweaked by the OPTS string:
+
+
+<P>
+
+<STRONG>If no OPTS string is given,</STRONG>
+ only 8-bit characters are affected, and their output is of the form <CODE>\xy</CODE>:
+
+
+<P>
+
+<PRE>
+      \&lt;&lt;Fran\c,ois Mu\&quot;ller\&gt;&gt;   c:\usr\games
+</PRE>
+
+<P>
+
+<STRONG>If the OPTS string contains 'NOSLASH',</STRONG>
+ then the leading <CODE>"\"</CODE>
+is not output, and the output is more compact:
+
+
+<P>
+
+<PRE>
+      &lt;&lt;Franc,ois Mu&quot;ller&gt;&gt;       c:\usr\games
+</PRE>
+
+<P>
+
+<STRONG>If the OPTS string contains 'ENCODE',</STRONG>
+ then not only is the leading <CODE>"\"</CODE>
+output, but any other occurences of <CODE>"\"</CODE> are escaped as well by turning them into <CODE>"\\"</CODE>. This produces output which may easily be parsed and turned back into the
+original 8-bit characters, so in a way it is its own full-fledged
+encoding... and given that <CODE>"\"</CODE> is a rare-enough character, not much uglier that the normal output: 
+
+
+<P>
+
+<PRE>
+      \&lt;&lt;Fran\c,ois Mu\&quot;ller\&gt;&gt;   c:\\usr\\games
+</PRE>
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+Copyright (c) 1996 by Eryq / <A
+HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
+
+
+<P>
+
+All rights reserved. This program is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 1.1 $ $Date: 1996/10/17 15:22:24 $
+
+
+<P>
+
+    <P>
+    <HR>       
+    <FONT COLOR=#F00000>*</FONT>
+    <FONT SIZE=-1>
+    Artwork and slogan from Warner Bros' "Animaniacs". 
+    Neither this code nor its author are connected with or
+    endorsed by Warner Bros. in any way. Narf. Poit. 
+    </FONT>
+    </BODY>
+
+    </HTML>
