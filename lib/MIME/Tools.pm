@@ -29,7 +29,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.409 $, 10;
+$VERSION = substr q$Revision: 5.410 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -717,7 +717,7 @@ around your "default" decoder, as follows:
 
 One place this I<is> done automatically is in extracting the recommended
 filename for a part while parsing.  That's why you should start by
-setting up the best "default" decoder if the default targer of Latin1
+setting up the best "default" decoder if the default target of Latin1
 isn't to your liking.
 
 
@@ -1043,19 +1043,28 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.409 $
+$Revision: 5.410 $
 
 
 =head1 CHANGE LOG
 
 =over 4
 
+=item Version 5.410   (2000/11/23)
+
+B<Better detection of evil filenames.>
+Now we check for filenames which are suspiciously long,
+and a new MIME::Filer::exorcise_filename() method is used
+to try and remove the evil.
+I<Thanks to Jason Haar for the suggestion.>
+
+
 =item Version 5.409   (2000/11/12)
 
-B<Added more functionality to MIME::WordDecoder,> 
+B<Added functionality to MIME::WordDecoder,> 
 including support for plain US-ASCII. 
 
-B<Made MIME::Tools::tmpopen() more flexible.>
+B<MIME::Tools::tmpopen()> made more flexible.
 You can now override the tmpfile-opening behavior.
 
 
@@ -1976,7 +1985,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date: 2000/11/12 05:44:56 $), the MIME-tools homepage was
+At the time of this writing ($Date: 2000/11/23 05:04:01 $), the MIME-tools homepage was
 F<http://www.zeegee.com/code/perl/MIME-tools>.
 Check there for updates and support.
 

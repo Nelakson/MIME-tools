@@ -396,7 +396,7 @@ THINGS YOU SHOULD DO
 
     One place this *is* done automatically is in extracting the recommended
     filename for a part while parsing. That's why you should start by
-    setting up the best "default" decoder if the default targer of Latin1
+    setting up the best "default" decoder if the default target of Latin1
     isn't to your liking.
 
 THINGS I DO THAT YOU SHOULD KNOW ABOUT
@@ -654,14 +654,20 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.409 $
+    $Revision: 5.410 $
 
 CHANGE LOG
+    Version 5.410   (2000/11/23)
+        Better detection of evil filenames. Now we check for filenames which
+        are suspiciously long, and a new MIME::Filer::exorcise_filename()
+        method is used to try and remove the evil. *Thanks to Jason Haar for
+        the suggestion.*
+
     Version 5.409   (2000/11/12)
-        Added more functionality to MIME::WordDecoder, including support for
+        Added functionality to MIME::WordDecoder, including support for
         plain US-ASCII.
 
-        Made MIME::Tools::tmpopen() more flexible. You can now override the
+        MIME::Tools::tmpopen() made more flexible. You can now override the
         tmpfile-opening behavior.
 
     Version 5.408   (2000/11/10)
@@ -1413,7 +1419,7 @@ ACKNOWLEDGMENTS
     me, and I'll put you in.
 
 SEE ALSO
-    At the time of this writing ($Date: 2000/11/12 05:44:56 $), the MIME-
+    At the time of this writing ($Date: 2000/11/23 05:04:01 $), the MIME-
     tools homepage was http://www.zeegee.com/code/perl/MIME-tools. Check
     there for updates and support.
 

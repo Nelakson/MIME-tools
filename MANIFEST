@@ -165,6 +165,8 @@ testmsgs/german.msg
 testmsgs/german.ref
 testmsgs/hdr-fakeout.msg
 testmsgs/hdr-fakeout.ref
+testmsgs/multi-2evil.msg
+testmsgs/multi-2evil.ref
 testmsgs/multi-2gifs.msg
 testmsgs/multi-2gifs.ref
 testmsgs/multi-clen.msg

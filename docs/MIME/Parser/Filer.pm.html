@@ -218,9 +218,17 @@ Subclasses should always be sure to invoke the inherited method.
 Is this an evil filename; i.e., one which should not be used
 in generating a disk file name?  It is if any of these are true:
 
-<P><UL><LI> it is empty<LI> it is a string of dots: &quot;.&quot;, &quot;..&quot;, etc.<LI> it contains a known &quot;path&quot; character: '/' '\' ':' '[' ']'</UL>
+<P><UL><LI> it is empty<LI> it is a string of dots: &quot;.&quot;, &quot;..&quot;, etc.<LI> it contains a known &quot;path&quot; character: '/' '\' ':' '[' ']'<LI> it is too long</UL>
 <P>If you just want to change this behavior, you should override 
 this method in the subclass of MIME::Parser::Filer that you use.
+
+
+<P><B>Warning:</B> at the time this method is invoked, the FILENAME has 
+already been unmime'd into the local character set.  
+If you're using any character set other than ASCII, ISO-8859-*, 
+or UTF-8, the interpretation of the &quot;path&quot; characters might be 
+very different, and you will probably need to override this method.
+See <A HREF="../MIME/WordDecoder.pm.html#item:unmime">unmime</A> for more details.
 
 
 <P><B>Note:</B> subclasses of MIME::Parser::Filer which override 
@@ -228,13 +236,29 @@ output_path() might not consult this method; note, however, that
 the built-in subclasses do consult it.
 
 
-<P><B>Note:</B> This method used to be a lot stricter, but it unnecessarily
-inconvenienced users on non-ASCII systems. 
-
-
 <P><I>Thanks to Andrew Pimlott for finding a real dumb bug in the original
 version.  Thanks to Nickolay Saukh for noting that evil is in the 
 eye of the beholder.</I>
+
+<P><DT><B><A NAME="item:exorcise_filename">exorcise_filename FILENAME</A></B></DT>
+<DD>
+<I>Instance method.</I>
+If a given filename is evil (see <A HREF="#item:evil_filename">evil_filename</A>) we try to
+rescue it by performing some basic operations: shortening it,
+removing bad characters, etc., and checking each against
+evil_filename().
+
+
+<P>Returns the exorcised filename (which is guaranteed to not
+be evil), or undef if it could not be salvaged.
+
+
+<P><B>Warning:</B> at the time this method is invoked, the FILENAME has 
+already been unmime'd into the local character set.  
+If you're using anything character set other than ASCII, ISO-8859-*, 
+or UTF-8, the interpretation of the &quot;path&quot; characters might be very 
+very different, and you will probably need to override this method.
+See <A HREF="../MIME/WordDecoder.pm.html#item:unmime">unmime</A> for more details.
 
 <P><DT><B><A NAME="item:find_unused_path">find_unused_path DIR, FILENAME</A></B></DT>
 <DD>
@@ -506,11 +530,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.405 $
+<P>$Revision: 5.406 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sun Nov 12 00:56:16 2000 by cvu_pod2html
+Generated Thu Nov 23 00:12:18 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

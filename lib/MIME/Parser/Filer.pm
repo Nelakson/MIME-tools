@@ -238,6 +238,10 @@ sub new {
 	MPF_Dir       => ".",
 	MPF_Ext       => { %DefaultTypeToExt },
 	MPF_Purgeable => [],       ### files created by the last parse
+
+	MPF_MaxName   => 80,       ### max filename before treated as evil
+	MPF_TrimRoot  => 14,       ### trim root to this length
+	MPF_TrimExt   => 3,        ### trim extension to this length
     }, $class;
     $self->init(@initargs);
     $self;
@@ -325,16 +329,21 @@ in generating a disk file name?  It is if any of these are true:
     * it is empty
     * it is a string of dots: ".", "..", etc.
     * it contains a known "path" character: '/' '\' ':' '[' ']'
+    * it is too long
 
 If you just want to change this behavior, you should override 
 this method in the subclass of MIME::Parser::Filer that you use.
 
+B<Warning:> at the time this method is invoked, the FILENAME has 
+already been unmime'd into the local character set.  
+If you're using any character set other than ASCII, ISO-8859-*, 
+or UTF-8, the interpretation of the "path" characters might be 
+very different, and you will probably need to override this method.
+See L<MIME::WordDecoder/unmime> for more details.
+
 B<Note:> subclasses of MIME::Parser::Filer which override 
 output_path() might not consult this method; note, however, that
 the built-in subclasses do consult it.
-
-B<Note:> This method used to be a lot stricter, but it unnecessarily
-inconvenienced users on non-ASCII systems. 
 
 I<Thanks to Andrew Pimlott for finding a real dumb bug in the original
 version.  Thanks to Nickolay Saukh for noting that evil is in the 
@@ -350,10 +359,61 @@ sub evil_filename {
     return 1 if (!defined($name) or ($name eq ''));   ### empty
     return 1 if ($name =~ m{^\.+\Z});         ### dots
     return 1 if ($name =~ tr{\\/:[]}{});      ### path characters
+    return 1 if ($self->{MPF_MaxName} and 
+		 (length($name) > $self->{MPF_MaxName}));
+    
     $self->debug("it's ok");
     0;
 }
 
+#------------------------------
+
+=item exorcise_filename FILENAME
+
+I<Instance method.>
+If a given filename is evil (see L</evil_filename>) we try to
+rescue it by performing some basic operations: shortening it,
+removing bad characters, etc., and checking each against
+evil_filename().
+
+Returns the exorcised filename (which is guaranteed to not
+be evil), or undef if it could not be salvaged.
+
+B<Warning:> at the time this method is invoked, the FILENAME has 
+already been unmime'd into the local character set.  
+If you're using anything character set other than ASCII, ISO-8859-*, 
+or UTF-8, the interpretation of the "path" characters might be very 
+very different, and you will probably need to override this method.
+See L<MIME::WordDecoder/unmime> for more details.
+
+=cut
+
+sub exorcise_filename {
+    my ($self, $fname) = @_;
+    
+    ### Isolate to last path element:
+    my $last = $fname; $last =~ s{^.*[/\\\[\]:]}{};
+    if ($last and !$self->evil_filename($last)) {
+	$self->debug("looks like I can use the last path element");
+	return $last;
+    }   
+
+    ### Break last element into root and extension, and truncate:
+    my ($root, $ext) = (($last =~ /^(.*)\.([^\.]+)\Z/) 
+			? ($1, $2)
+			: ($last, ''));
+    $root = substr($root, 0, ($self->{MPF_TrimRoot} || 14));
+    $ext  = substr($ext,  0, ($self->{MPF_TrimExt}  ||  3));
+    $ext =~ /^\w+$/ or $ext = "dat";
+    my $trunc = $root . ($ext ? ".$ext" : '');
+    if (!$self->evil_filename($trunc)) {
+	$self->debug("looks like I can use the truncated last path element");
+	return $trunc;
+    }
+        
+    ### Hope that works:
+    undef;
+}
 
 #------------------------------
 
@@ -582,8 +642,10 @@ sub output_path {
     ### Get the output directory:
     my $dir = $self->output_dir($head);
     
-    ### Get the output filename:
+    ### Get the output filename, decoding into the local character set:
     my $fname = unmime $head->recommended_filename;
+
+    ### Can we use it:
     if    (!defined($fname)) {
 	$self->debug("no filename recommended: synthesizing our own");
 	$fname = $self->output_filename($head);
@@ -595,11 +657,12 @@ sub output_path {
     elsif ($self->evil_filename($fname)) {
 
 	### Can we save it by just taking the last element?
-	my $last = $fname; $last =~ s{^.*[/\\\[\]:]}{};
-	if ($last and !$self->evil_filename($last)) {
+	my $ex = $self->exorcise_filename($fname);
+	if (defined($ex) and !$self->evil_filename($ex)) {
 	    $self->whine("Provided filename '$fname' is regarded as evil, ",
-			 "but it looks like I can use the last path element.");
-	    $fname = $last;
+			 "but I was able to exorcise it and get something ",
+			 "usable.");
+	    $fname = $ex;
 	}
 	else {
 	    $self->whine("Provided filename '$fname' is regarded as evil; ",
@@ -855,5 +918,5 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.405 $
+$Revision: 5.406 $
 

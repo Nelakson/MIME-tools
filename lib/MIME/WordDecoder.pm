@@ -245,6 +245,7 @@ sub decode {
 	### Get the data and (upcased) charset:
 	my $data    = $_->[0];
 	my $charset = (defined($_->[1]) ? uc($_->[1]) : 'raw');
+	$charset =~ s/\*\w+\Z//;   ### RFC2184 language suffix
 
 	### Get the handler; guess if never seen before:
 	defined($self->{MWD_Map}{$charset}) or
@@ -589,7 +590,7 @@ Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 =head1 VERSION
 
-$Revision: 5.402 $ $Date: 2000/11/12 05:44:57 $
+$Revision: 5.403 $ $Date: 2000/11/23 05:04:03 $
 
 =cut
 
