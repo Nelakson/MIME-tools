@@ -439,8 +439,8 @@ sub parse_part {
     # We localize IO inside here, so that we can support the IO:: interface
     my ($headline, @headlines);
     while (defined($headline = $in->getline)) {
-	$headline =~ s/\r?\n$//o;        # chomps both \r and \r\n
-	last if ($headline eq '');       # blank line ends head
+	$headline =~ s/\r?\n$/\n/;       # folds \r\n into \n
+	last if ($headline eq "\n");     # blank line ends head
 	push @headlines, $headline;
     }
     $head->extract(\@headlines) or return error "couldn't parse head!";

@@ -12,7 +12,7 @@ use vars qw($VERSION);
 sub config { shift; MIME::ToolUtils->config(@_) }
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.112 $, 10;
+$VERSION = substr q$Revision: 4.113 $, 10;
 
 #------------------------------
 1;
@@ -632,7 +632,7 @@ Release of 4.0: Christmas 1997.
 
 =head1 VERSION
 
-$Revision: 4.112 $ 
+$Revision: 4.113 $ 
 
 
 =head1 ACKNOWLEDGMENTS

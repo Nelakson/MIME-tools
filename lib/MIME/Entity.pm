@@ -1882,7 +1882,7 @@ I<MIME::Entity:>
 	I<Use methods only> for portability; don't make any assumptions
 	about what you've been handed.
 
-    
+
 =item What does the body() method return?
 
 I<Mail::Internet:> 
@@ -1932,7 +1932,6 @@ I<Mail::Internet:>
 I<MIME::Entity:> 
 	Method body() refers to the I<actual body data> of the entity 
         in question.
-        
         Method print_body() (and stringify_body()) refers to the 
         I<complete printed representation> of that entity.
 

@@ -167,6 +167,13 @@ Make it even easier to compose and send MIME messages.
 =over 4
 
 
+=item Version 4.113 *
+
+B<Bug fix>: MIME::ParserBase was accidentally folding newlines in 
+	header fields.
+	I<Thanks to Jason L. Tibbitts III for spotting this.>
+
+
 =item Version 4.112 *
 
 B<MIME::Entity::print_body now recurses> when printing multipart

@@ -25,8 +25,8 @@ MAJOR CHANGES FROM 3.0 TO 4.0:
         MIME::Decoder has been split into a tree of modules.
    
    Encodings
-        The '7bit' encoder now *strips out* 8-bit characters by default;
-        it does not use the deprecated MIME::Latin1.
+        The '7bit' and '8bit' encoders now merely warn of transgressions;
+        '7bit' no longer uses the deprecated MIME::Latin1.
 	
 	The 'quoted-printable' decoder now uses the newest MIME::QuotedPrint,
 	and amends its output with guideline #8 from RFC2049 (From/.).
