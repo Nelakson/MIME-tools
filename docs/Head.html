@@ -49,7 +49,7 @@
     </TABLE>
 <HR>
 <P>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
 <A HREF="Head.html">MIME::Head</A> - MIME message header (a subclass of
 Mail::Header)
 
@@ -58,7 +58,7 @@ Mail::Header)
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
 Start off by requiring or using this package:
 
 
@@ -217,7 +217,7 @@ To get certain commonly-used <STRONG>MIME information</STRONG>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
 A class for parsing in and manipulating RFC-822 message headers, with some
 methods geared towards standard (and not so standard) MIME fields as
 specified in RFC-1521, <EM>Multipurpose Internet Mail Extensions</EM>
@@ -228,10 +228,10 @@ specified in RFC-1521, <EM>Multipurpose Internet Mail Extensions</EM>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="creation_input_and_output">Creation, input, and output</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="creation_input_and_output">Creation, input, and output</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_new_argoptions">new [ARG],[OPTIONS]
 
@@ -343,7 +343,7 @@ takes this into account.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="gettingsetting_fields">Getting/setting fields</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="gettingsetting_fields">Getting/setting fields</A></H3>
 The following are methods related to retrieving and modifying the header
 fields. Some are inherited from Mail::Header, but I've kept the
 documentation around for convenience.
@@ -676,6 +676,8 @@ Print the header out to the given filehandle.
 <DT><STRONG><A NAME="item_set_tagtext">set TAG,TEXT
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Set the field named TAG to [the single occurence given by the TEXT:
 
 
@@ -699,6 +701,8 @@ The TAG is treated in a case-insensitive manner.
 <DT><STRONG><A NAME="item_unfold_field">unfold [FIELD]
 
 </A></STRONG><DD>
+<EM>Instance method, inherited.</EM>
+
 Unfold the text of all occurences of the given FIELD. If the FIELD is
 omitted, <EM>all</EM>
  fields are unfolded.
@@ -725,7 +729,7 @@ Returns the ``self'' object.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="mimespecific_methods">MIME-specific methods</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="mimespecific_methods">MIME-specific methods</A></H3>
 All of the following methods extract information from the following fields:
 
 
@@ -761,6 +765,8 @@ the Mail::Field interface to get it.
 <DT><STRONG><A NAME="item_mime_encoding">mime_encoding
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Try <EM>real hard</EM>
  to determine the content transfer encoding (e.g., <CODE>"base64"</CODE>, <CODE>"binary"</CODE>), which is returned in all-lowercase.
 
@@ -782,6 +788,8 @@ If no encoding could be found, the default of <CODE>"7bit"</CODE> is returned. I
 <DT><STRONG><A NAME="item_mime_type">mime_type
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Try <CODE>real hard</CODE> to determine the content type (e.g., <CODE>"text/plain"</CODE>,
 <CODE>"image/gif"</CODE>, <CODE>"x-weird-type"</CODE>, which is returned in all-lowercase.  
 
@@ -804,6 +812,8 @@ is returned. I quote from RFC-1521 section 7.1:
 <DT><STRONG><A NAME="item_multipart_boundary">multipart_boundary
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 If this is a header for a multipart message, return the ``encapsulation
 boundary'' used to separate the parts. The boundary is returned exactly as
 given in the <CODE>Content-type:</CODE> field; that is, the leading double-hyphen (<CODE>--</CODE>) is <EM>not</EM>
@@ -841,6 +851,8 @@ after all trailing whitespace has been removed).
 <DT><STRONG><A NAME="item_recommended_filename">recommended_filename
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Return the recommended external filename. This is used when extracting the
 data from the MIME stream.
 
@@ -855,14 +867,14 @@ Returns undef if no filename could be suggested.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="compatibility_tweaks">Compatibility tweaks</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="compatibility_tweaks">Compatibility tweaks</A></H3>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="design_issues">Design issues</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="design_issues">Design issues</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_why_have_separate_objects_for_th">Why have separate objects for the entity, head, and body?
 
@@ -997,10 +1009,10 @@ occurences had to be retrievable.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="warnings">WARNINGS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="warnings">WARNINGS</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="news_flash">NEWS FLASH! </A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="news_flash">NEWS FLASH! </A></H3>
 Rejoice! As of MIME-parser 2.0, this is a subclass of Mail::Header, as the
 Maker of All Things intended. It will continue to exist, both for
 backwards-compatibility with MIME-parser 1.0, and to allow me to tinker
@@ -1039,7 +1051,7 @@ back and forth between man pages to use this module.
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="upgrading_from_1x_to_2x">UPGRADING FROM 1.x to 2.x</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="upgrading_from_1x_to_2x">UPGRADING FROM 1.x to 2.x</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_altered_methodsusage">Altered methods/usage
 
@@ -1163,7 +1175,7 @@ Use the inherited <CODE>mail_from()</CODE> method instead.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
 Copyright (c) 1996 by Eryq / <A
 HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>  
 
@@ -1184,8 +1196,8 @@ Advanced Data Solutions.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.13 $ $Date: 1997/01/14 06:02:25 $
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
 
 
 <P>

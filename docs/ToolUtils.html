@@ -25,6 +25,7 @@
 	<LI><A HREF="#name">NAME</A>
 	<LI><A HREF="#description">DESCRIPTION</A>
 	<LI><A HREF="#public_interface">PUBLIC INTERFACE</A>
+	<LI><A HREF="#configuration_variables">CONFIGURATION VARIABLES</A>
 	<LI><A HREF="#author">AUTHOR</A>
 	<LI><A HREF="#version">VERSION</A>
 </UL>
@@ -33,7 +34,7 @@
     </TABLE>
 <HR>
 <P>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
 <A HREF="ToolUtils.html">MIME::ToolUtils</A> - MIME-tools kit configuration
 and utilities
 
@@ -42,41 +43,124 @@ and utilities
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
 A catch-all place for miscellaneous global information related to the
 configuration of the MIME-tools kit.
 
 
 <P>
 
+Since most of the MIME-tools modules ``use'' it by name, this module is
+really not subclassable.
+
+
+<P>
+
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
 <DL>
-<DT><STRONG><A NAME="item_debugging_onoff">debugging [ONOFF]
+<DT><STRONG><A NAME="item_config_variable_value">config [VARIABLE, [VALUE]]
 
 </A></STRONG><DD>
 <EM>Class method.</EM>
 
-Turn debugging on (if ONOFF is true) or off (if ONOFF is false) for the
-entire MIME-tools library. Debug messages go to STDERR.
+Set/get a configuration variable:
 
 
 <P>
 
-With no argument, this method just returns the current setting.
+<PRE>
+    # Get current debugging flag:
+    $current = config MIME::ToolUtils 'DEBUGGING';
+    
+    # Invert it:
+    config MIME::ToolUtils DEBUGGING =&gt; !$current;
+</PRE>
+
+<P>
+
+<EM>Note:</EM>
+ as you can see, I like the `arrow' syntax when setting values.
 
 
 <P>
 
-<DT><STRONG><A NAME="item_emulate_tmpfile_option">emulate_tmpfile [OPTION]
+The complete list of configuration variables is listed below. They are
+all-uppercase, possibly with underscores. To get a list of all valid config
+variables in your program, and output their current values, you can say:
+
+
+<P>
+
+<PRE>
+    foreach $var (sort (config MIME::ToolUtils)) {
+       print &quot;MIME config $var = &quot;, (config MIME::ToolUtils $var), &quot;\n&quot;;
+    }
+</PRE>
+
+<P>
+
+Note that some of these variables may have nice printed representations,
+while others may not.
+
+
+<P>
+
+<EM>Rationale:</EM>
+ I wanted access to the configuration to be done via some kind of
+controllable public interface, in case ``setting a config variable''
+involved making a subroutine call. This approach is an attempt to do so
+while preventing an explosion of lots of little methods, many of which will
+do nothing more than set an entry in the internal <CODE>%CONFIG</CODE>
+hash. I suppose a tied hash would have been slicker.
+
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="configuration_variables">CONFIGURATION VARIABLES</A></H2>
+You may set/get all of these via the <CODE>config</CODE> method.
+
+
+<P>
+
+<DL>
+<DT><STRONG><A NAME="item_auto_sync_headers">AUTO_SYNC_HEADERS
 
 </A></STRONG><DD>
-<EM>Class method.</EM>
+When printing out a MIME entity, you may find it desirable to always output
+a Content-Length header (even though this is a non-standard MIME header).
+If you set this configuration option true (the default is false), the
+toolkit will attempt to precompute the Content-Length of all singleparts in
+your message, and set the headers appropriately. Otherwise, it will leave
+the headers alone.
 
+
+<P>
+
+You should be aware that auto-synching the headers can slow down the
+printing of messages.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_debugging">DEBUGGING
+
+</A></STRONG><DD>
+Value should be a boolean: true to turn debugging on, false to turn it off.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_emulate_tmpfile">EMULATE_TMPFILE
+
+</A></STRONG><DD>
 Determines how to patch a Perl 5.002 bug in FileHandle::new_tmpfile, and
 get a FileHandle object which really <EM>will</EM>
- be destroyed when it goes out of scope. Possible options are:
+ be destroyed when it goes out of scope. Possible values are:
 
 
 <P>
@@ -118,14 +202,14 @@ handles.
 <DT><STRONG><A NAME="item_a_subroutine_reference">(a subroutine reference)
 
 </A></STRONG><DD>
-Use this subroutine.
+Use the given subroutine, with no arguments, to return a tmpfile.
 
 
 <P>
 
 </DL>
-If any of the emulation options ends with '!' (e.g., ``UNLINK!''), then the
-package will <EM>always</EM>
+If any of the named emulation options ends with '!' (e.g., ``UNLINK!''),
+then the package will <EM>always</EM>
  emulate that way. Otherwise, it will try to make a reasonable guess as to
 whether emulation is necessary, based on your version of Perl.
 
@@ -137,16 +221,9 @@ The default setting (if you never invoke this method) is <A HREF="#item_opendup"
 
 <P>
 
-With no argument, this method just returns the current setting.
-
-
-<P>
-
-<DT><STRONG><A NAME="item_emulate_version_version">emulate_version [VERSION]
+<DT><STRONG><A NAME="item_emulate_version">EMULATE_VERSION
 
 </A></STRONG><DD>
-<EM>Class method.</EM>
-
 Emulate the behavior of a previous version of the MIME-tools kit (a.k.a the
 MIME-parser kit in its version 1.x incarnations). This will <EM>not</EM>
  turn off warnings about deprecated usage (that would impede progress), but
@@ -157,17 +234,38 @@ it <EM>will</EM>
 <P>
 
 <PRE>
-    MIME::ToolUtils-&gt;emulate_version(1.0)
+    config MIME::ToolUtils EMULATE_VERSION =&gt; 1.0;
 </PRE>
 
 <P>
 
-The VERSION should be '1' or '1.0'.
+The value should be '1' or '1.0'. To reliably turn off emulation, set it to
+undef.
 
 
 <P>
 
-With no argument, this method just returns the current setting.
+<DT><STRONG><A NAME="item_version">VERSION
+
+</A></STRONG><DD>
+<EM>Read-only.</EM>
+  The version of the <EM>toolkit.</EM>
+
+
+
+
+
+<P>
+
+<PRE>
+    config MIME::ToolUtils VERSION =&gt; 1.0;
+</PRE>
+
+<P>
+
+Please notice that as of 3.x, this <EM>happens</EM>
+ to be the same as the $MIME::ToolUtils::VERSION: however, this was not
+always the case, and someday may not be the case again.
 
 
 <P>
@@ -175,7 +273,7 @@ With no argument, this method just returns the current setting.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
 Copyright (c) 1996 by Eryq / <A
 HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>  
 
@@ -190,8 +288,8 @@ and/or modify it under the same terms as Perl itself.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.14 $ $Date: 1997/01/14 06:17:36 $
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 3.203 $ $Date: 1997/01/19 07:40:14 $
 
 
 <P>

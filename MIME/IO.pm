@@ -58,7 +58,7 @@ By popular demand, I have also added the following to the built-in classes,
 but I do not use them anywhere in the parsing/generating code so it's
 safe for you to omit them from your class:
 
-=over
+=over 4
 
 =item seek POS,WHENCE
 
@@ -85,7 +85,7 @@ I<Thanks to Jason L Tibbitts III for suggesting the seek/tell interface.>
 use vars qw($VERSION);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.7 $ ' =~ /\$Revision:\s+([^\s]+)/;
+$VERSION = substr q$Revision: 3.201 $, 10;
 
 
 #============================================================
@@ -298,6 +298,8 @@ sub getline {
 #------------------------------
 # getlines
 #------------------------------
+# Notice that we can't use split(), since that would nuke our newlines!
+
 sub getlines {
     my $self = shift;
     wantarray or croak("Can't call getlines in scalar context!");
@@ -382,7 +384,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.7 $ $Date: 1997/01/13 00:23:06 $
+$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
 
 
 =cut

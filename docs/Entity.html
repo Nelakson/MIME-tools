@@ -35,7 +35,6 @@
 		<LI><A HREF="#under_the_hood">Under the hood</A>
 		<LI><A HREF="#design_issues">Design issues</A>
 		</UL>
-	<LI><A HREF="#see_also">SEE ALSO</A>
 	<LI><A HREF="#author">AUTHOR</A>
 	<LI><A HREF="#version">VERSION</A>
 </UL>
@@ -44,7 +43,7 @@
     </TABLE>
 <HR>
 <P>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
 <A HREF="Entity.html">MIME::Entity</A> - class for parsed-and-decoded MIME
 message
 
@@ -53,7 +52,7 @@ message
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
 Create a MIME entity from an array, and output it as a MIME stream to
 STDOUT:
 
@@ -163,6 +162,21 @@ Create a multipart message (could it <EM>be</EM>
 
 <P>
 
+Muck about with the signature:
+
+
+<P>
+
+<PRE>
+    # Sign it (atomatically removes any existing signature):
+    $top-&gt;sign(File=&gt;&quot;$ENV{HOME}/.signature&quot;);
+        
+    # Remove any signature within 15 lines of the end:
+    $top-&gt;remove_sig(15);
+</PRE>
+
+<P>
+
 Extract information from MIME entities:
 
 
@@ -178,6 +192,23 @@ Extract information from MIME entities:
 
 <P>
 
+If you want a <CODE>Content-type:</CODE> header to be output <EM>and output correctly</EM>
+
+for the current body <CODE>part(s),</CODE> here's how to do it:
+
+
+<P>
+
+<PRE>
+    # Compute content-lengths for singleparts based on bodies:
+    $entity-&gt;sync_headers(Length=&gt;'COMPUTE');
+    
+    # Output!
+    $entity-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
 See <A HREF="Parser.html">MIME::Parser</A> for additional examples of
 usage.
 
@@ -186,7 +217,7 @@ usage.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
 A subclass of <STRONG>Mail::Internet</STRONG>
 .
 
@@ -303,10 +334,10 @@ multi-megabyte tar files.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="constructors_and_converters">Constructors and converters</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="constructors_and_converters">Constructors and converters</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_new_source">new [SOURCE]
 
@@ -550,11 +581,13 @@ as per RFC-1521.  <EM>Do yourself a favor: put it in.</EM>
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="instance_methods">Instance methods</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="instance_methods">Instance methods</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_add_part_entity">add_part ENTITY
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Assuming we are a multipart message, add a body part (a <A
 HREF="Entity.html">MIME::Entity)</A> to the array of body parts. Do <STRONG>not</STRONG>
  call this for single-part messages; i.e., don't call it unless the header
@@ -571,6 +604,8 @@ Returns the part that was just added.
 <DT><STRONG><A NAME="item_attach_paramhash">attach PARAMHASH
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 The real quick-and-easy way to create multipart messages. Basically
 equivalent to:
 
@@ -591,6 +626,14 @@ Except that it's a lot nicer to look at.
 <DT><STRONG><A NAME="item_body_value">body [VALUE]
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
+
+
+
+
+<P>
+
 <DL>
 <DT><STRONG><A NAME="item_if_emulating_version_1x">If emulating version 1.x:
 
@@ -638,6 +681,8 @@ raw data (via <CODE>read()).</CODE>
 <DT><STRONG><A NAME="item_bodyhandle_value">bodyhandle [VALUE]
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Get or set an abstract object representing the body.
 
 
@@ -654,6 +699,8 @@ returned.
 <DT><STRONG><A NAME="item_dump_skeleton_filehandle">dump_skeleton [FILEHANDLE]
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Dump the skeleton of the entity to the given FILEHANDLE, or to the
 currently-selected one if none given. This is really just useful for
 debugging purposes.
@@ -664,6 +711,8 @@ debugging purposes.
 <DT><STRONG><A NAME="item_head_value">head [VALUE]
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Get/set the head. 
 
 
@@ -686,6 +735,8 @@ method for setting the head to some given object.
 <DT><STRONG><A NAME="item_is_multipart">is_multipart
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Does this entity's MIME type indicate that it's a multipart entity? Returns
 undef (false) if the answer couldn't be determined, 0 (false) if it was
 determined to be false, and true otherwise.
@@ -701,6 +752,8 @@ Note that this says nothing about whether or not parts were extracted.
 <DT><STRONG><A NAME="item_mime_type">mime_type
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 A purely-for-convenience method. This simply relays the request to the
 associated <A HREF="Head.html">MIME::Head</A> object. The following are
 identical:
@@ -733,6 +786,8 @@ attributes, you still have to go to the <EM>head</EM>
 <DT><STRONG><A NAME="item_parts">parts
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Return an array of all sub parts (each of which is a <A
 HREF="Entity.html">MIME::Entity),</A> or the empty array if there are none.
 
@@ -751,7 +806,7 @@ Note that in a scalar context, this returns you the number of parts.
 
 <P>
 
-<DT><STRONG><A NAME="item_print_filehandle">print [FILEHANDLE]
+<DT><STRONG><A NAME="item_print_filehandle_options">print [FILEHANDLE], [OPTIONS]
 
 </A></STRONG><DD>
 <EM>Instance method, override.</EM>
@@ -831,7 +886,7 @@ Prints this:
 <P>
 
 The body is <EM>stored</EM>
- in an unencoded form; however, the idea is that the transfer encoding is
+ in an un-encoded form; however, the idea is that the transfer encoding is
 used to determine how it should be <EM>output.</EM>
 
 This means that the <CODE>print()</CODE> method is always guaranteed to get you a sendmail-ready stream whose body
@@ -858,9 +913,19 @@ will work with both text and binary bodies.
 
 <P>
 
+<STRONG>Warning:</STRONG>
+ Please supply a filehandle. This override method differs from
+Mail::Internet's behavior, which outputs to the STDOUT if no filehandle is
+given: this may lead to confusion.
+
+
+<P>
+
 <DT><STRONG><A NAME="item_purge">purge
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Recursively purge all <EM>on-disk</EM>
  body parts in this message. This assumes that the <CODE>path()</CODE>
 method returns something reasonable for the ``bodyhandle'' object... <A
@@ -885,13 +950,252 @@ currently I don't. Don't gamble on this for the future, though.
 
 <P>
 
+<DT><STRONG><A NAME="item_remove_sig_nlines">remove_sig [NLINES]
+
+</A></STRONG><DD>
+<EM>Instance method, override.</EM>
+
+Attempts to remove a user's signature from the body of a message. 
+
+
+<P>
+
+It does this by looking for a line matching <CODE>/^-- $/</CODE> within the last 
+<CODE>NLINES</CODE> of the message. If found then that line and all lines after it will be
+removed. If <CODE>NLINES</CODE> is not given, a default value of 10 will be used. This would be of most use
+in auto-reply scripts.
+
+
+<P>
+
+For MIME messages, this method is reasonably cautious: it will only attempt
+to un-sign a message with a content-type of <CODE>text/*</CODE>.
+
+
+<P>
+
+If you send this message to a multipart entity, it will relay it to the
+first part (the others usually being the ``attachments'').
+
+
+<P>
+
+<STRONG>Warning:</STRONG>
+ currently slurps the whole message-part into core as an array of lines, so
+you probably don't want to use this on extremely long messages.
+
+
+<P>
+
+Returns truth on success, false on error.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_sign_paramhash">sign PARAMHASH
+
+</A></STRONG><DD>
+<EM>Instance method, override.</EM>
+
+Append a signature to the message. The params are:
+
+
+<P>
+
+<DL>
+<DT><STRONG><A NAME="item_attach">Attach
+
+</A></STRONG><DD>
+Instead of appending the text, try to add it to the message as an
+attachment. The disposition will be <CODE>inline</CODE>, and the description will indicate that it is a signature. Attaching is <EM>only</EM>
+ done if the message type is multipart; otherwise, we try to append the
+signature to the text itself.
+<EM>MIME-specific; new in this subclass.</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_file">File
+
+</A></STRONG><DD>
+Use the contents of this file as the signature. Fatal error if it can't be
+read.
+<EM>As per superclass method.</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_force">Force
+
+</A></STRONG><DD>
+Sign it even if the content-type isn't <CODE>text/*</CODE>. Useful for non-standard types like <CODE>x-foobar</CODE>, but be careful!
+<EM>MIME-specific; new in this subclass.</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_remove">Remove
+
+</A></STRONG><DD>
+Normally, we attempt to strip out any existing signature. If true, this
+gives us the NLINES parameter of the remove_sig call. If zero but defined,
+tells us <EM>not</EM>
+ to remove any existing signature. If undefined, removal is done with the
+default of 10 lines.
+<EM>New in this subclass.</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_signature">Signature
+
+</A></STRONG><DD>
+Use this text as the signature. You can supply it as either a scalar, or as
+a ref to an array of newline-terminated scalars.
+<EM>As per superclass method.</EM>
+
+
+
+
+
+<P>
+
+</DL>
+For MIME messages, this method is reasonably cautious: it will only attempt
+to sign a message with a content-type of <CODE>text/*</CODE>, unless
+<A HREF="#item_force">Force</A> is specified.
+
+
+<P>
+
+If you send this message to a multipart entity, it will relay it to the
+first part (the others usually being the ``attachments'').
+
+
+<P>
+
+<STRONG>Warning:</STRONG>
+ currently slurps the whole message-part into core as an array of lines, so
+you probably don't want to use this on extremely long messages.
+
+
+<P>
+
+Returns true on success, false otherwise.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_sync_headers_options">sync_headers OPTIONS
+
+</A></STRONG><DD>
+This method does a variety of activities which ensure that the MIME headers
+of an entity ``tree'' are in-synch with the body parts they describe. It
+can be as expensive an operation as printing if it involves pre-encoding
+the body parts; however, the aim is to produce fairly clean MIME.  <STRONG>You will usually only need to invoke this if processing and re-sending MIME
+from an outside source.</STRONG>
+
+
+
+
+
+<P>
+
+The OPTIONS is a hash, which describes what is to be done.
+
+
+<P>
+
+<DL>
+<DT><STRONG><A NAME="item_length">Length
+
+</A></STRONG><DD>
+One of the ``official unofficial'' MIME fields is ``Content-Length''.
+Normally, one doesn't care a whit about this field; however, if you are
+preparing output destined for HTTP, you may. The value of this option
+dictates what will be done:
+
+
+<P>
+
+<STRONG>COMPUTE</STRONG>
+ means to set a <CODE>Content-Length</CODE> field for every non-multipart part in the entity, and to blank that field
+out for every multipart part in the entity. 
+
+
+<P>
+
+<STRONG>ERASE</STRONG>
+ means that <CODE>Content-Length</CODE> fields will all be blanked out. This is fast, painless, and safe.
+
+
+<P>
+
+<STRONG>Any false value</STRONG>
+ (the default) means to take no action.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_nonstandard">Nonstandard
+
+</A></STRONG><DD>
+Any header field beginning with ``Content-'' is, according to the RFC, a
+MIME field. However, some are non-standard, and may cause problems with
+certain MIME readers which interpret them in different ways.
+
+
+<P>
+
+<STRONG>ERASE</STRONG>
+ means that all such fields will be blanked out. This is done <EM>before</EM>
+ the <STRONG>Length</STRONG>
+ option (q.v.) is examined and acted upon.
+
+
+<P>
+
+<STRONG>Any false value</STRONG>
+ (the default) means to take no action.
+
+
+<P>
+
+</DL>
+Returns a true value if everything went okay, a false value otherwise.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_tidy_body">tidy_body
+
+</A></STRONG><DD>
+<EM>Instance method, override.</EM>
+
+Currently unimplemented for MIME messages. Does nothing, returns false.
+
+
+<P>
+
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="under_the_hood">Under the hood</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="under_the_hood">Under the hood</A></H3>
 A <STRONG><A HREF="Entity.html">MIME::Entity</A></STRONG>
  is composed of the following elements:
 
@@ -935,7 +1239,7 @@ Note that, in 2.0+, a multipart entity does <EM>not</EM>
 </UL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="design_issues">Design issues</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="design_issues">Design issues</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_some_things_just_cant_be_ignored">Some things just can't be ignored
 
@@ -1000,17 +1304,7 @@ work.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
-<A HREF="Decoder.html">MIME::Decoder,</A> <A
-HREF="Entity.html">MIME::Entity,</A> <A HREF="Head.html">MIME::Head,</A> <A
-HREF="Parser.html">MIME::Parser.</A>
-
-
-<P>
-
-<P>
-<HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
 Copyright (c) 1996 by Eryq / <A
 HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
 
@@ -1025,8 +1319,8 @@ and/or modify it under the same terms as Perl itself.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.15 $ $Date: 1997/01/14 06:15:12 $
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 3.202 $ $Date: 1997/01/19 07:10:41 $
 
 
 <P>

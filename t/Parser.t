@@ -107,7 +107,7 @@ unlink <$DIR/[a-z]*>;
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
-print "1..39\n";
+print "1..43\n";
 
 my $parser;
 my $entity;
@@ -118,22 +118,26 @@ my $enc;
 
 
 #------------------------------------------------------------
-note "Read a nested multipart MIME message";
+note "Create a parser";
 #------------------------------------------------------------
 $parser = new MIME::Parser;
 $parser->output_dir($DIR);
 $parser->output_path_hook(\&simple_output_path);
+
+#------------------------------------------------------------
+note "Read a nested multipart MIME message";
+#------------------------------------------------------------
 open IN, "./testin/multi-nested.msg" or die "open: $!";
 $entity = $parser->read(\*IN);
-check($entity => "parsed okay");
+check($entity => "parse of nested multipart");
 
 #------------------------------------------------------------
 note "Check the various output files";
 #------------------------------------------------------------
-check((-s "$DIR/3d-vise.gif" == 419) => "vise gif okay");
-check((-s "$DIR/3d-eye.gif" == 357)  => "3d-eye gif okay");
+check((-s "$DIR/3d-vise.gif" == 419) => "vise gif");
+check((-s "$DIR/3d-eye.gif" == 357)  => "3d-eye gif");
 for $msgno (1..4) {
-    check((-s "$DIR/message-$msgno.dat") => "message $msgno okay");
+    check((-s "$DIR/message-$msgno.dat") => "message $msgno");
 }
 
 #------------------------------------------------------------
@@ -143,7 +147,36 @@ $parser = new MIME::Parser;
 $parser->output_dir($DIR);
 open IN, "./testin/multi-nested2.msg" or die "open: $!";
 $entity = $parser->read(\*IN);
-check($entity => "parsed CRLF-terminated message okay");
+check($entity => "parse of CRLF-terminated message");
+
+
+#------------------------------------------------------------
+note "Read a simple in-core MIME message, three ways";
+#------------------------------------------------------------
+my $data_scalar = <<EOF;
+Content-type: text/html
+
+<H1>This is test one.</H1>
+
+EOF
+my $data_scalarref = \$data_scalar;
+my $data_arrayref  = [ map { "$_\n" } (split "\n", $data_scalar) ];
+my $data_test;
+
+$parser->output_to_core('ALL');
+foreach $data_test ($data_scalar, $data_scalarref, $data_arrayref) {
+    $entity = $parser->parse_data($data_test);
+    check(($entity and $entity->head->mime_type eq 'text/html') =>
+	((ref($data_test)||'NO') . "-REF"));
+}
+$parser->output_to_core('NONE');
+
+
+#------------------------------------------------------------
+note "Simple message, in two parts";
+#------------------------------------------------------------
+$entity = $parser->parse_two("./testin/simple.msgh", "./testin/simple.msgb");
+check($entity => "parse of 2-part simple message");
 
 #------------------------------------------------------------
 # Check various messages

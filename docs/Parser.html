@@ -28,7 +28,6 @@
 	<LI><A HREF="#warnings">WARNINGS</A>
 	<LI><A HREF="#public_interface">PUBLIC INTERFACE</A>
 	<LI><A HREF="#writing_subclasses">WRITING SUBCLASSES</A>
-	<LI><A HREF="#see_also">SEE ALSO</A>
 	<LI><A HREF="#author">AUTHOR</A>
 	<LI><A HREF="#version">VERSION</A>
 </UL>
@@ -37,7 +36,7 @@
     </TABLE>
 <HR>
 <P>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
 <A HREF="Parser.html">MIME::Parser</A> - split MIME mail into decoded
 components
 
@@ -46,7 +45,7 @@ components
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
 <PRE>
     use MIME::Parser;
     
@@ -74,7 +73,7 @@ components
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
 A subclass of <A HREF="ParserHead.html">MIME::ParserHead,</A> providing one
 useful way to parse MIME streams and obtain <A
 HREF="Entity.html">MIME::Entity</A> objects. This particular parser class
@@ -94,7 +93,7 @@ HREF="ParserBase.html">MIME::ParserBase</A> instead.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="warnings">WARNINGS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="warnings">WARNINGS</A></H2>
 The organization of the <A HREF="#item_output_path">output_path</A> code changed in version 1.11 of this module. If you are upgrading from a
 previous version, and you use inheritance to override the <A HREF="#item_output_path">output_path</A> method, please take a moment to familiarize yourself with the new code.
 Everything <EM>should</EM>
@@ -105,11 +104,13 @@ Everything <EM>should</EM>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
 <DL>
 <DT><STRONG><A NAME="item_new_body_for_head">new_body_for HEAD
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Based on the HEAD of a part we are parsing, return a new body object (any
 desirable subclass of <A HREF="Body.html">MIME::Body)</A> for receiving
 that part's data.
@@ -140,6 +141,8 @@ this method in a subclass.
 <DT><STRONG><A NAME="item_output_to_core_cutoff">output_to_core [CUTOFF]
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Normally, instances of this class output all their decoded body data to
 disk files (via <A HREF="Body.html">MIME::Body::File).</A> However, you can
 change this behaviour by invoking this method before parsing:
@@ -187,6 +190,8 @@ See the <A HREF="#item_new_body_for">new_body_for</A> method for more details.
 <DT><STRONG><A NAME="item_output_dir_directory">output_dir [DIRECTORY]
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Get/set the output directory for the parsing operation. This is the
 directory where the extracted and decoded body parts will go. The default
 is <CODE>"."</CODE>.
@@ -351,7 +356,10 @@ subclass of <A HREF="Parser.html">MIME::Parser</A> and override it there:
  message. I considered that, but then I thought: if debugging were off,
 people wouldn't know why (or even if) a given filename had been ignored. In
 mail robots that depend on externally-provided filenames, this could cause
-hard-to-diagnose problems. So, the message is still a warning.
+hard-to-diagnose problems. So, the message is still a warning, but now <STRONG>it's only output if $^W is true.</STRONG>
+
+
+
 
 
 <P>
@@ -421,6 +429,8 @@ subclasses. See the <A HREF="#item_output_path">output_path</A> documentation fo
 <DT><STRONG><A NAME="item_output_prefix_prefix">output_prefix [PREFIX]
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Get/set the output prefix for the parsing operation. This is a short string
 that all filenames for extracted and decoded body parts will begin with.
 The default is <EM>``msg''</EM>
@@ -440,7 +450,7 @@ is returned.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="writing_subclasses">WRITING SUBCLASSES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="writing_subclasses">WRITING SUBCLASSES</A></H2>
 Authors of subclasses can consider overriding the following methods. They
 are listed in approximate order of most-to-least impact.
 
@@ -502,17 +512,7 @@ desired output directory (where extracted and decoded files are placed).
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
-<A HREF="Decoder.html">MIME::Decoder,</A> <A
-HREF="Entity.html">MIME::Entity,</A> <A HREF="Head.html">MIME::Head,</A> <A
-HREF="Parser.html">MIME::Parser.</A>
-
-
-<P>
-
-<P>
-<HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
 Copyright (c) 1996 by Eryq / <A
 HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
 
@@ -527,8 +527,8 @@ and/or modify it under the same terms as Perl itself.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.8 $ $Date: 1997/01/13 00:23:32 $
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 3.202 $ $Date: 1997/01/19 03:48:32 $
 
 
 <P>

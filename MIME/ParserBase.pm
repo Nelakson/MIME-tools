@@ -61,6 +61,8 @@ B<MIME::Parser>, is already provided in this kit.
 
 =head1 PUBLIC INTERFACE
 
+=head2 Construction, and setting options
+
 =over 4
 
 =cut
@@ -96,7 +98,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.8 $ ' =~ /\$Revision:\s+([^\s]+)/;
+$VERSION = substr q$Revision: 3.202 $, 10;
 
 # How to catenate:
 $CAT = '/bin/cat';
@@ -163,6 +165,7 @@ sub new {
 
 =item decode_headers ONOFF
 
+I<Instance method.>
 If set true, then the parser will attempt to decode the MIME headers
 as per RFC-1522 the moment it sees them.  This will probably be of
 most use to those of you who expect some international mail,
@@ -187,44 +190,6 @@ sub decode_headers {
 	$self->{MPB_DecodeHeaders} = $onoff;
     }
     $self->{MPB_DecodeHeaders};
-}
-
-
-#------------------------------------------------------------
-# init
-#------------------------------------------------------------
-
-=item init ARGS...
-
-I<Instance method.>
-Initiallize the new parser object, with any args passed to C<new()>.
-
-If you override this in a subclass, make sure you call the inherited
-method to init your parents!
-
-    package MyParser;
-    @ISA = qw(MIME::Parser);
-    ...
-    sub init {
-	my $self = shift;
-	$self->SUPER::init(@_);        # do my parent's init
-	
-	# ...my init stuff goes here...	
-	
-	$self;                         # return
-    }
-
-Should return the self object on success, and undef on failure.
-
-=cut
-
-sub init {
-    my $self = shift;
-    $self->{MPB_Interface} = {};
-    $self->interface(ENTITY_CLASS => 'MIME::Entity');
-    $self->interface(HEAD_CLASS   => 'MIME::Head');
-    $self->decode_headers(1);
-    $self;
 }
 
 #------------------------------------------------------------
@@ -269,6 +234,7 @@ sub interface {
 
 =item last_head
 
+I<Instance method.>
 Return the top-level MIME header of the last stream we attempted to parse.
 This is useful for replying to people who sent us bad MIME messages.
 
@@ -291,6 +257,7 @@ sub last_head {
 
 =item parse_nested_messages OPTION
 
+I<Instance method.>
 Some MIME messages will contain a part of type C<message/rfc822>:
 literally, the text of an embedded mail message.  The normal behavior 
 is to save such a message just as if it were a C<text/plain> 
@@ -304,7 +271,7 @@ is decoded (after all, it might be encoded!) into a temporary file,
 which is then rewound and parsed by this parser, creating an 
 entity object.  What happens then is determined by the OPTION:
 
-=over
+=over 4
 
 =item NEST or 1
 
@@ -349,8 +316,8 @@ sub parse_preamble {
     my ($delim, $close) = ("--$inner_bound", "--$inner_bound--");
 
     # Parse preamble:
-    debug "skip until\n\tdelim <$delim>\n\tclose <$close>";
-    while (<$in>) {
+    debug "skip until\n\tdelim ($delim)\n\tclose ($close)";
+    while (defined($_ = $in->getline)) {
 	s/\r?\n$//o;        # chomps both \r and \r\n
 	
 	### debug "preamble: <$_>";
@@ -383,7 +350,7 @@ sub parse_epilogue {
 
     # Parse epilogue:
     debug "skip until\n\tdelim <", $delim||'', ">\n\tclose <",$close||'', ">";
-    while (<$in>) {
+    while (defined($_ = $in->getline)) {
 	s/\r?\n$//o;        # chomps both \r and \r\n
 
 	### debug "epilogue: <$_>";
@@ -417,7 +384,7 @@ sub parse_to_bound {
     my $close = "--$bound--";
 
     # Read:
-    while (<$in>) {
+    while (defined($_ = $in->getline)) {
 
 	# Complicated chomp, to REMOVE AND REMEMBER end-of-line sequence:
 	($eol) = ($_ =~ m/($CRLF|\n)$/o);
@@ -463,7 +430,16 @@ sub parse_part {
     #    blank line that terminates it:
     my $head = $self->interface('HEAD_CLASS')->new;
     debug "created head $head";
-    $head->read($in) or return error "couldn't parse head!";
+
+    # Read the header off.
+    # We localise IO inside here, so that we can support the IO:: interface
+    my ($headline, @headlines);
+    while (defined($headline = $in->getline)) {
+	$headline =~ s/\r?\n$//o;        # chomps both \r and \r\n
+	last if ($headline eq '');
+	push @headlines, $headline;
+    }
+    $head->extract(\@headlines) or return error "couldn't parse head!";
 
     # If desired, auto-decode the header as per RFC-1522.  
     #    This shouldn't affect non-encoded headers; however, it will decode
@@ -607,12 +583,98 @@ sub parse_part {
     return ($entity, $state);
 }
 
+
+
+=back
+
+=head2 Parsing messages
+
+=over 4
+
+=cut
+
+#------------------------------------------------------------
+# parse_data
+#------------------------------------------------------------
+
+=item parse_data DATA
+
+I<Instance method.>
+Parse a MIME message that's already in-core.  You may supply the DATA 
+in any of a number of ways...
+
+=over 4
+
+=item *
+
+B<A scalar> which holds the message.
+
+=item *
+
+B<A ref to a scalar> which holds the message.  This is an efficiency hack.
+
+=item *
+
+B<A ref to an array of scalars.>  The array elements are simply joined
+to produce a scalar; no newlines are inserted!
+
+=back
+
+Returns a MIME::Entity, which may be a single entity, or an 
+arbitrarily-nested multipart entity.  Returns undef on failure.
+
+B<Note:> the storage of the body parts is not determined by this class,
+but by the subclass you use to do the actual parsing.  For efficiency,
+if you know you'll be parsing a small amount of data, it is probably
+best to tell the parser to store the parsed parts in core. 
+For example, here's a short test program, using MIME::Parser:
+
+        use MIME::Parser;
+        
+        my $msg = <<EOF;
+    Content-type: text/html
+    Content-transfer-encoding: 7bit
+
+    <H1>Hello, world!</H1>;
+
+    EOF
+        $parser = new MIME::Parser;
+        $parser->output_to_core('ALL');
+        $entity = $parser->parse_data($msg);
+        $entity->print(\*STDOUT);
+
+=cut
+
+sub parse_data {
+    my ($self, $data) = @_;
+
+    # Get data as a scalar:    
+    my $io;
+  switch: while(1) {
+      (!ref($data)) and do {
+	  $io = new MIME::IO::Scalar \$data; last switch;
+      };
+      (ref($data) eq 'SCALAR') and do {
+	  $io = new MIME::IO::Scalar $data; last switch;
+      };
+      (ref($data) eq 'ARRAY') and do {
+	  $data = join '', @$data;
+	  $io = new MIME::IO::Scalar \$data; last switch;
+      };
+      croak "parse_data: wrong argument ref type: ", ref($data);
+  }
+    
+    # Parse!
+    return $self->read($io);
+}
+
 #------------------------------------------------------------
 # parse_two
 #------------------------------------------------------------
 
-=item parse_two HEADFILE BODYFILE
+=item parse_two HEADFILE, BODYFILE
 
+I<Instance method.>
 Convenience front-end onto C<read()>, intended for programs 
 running under mail-handlers like B<deliver>, which splits the incoming
 mail message into a header file and a body file.
@@ -624,36 +686,40 @@ work, since the pathnames are shell-quoted for safety.
 B<WARNING:> it is assumed that, once the files are cat'ed together,
 there will be a blank line separating the head part and the body part.
 
+Returns the parsed entity, or undef on error.
+
 =cut
 
 sub parse_two {
     my ($self, $headfile, $bodyfile) = @_;
-    my @result;
+    my $ent;
 
     # Shell-quote the filenames:
     my $safe_headfile = shell_quote($headfile);
     my $safe_bodyfile = shell_quote($bodyfile);
 
     # Catenate the files, and open a stream on them:
-    open(CAT, qq{$CAT $safe_headfile $safe_bodyfile |}) or
+    open CAT, qq{$CAT $safe_headfile $safe_bodyfile |} or
 	return error("couldn't open $CAT pipe: $!");
-    @result = $self->read(\*CAT);
-    close (CAT);
-    @result;
+    $ent = $self->read(\*CAT);
+    close CAT;
+    $ent;
 }
 
 #------------------------------------------------------------
 # read 
 #------------------------------------------------------------
 
-=item read FILEHANDLE
+=item read INSTREAM
 
+I<Instance method.>
 Takes a MIME-stream and splits it into its component entities,
 each of which is decoded and placed in a separate file in the splitter's
 output_dir().  
 
-The stream should be given as a FileHandle, or at least a glob ref 
-to a readable FILEHANDLE; e.g., C<\*STDIN>.
+The INSTREAM can be given as a readable FileHandle, 
+a globref'd filehandle (like C<\*STDIN>),
+or as I<any> blessed object conforming to the MIME::IO (or IO::) interface.
 
 Returns a MIME::Entity, which may be a single entity, or an 
 arbitrarily-nested multipart entity.  Returns undef on failure.
@@ -662,6 +728,9 @@ arbitrarily-nested multipart entity.  Returns undef on failure.
 
 sub read {
     my ($self, $in) = @_;
+
+    # Coerce old-style filehandles to legit objects:
+    $in  = wrap MIME::IO::Handle $in;
 
     # Clear last head:
     $self->{MPB_LastHead} = undef;
@@ -691,15 +760,52 @@ sub shell_quote {
 
 =head1 WRITING SUBCLASSES
 
-All you have to do to write a subclass is to provide the following methods:
+All you have to do to write a subclass is to provide or override
+the following methods:
 
-=over
+=over 4
 
 =cut
 
 #------------------------------------------------------------
 
+#------------------------------------------------------------
+# init
+#------------------------------------------------------------
 
+=item init ARGS...
+
+I<Instance method, private.>
+Initiallize the new parser object, with any args passed to C<new()>.
+
+You don't I<need> to override this in your subclass.
+If you override it, however, make sure you call the inherited
+method to init your parents!
+
+    package MyParser;
+    @ISA = qw(MIME::Parser);
+    ...
+    sub init {
+	my $self = shift;
+	$self->SUPER::init(@_);        # do my parent's init
+	
+	# ...my init stuff goes here...	
+	
+	$self;                         # return
+    }
+
+Should return the self object on success, and undef on failure.
+
+=cut
+
+sub init {
+    my $self = shift;
+    $self->{MPB_Interface} = {};
+    $self->interface(ENTITY_CLASS => 'MIME::Entity');
+    $self->interface(HEAD_CLASS   => 'MIME::Head');
+    $self->decode_headers(1);
+    $self;
+}
 
 #------------------------------------------------------------
 # new_body_for
@@ -707,7 +813,7 @@ All you have to do to write a subclass is to provide the following methods:
 
 =item new_body_for HEAD
 
-I<Abstract method.>
+I<Abstract instance method.>
 Based on the HEAD of a part we are parsing, return a new
 body object (any desirable subclass of MIME::Body) for
 receiving that part's data (both will be put into the
@@ -731,17 +837,12 @@ sub new_body_for {
 
 
 
-
-
-
-
 #------------------------------------------------------------
 
 =back
 
 You are of course free to override any other methods as you see
 fit, like C<new>.
-
 
 
 =head1 NOTES
@@ -981,13 +1082,6 @@ of how the output was screwed up).
 =back
 
 
-=head1 SEE ALSO
-
-MIME::Decoder,
-MIME::Entity,
-MIME::Head, 
-MIME::Parser.
-
 =head1 AUTHOR
 
 Copyright (c) 1996 by Eryq / eryq@rhine.gsfc.nasa.gov
@@ -997,7 +1091,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.8 $ $Date: 1997/01/13 00:23:54 $
+$Revision: 3.202 $ $Date: 1997/01/19 01:34:53 $
 
 =cut
 

@@ -73,6 +73,14 @@ Create a multipart message (could it I<be> much easier?)
     # Output!
     $top->print(\*STDOUT);
 
+Muck about with the signature:
+
+    # Sign it (atomatically removes any existing signature):
+    $top->sign(File=>"$ENV{HOME}/.signature");
+        
+    # Remove any signature within 15 lines of the end:
+    $top->remove_sig(15);
+
 Extract information from MIME entities:
 
     # Get the head, a MIME::Head:
@@ -80,6 +88,15 @@ Extract information from MIME entities:
     
     # Get the body, as a MIME::Body;
     $bodyh = $ent->bodyhandle;
+
+If you want a C<Content-type:> header to be output I<and output correctly>
+for the current body part(s), here's how to do it:
+
+    # Compute content-lengths for singleparts based on bodies:
+    $entity->sync_headers(Length=>'COMPUTE');
+    
+    # Output!
+    $entity->print(\*STDOUT);
 
 See MIME::Parser for additional examples of usage.
 
@@ -165,7 +182,7 @@ use Carp;
 require Mail::Internet;
 
 # Kit modules:
-use MIME::ToolUtils qw(:config :msgs);
+use MIME::ToolUtils qw(:config :msgs tmpopen);
 use MIME::Head;
 use MIME::Body;
 use MIME::Decoder;
@@ -180,10 +197,13 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.15 $ ' =~ /\$Revision:\s+([^\s]+)/;
+$VERSION = substr q$Revision: 3.202 $, 10;
 
 # Boundary counter:
 my $BCount = 0;
+
+# Standard "Content-" MIME fields, for scrub():
+my $StandardFields = 'Description|Disposition|Id|Type|Transfer-Encoding';
 
 
 #------------------------------
@@ -488,6 +508,7 @@ sub build {
 
 =item add_part ENTITY
 
+I<Instance method.>
 Assuming we are a multipart message, add a body part (a MIME::Entity)
 to the array of body parts.  Do B<not> call this for single-part messages;
 i.e., don't call it unless the header has a C<"multipart"> content-type.
@@ -532,6 +553,7 @@ sub all_parts {
 
 =item attach PARAMHASH
 
+I<Instance method.>
 The real quick-and-easy way to create multipart messages.
 Basically equivalent to:
 
@@ -551,6 +573,8 @@ sub attach {
 #------------------------------------------------------------
 
 =item body [VALUE]
+
+I<Instance method.>
 
 =over 4
 
@@ -607,6 +631,7 @@ sub body {
 
 =item bodyhandle [VALUE]
 
+I<Instance method.>
 Get or set an abstract object representing the body.
 
 If C<VALUE> I<is not> given, the current bodyhandle is returned.
@@ -628,6 +653,7 @@ sub bodyhandle {
 
 =item dump_skeleton [FILEHANDLE]
 
+I<Instance method.>
 Dump the skeleton of the entity to the given FILEHANDLE, or
 to the currently-selected one if none given.  This is really
 just useful for debugging purposes.
@@ -677,6 +703,7 @@ sub dump_skeleton {
 
 =item head [VALUE]
 
+I<Instance method.>
 Get/set the head. 
 
 If there is no VALUE given, returns the current head.  If none
@@ -699,6 +726,7 @@ sub head {
 
 =item is_multipart
 
+I<Instance method.>
 Does this entity's MIME type indicate that it's a multipart entity?
 Returns undef (false) if the answer couldn't be determined, 0 (false)
 if it was determined to be false, and true otherwise.
@@ -720,6 +748,7 @@ sub is_multipart {
 
 =item mime_type
 
+I<Instance method.>
 A purely-for-convenience method.  This simply relays the
 request to the associated MIME::Head object.  The following
 are identical:
@@ -779,6 +808,7 @@ sub packaging {
 
 =item parts
 
+I<Instance method.>
 Return an array of all sub parts (each of which is a MIME::Entity), 
 or the empty array if there are none.
 
@@ -799,7 +829,7 @@ sub parts {
 # print
 #------------------------------------------------------------
 
-=item print [FILEHANDLE]
+=item print [FILEHANDLE], [OPTIONS]
 
 I<Instance method, override.>
 Print the entity to the given FILEHANDLE, or to the currently-selected
@@ -833,7 +863,7 @@ sub print {
     print $fh "\n";  
 
     # Output either the body or the parts:
-    if ($self->is_multipart) {    # Multipart...
+    if ($self->is_multipart) {              # Multipart...
 	my $boundary = $self->head->multipart_boundary;     # get boundary
 
 	# Preamble:
@@ -847,8 +877,8 @@ sub print {
 	}
 	print $fh "\n--$boundary--\n\n";
     }
-    else {                        # Single part...
-	$self->print_body($fh);          # body
+    else {                                  # Single part...	
+	$self->print_body($fh);
     }
     1;
 }
@@ -882,7 +912,7 @@ Prints this:
 
     SGkgdGhlcmUhCkJ5ZSB0aGVyZSEK
 
-The body is I<stored> in an unencoded form; however, the idea is that
+The body is I<stored> in an un-encoded form; however, the idea is that
 the transfer encoding is used to determine how it should be I<output.>
 This means that the C<print()> method is always guaranteed to get you
 a sendmail-ready stream whose body is consistent with its head.
@@ -894,6 +924,10 @@ the bodyhandle yourself, or use:
 
 which uses read() calls to extract the information, and thus will 
 work with both text and binary bodies.
+
+B<Warning:> Please supply a filehandle.  This override method differs
+from Mail::Internet's behavior, which outputs to the STDOUT if no
+filehandle is given: this may lead to confusion.
 
 =cut
 
@@ -919,6 +953,7 @@ sub print_body {
 
 =item purge
 
+I<Instance method.>
 Recursively purge all I<on-disk> body parts in this message.  This
 assumes that the path() method returns something reasonable for the
 "bodyhandle" object... MIME::Body::File and MIME::Body::Scalar do, at 
@@ -956,6 +991,342 @@ sub purge {
 	$part->purge;
     }
 }
+
+#------------------------------------------------------------
+# _do_remove_sig
+#------------------------------------------------------------
+# Private.  Remove a signature within NLINES lines from the end of BODY.
+# The signature must be flagged by a line contain only "-- ".
+
+sub _do_remove_sig {
+    my ($body, $nlines) = @_;
+    $nlines ||= 10;
+    my $i = 0;
+
+    my $line = int(@$body) || return;
+    while ($i++ < $nlines and $line--) {
+	if ($body->[$line] =~ /\A--[ \040][\r\n]+\Z/) {
+	    $#{$body} = $line-1;
+	    return;
+	}
+    }
+}
+
+#------------------------------------------------------------
+# remove_sig
+#------------------------------------------------------------
+
+=item remove_sig [NLINES]
+
+I<Instance method, override.>
+Attempts to remove a user's signature from the body of a message. 
+
+It does this by looking for a line matching C</^-- $/> within the last 
+C<NLINES> of the message.  If found then that line and all lines after 
+it will be removed. If C<NLINES> is not given, a default value of 10 
+will be used.  This would be of most use in auto-reply scripts.
+
+For MIME messages, this method is reasonably cautious: it will only
+attempt to un-sign a message with a content-type of C<text/*>.
+
+If you send this message to a multipart entity, it will relay it to 
+the first part (the others usually being the "attachments").
+
+B<Warning:> currently slurps the whole message-part into core as an
+array of lines, so you probably don't want to use this on extremely 
+long messages.
+
+Returns truth on success, false on error.
+
+=cut
+
+sub remove_sig {
+    my $self = shift;
+    my $nlines = shift;
+
+    # Handle multiparts:
+    $self->is_multipart and return $self->{ME_Parts}[0]->remove_sig(@_);
+
+    # Refuse non-textual unless forced:
+    ($self->head->mime_type =~ m{text/}i) 
+	or return error "I won't un-sign a non-text message unless I'm forced";
+    
+    # Get body data, as an array of newline-terminated lines:
+    my $io = $self->bodyhandle->open("r");
+    my @body = $io->getlines;
+    $io->close;
+
+    # Nuke sig:
+    _do_remove_sig(\@body, $nlines);
+
+    # Output data back into body:
+    my $line;
+    $io = $self->bodyhandle->open("w");
+    foreach $line (@body) { $io->print($line) };  # body data
+    $io->close;
+
+    # Done!
+    1;       
+}
+
+#------------------------------------------------------------
+# sign
+#------------------------------------------------------------
+
+=item sign PARAMHASH
+
+I<Instance method, override.>
+Append a signature to the message.  The params are:
+
+=over 4
+
+=item Attach
+
+Instead of appending the text, try to add it to the message as an attachment.
+The disposition will be C<inline>, and the description will indicate
+that it is a signature.  Attaching is I<only> done if the message type is
+multipart; otherwise, we try to append the signature to the text itself.
+I<MIME-specific; new in this subclass.>
+
+=item File
+
+Use the contents of this file as the signature.  
+Fatal error if it can't be read.
+I<As per superclass method.>
+
+=item Force
+
+Sign it even if the content-type isn't C<text/*>.  Useful for
+non-standard types like C<x-foobar>, but be careful!
+I<MIME-specific; new in this subclass.>
+
+=item Remove
+
+Normally, we attempt to strip out any existing signature.
+If true, this gives us the NLINES parameter of the remove_sig call.
+If zero but defined, tells us I<not> to remove any existing signature.
+If undefined, removal is done with the default of 10 lines.
+I<New in this subclass.>
+
+=item Signature
+
+Use this text as the signature.  You can supply it as either
+a scalar, or as a ref to an array of newline-terminated scalars.
+I<As per superclass method.>
+
+=back
+
+For MIME messages, this method is reasonably cautious: it will only
+attempt to sign a message with a content-type of C<text/*>, unless
+C<Force> is specified.
+
+If you send this message to a multipart entity, it will relay it to 
+the first part (the others usually being the "attachments").
+
+B<Warning:> currently slurps the whole message-part into core as an
+array of lines, so you probably don't want to use this on extremely 
+long messages.
+
+Returns true on success, false otherwise.
+
+=cut
+
+sub sign {
+    my $self = shift;
+    my %params = @_;
+    my $io;
+
+    # If multipart and not attaching, try to sign our first part:
+    if ($self->is_multipart and !$params{Attach}) {
+	return $self->{ME_Parts}[0]->sign(@_);
+    }
+
+    # Get signature:
+    my $sig;
+    if (defined($sig = $params{Signature})) {    # scalar or array
+	$sig = (ref($sig) ? join('', @$sig) : $sig);
+    }
+    elsif ($params{File}) {                      # file contents
+	open SIG, $params{File} or croak "can't open $params{File}: $!";
+	$sig = join('', SIG->getlines);
+	close SIG;
+    }
+    else {
+	croak "no signature given!";
+    }
+
+    # If attaching, do so now:
+    if ($params{Attach}) {
+	$self->attach(Type=>'text/plain',
+		      Description=>'Signature',
+		      Disposition=>'inline',
+		      Encoding=>(($sig =~ /[\x80-\xFF]/) ? '7bit' : '8bit'),
+		      Data=>$sig);
+	return 1;
+    }
+
+    # Not attaching...
+
+    # Refuse non-textual unless forced:
+    ($self->head->mime_type =~ m{text/}i or $params{Force})
+	or return error "I won't sign a non-text message unless I'm forced";
+
+    # Get body data, as an array of newline-terminated lines:
+    $io = $self->bodyhandle->open("r");
+    my @body = $io->getlines;
+    $io->close;
+
+    # Nuke any existing sig?
+    if (!defined($params{Remove}) || ($params{Remove} > 0)) {
+	_do_remove_sig(\@body, $params{Remove});
+    }
+
+    # Output data back into body, followed by signature:
+    my $line;
+    $io = $self->bodyhandle->open("w");
+    foreach $line (@body) { $io->print($line) };        # body data
+    (($body[-1]||'') =~ /\n\Z/) or $io->print("\n");    # ensure final \n
+    $io->print("-- \n");                                # standard separator
+    $io->print($sig);                                   # signature
+    $io->close;
+
+    # Done!
+    1;
+}
+
+#------------------------------------------------------------
+# sync_headers
+#------------------------------------------------------------
+
+=item sync_headers OPTIONS
+
+This method does a variety of activities which ensure that
+the MIME headers of an entity "tree" are in-synch with the body parts 
+they describe.  It can be as expensive an operation as printing
+if it involves pre-encoding the body parts; however, the aim is to
+produce fairly clean MIME.  B<You will usually only need to invoke
+this if processing and re-sending MIME from an outside source.>
+
+The OPTIONS is a hash, which describes what is to be done.
+
+=over 4
+
+
+=item Length
+
+One of the "official unofficial" MIME fields is "Content-Length".
+Normally, one doesn't care a whit about this field; however, if
+you are preparing output destined for HTTP, you may.  The value of
+this option dictates what will be done:
+
+B<COMPUTE> means to set a C<Content-Length> field for every non-multipart 
+part in the entity, and to blank that field out for every multipart 
+part in the entity. 
+
+B<ERASE> means that C<Content-Length> fields will all
+be blanked out.  This is fast, painless, and safe.
+
+B<Any false value> (the default) means to take no action.
+
+
+=item Nonstandard
+
+Any header field beginning with "Content-" is, according to the RFC,
+a MIME field.  However, some are non-standard, and may cause problems
+with certain MIME readers which interpret them in different ways.
+
+B<ERASE> means that all such fields will be blanked out.  This is
+done I<before> the B<Length> option (q.v.) is examined and acted upon.
+
+B<Any false value> (the default) means to take no action.
+
+
+=back
+
+Returns a true value if everything went okay, a false value otherwise.
+
+=cut
+
+sub sync_headers {
+    my $self = shift;    
+    my $opts = ((int(@_) % 2 == 0) ? {@_} : shift);
+    my $ENCBODY;     # keep it around until done!
+
+    # Get options:
+    my $o_nonstandard = ($opts->{Nonstandard} || 0);
+    my $o_length      = ($opts->{Length}      || 0);
+    
+    # Get head:
+    my $head = $self->head;
+    
+    # What to do with "nonstandard" MIME fields?
+    if ($o_nonstandard eq 'ERASE') {       # Erase them...
+	my $tag;
+	foreach $tag ($head->tags()) {
+	    if (($tag =~ /\AContent-/i) && 
+		($tag !~ /\AContent-$StandardFields\Z/io)) {
+		$head->delete($tag);
+	    }
+	}
+    }
+
+    # What to do with the "Content-Length" MIME field?
+    if ($o_length eq 'COMPUTE') {        # Compute the content length...
+	my $content_length = '';
+
+	# We don't have content-lengths in multiparts...
+	if ($self->is_multipart) {           # multipart...
+	    $head->delete('Content-length');
+	}
+	else {                               # singlepart...
+
+	    # Get the encoded body, if we don't have it already:
+	    unless ($ENCBODY) {
+		$ENCBODY = tmpopen() || die "can't open tmpfile";
+		$self->print_body($ENCBODY);    # write encoded body to tmpfile
+	    }
+	    
+	    # Analyse it:
+	    $ENCBODY->seek(0,2);                # fast-forward
+	    $content_length = $ENCBODY->tell;   # get encoded length
+	    $ENCBODY->seek(0,0);                # rewind 	
+	    
+	    # Remember:   
+	    $self->head->replace('Content-length', $content_length);	
+	}
+    }
+    elsif ($o_length eq 'ERASE') {         # Erase the content-length...
+	$head->delete('Content-length');
+    }
+
+    # Done with everything for us!
+    undef($ENCBODY);
+ 
+    # Recurse:
+    my $part;
+    foreach $part ($self->parts) { 
+	$part->sync_headers($opts) || return undef;
+    }
+    1;
+}
+
+#------------------------------------------------------------
+# tidy_body
+#------------------------------------------------------------
+
+=item tidy_body
+
+I<Instance method, override.>
+Currently unimplemented for MIME messages.  Does nothing, returns false.
+
+=cut
+
+sub tidy_body {
+    carp "MIME::Entity::tidy_body currently does nothing" if $^W;
+    0;
+}
+
+    
 
 #------------------------------------------------------------
 
@@ -1034,14 +1405,6 @@ how we work.
 =back
 
 
-=head1 SEE ALSO
-
-MIME::Decoder,
-MIME::Entity,
-MIME::Head, 
-MIME::Parser.
-
-
 =head1 AUTHOR
 
 Copyright (c) 1996 by Eryq / eryq@rhine.gsfc.nasa.gov
@@ -1052,7 +1415,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.15 $ $Date: 1997/01/14 06:15:12 $
+$Revision: 3.202 $ $Date: 1997/01/19 07:10:41 $
 
 =cut
 

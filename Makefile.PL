@@ -5,7 +5,7 @@ WriteMakefile(
       VERSION_FROM => "MIME/ToolUtils.pm",
       DISTNAME     => "MIME-tools",
       'dist'       => {
-	  PREOP        =>'(cd docs ; make)',
+	  PREOP        =>'(cd docs ; make )',
 	  COMPRESS     =>'gzip',
 	  SUFFIX       =>'gz',	      
       },

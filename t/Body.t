@@ -4,7 +4,7 @@ BEGIN {
 use MIME::ToolUtils;
 use Checker;
 use strict;
-MIME::ToolUtils->debugging(0);
+config MIME::ToolUtils DEBUGGING=>0;
 
 use MIME::Body;
 print STDERR "\n";

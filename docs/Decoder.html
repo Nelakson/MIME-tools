@@ -42,7 +42,6 @@
 		<LI><A HREF="#inputoutput_handles">Input/Output handles</A>
 		<LI><A HREF="#writing_a_decoder">Writing a decoder</A>
 		</UL>
-	<LI><A HREF="#see_also">SEE ALSO</A>
 	<LI><A HREF="#author">AUTHOR</A>
 	<LI><A HREF="#version">VERSION</A>
 </UL>
@@ -51,7 +50,7 @@
     </TABLE>
 <HR>
 <P>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
 <A HREF="Decoder.html">MIME::Decoder</A> - an object for decoding the body
 part of a MIME stream
 
@@ -60,7 +59,7 @@ part of a MIME stream
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
 <STRONG>Decoding a data stream.</STRONG>
 
 Here's a simple filter program to read quoted-printable data from STDIN
@@ -127,7 +126,7 @@ You can also <STRONG>test if an encoding is supported:</STRONG>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
 This abstract class, and its private concrete subclasses (see below)
 provide an OO front end to the actions of...
 
@@ -158,10 +157,10 @@ of <A HREF="Decoder.html">MIME::Decoder</A> whose <CODE>decode()</CODE> method w
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="standard_interface">Standard interface</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="standard_interface">Standard interface</A></H3>
 If all you are doing is <EM>using</EM>
  this class, here's all you'll need...
 
@@ -193,6 +192,8 @@ Returns the undefined value if no known decoders are appropriate.
 <DT><STRONG><A NAME="item_decode_instreamoutstream">decode INSTREAM,OUTSTREAM
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Decode the document waiting in the input handle INSTREAM, writing the
 decoded information to the output handle OUTSTREAM.
 
@@ -209,6 +210,8 @@ filehandles for INSTREAM and OUTSTREAM.
 <DT><STRONG><A NAME="item_encode_instreamoutstream">encode INSTREAM,OUTSTREAM
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Encode the document waiting in the input filehandle INSTREAM, writing the
 encoded information to the output stream OUTSTREAM.
 
@@ -225,6 +228,8 @@ filehandles for INSTREAM and OUTSTREAM.
 <DT><STRONG><A NAME="item_encoding">encoding
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Return the encoding that this object was created to handle, coerced to all
 lowercase (e.g., <CODE>"base64"</CODE>).
 
@@ -234,8 +239,9 @@ lowercase (e.g., <CODE>"base64"</CODE>).
 <DT><STRONG><A NAME="item_supported_encoding">supported [ENCODING]
 
 </A></STRONG><DD>
-<EM>Class method</EM>
-. With one arg (an ENCODING name), returns truth if that encoding is
+<EM>Class method.</EM>
+
+With one arg (an ENCODING name), returns truth if that encoding is
 currently handled, and falsity otherwise. The ENCODING will be
 automatically coerced to lowercase:
 
@@ -290,7 +296,7 @@ You may safely modify this hash; it will <EM>not</EM>
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="subclass_interface">Subclass interface</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="subclass_interface">Subclass interface</A></H3>
 If you are writing (or installing) a new decoder subclass, there are some
 other methods you'll need to know about:
 
@@ -301,8 +307,9 @@ other methods you'll need to know about:
 <DT><STRONG><A NAME="item_decode_it_instreamoutstream">decode_it INSTREAM,OUTSTREAM
 
 </A></STRONG><DD>
-<EM>Abstract instance method</EM>
-. The back-end of the <STRONG>decode</STRONG>
+<EM>Abstract instance method.</EM>
+  
+The back-end of the <STRONG>decode</STRONG>
  method. It takes an input handle opened for reading (INSTREAM), and an
 output handle opened for writing (OUTSTREAM).
 
@@ -330,8 +337,9 @@ Your method must return either <CODE>undef</CODE> (to indicate failure), or <COD
 <DT><STRONG><A NAME="item_encode_it_instreamoutstream">encode_it INSTREAM,OUTSTREAM
 
 </A></STRONG><DD>
-<EM>Abstract instance method</EM>
-. The back-end of the <STRONG>encode</STRONG>
+<EM>Abstract instance method.</EM>
+  
+The back-end of the <STRONG>encode</STRONG>
  method. It takes an input handle opened for reading (INSTREAM), and an
 output handle opened for writing (OUTSTREAM).
 
@@ -359,8 +367,9 @@ Your method must return either <CODE>undef</CODE> (to indicate failure), or <COD
 <DT><STRONG><A NAME="item_init_args">init ARGS...
 
 </A></STRONG><DD>
-<EM>Instance method</EM>
-. Do any necessary initialization of the new instance, taking whatever
+<EM>Instance method.</EM>
+
+Do any necessary initialization of the new instance, taking whatever
 arguments were given to <CODE>new()</CODE>. Should return the self object on success, undef on failure.
 
 
@@ -379,7 +388,7 @@ override this method.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="builtin_decoder_subclasses">BUILT-IN DECODER SUBCLASSES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="builtin_decoder_subclasses">BUILT-IN DECODER SUBCLASSES</A></H2>
 You don't need to <CODE>"use"</CODE> any other Perl modules; the following are included as part of <A
 HREF="Decoder.html">MIME::Decoder.</A>
 
@@ -388,7 +397,7 @@ HREF="Decoder.html">MIME::Decoder.</A>
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="mimedecoderbase64">MIME::Decoder::Base64</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="mimedecoderbase64">MIME::Decoder::Base64</A></H3>
 The built-in decoder for the <CODE>"base64"</CODE> encoding.
 
 
@@ -428,7 +437,7 @@ which led me to discover another.</EM>
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="mimedecoderbinary">MIME::Decoder::Binary</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="mimedecoderbinary">MIME::Decoder::Binary</A></H3>
 The built-in decoder for a <CODE>"binary"</CODE> encoding (in other words, no encoding).  
 
 
@@ -451,7 +460,7 @@ Both the <STRONG>encoder</STRONG>
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="mimedecoderquotedprint">MIME::Decoder::QuotedPrint</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="mimedecoderquotedprint">MIME::Decoder::QuotedPrint</A></H3>
 The built-in decoder the for <CODE>"quoted-printable"</CODE> encoding.
 
 
@@ -486,7 +495,7 @@ use the native <CODE>"\n"</CODE> for line breaks, and not <CODE>CRLF</CODE>. Thi
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="mimedecoderxbit">MIME::Decoder::Xbit</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="mimedecoderxbit">MIME::Decoder::Xbit</A></H3>
 The built-in decoder for both <CODE>"7bit"</CODE> and <CODE>"8bit"</CODE> encodings, which guarantee short lines (a maximum of 1000 characters per
 line) of US-ASCII data compatible with RFC-821.
 
@@ -560,10 +569,10 @@ the gist...
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="inputoutput_handles">Input/Output handles</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="inputoutput_handles">Input/Output handles</A></H3>
 As of MIME-tools 2.0, this class has to play nice with the new <A
 HREF="Body.html">MIME::Body</A> class... which means that input and output
 routines cannot just assume that they are dealing with filehandles.  
@@ -595,7 +604,7 @@ automatically wrap it in an object that fits the I/O handle criteria.
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="writing_a_decoder">Writing a decoder</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="writing_a_decoder">Writing a decoder</A></H3>
 If you're experimenting with your own encodings, you'll probably want to
 write a decoder. Here are the basics:
 
@@ -722,17 +731,7 @@ The <CODE>"binary"</CODE> decoder, however, really required block reads and writ
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
-<A HREF="Decoder.html">MIME::Decoder,</A> <A
-HREF="Entity.html">MIME::Entity,</A> <A HREF="Head.html">MIME::Head,</A> <A
-HREF="Parser.html">MIME::Parser.</A>
-
-
-<P>
-
-<P>
-<HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
 Copyright (c) 1996 by Eryq / <A
 HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
 
@@ -747,8 +746,8 @@ and/or modify it under the same terms as Perl itself.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.11 $ $Date: 1997/01/14 06:16:03 $
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
 
 
 <P>

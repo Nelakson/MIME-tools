@@ -96,10 +96,8 @@ use MIME::IO;
     'quoted-printable' => 'MIME::Decoder::QuotedPrint',
 );
 
-
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.11 $ ' =~ /\$Revision:\s+([^\s]+)/;
-
+$VERSION = substr q$Revision: 3.201 $, 10;
 
 
 
@@ -156,6 +154,7 @@ sub new {
 
 =item decode INSTREAM,OUTSTREAM
 
+I<Instance method.>
 Decode the document waiting in the input handle INSTREAM,
 writing the decoded information to the output handle OUTSTREAM.
 
@@ -185,6 +184,7 @@ sub decode {
 
 =item encode INSTREAM,OUTSTREAM
 
+I<Instance method.>
 Encode the document waiting in the input filehandle INSTREAM,
 writing the encoded information to the output stream OUTSTREAM.
 
@@ -211,6 +211,7 @@ sub encode {
 
 =item encoding
 
+I<Instance method.>
 Return the encoding that this object was created to handle,
 coerced to all lowercase (e.g., C<"base64">).
 
@@ -226,7 +227,7 @@ sub encoding {
 
 =item supported [ENCODING]
 
-I<Class method>.
+I<Class method.>
 With one arg (an ENCODING name), returns truth if that encoding
 is currently handled, and falsity otherwise.  The ENCODING will
 be automatically coerced to lowercase:
@@ -292,7 +293,7 @@ are some other methods you'll need to know about:
 
 =item decode_it INSTREAM,OUTSTREAM
 
-I<Abstract instance method>.  
+I<Abstract instance method.>  
 The back-end of the B<decode> method.  It takes an input handle
 opened for reading (INSTREAM), and an output handle opened for
 writing (OUTSTREAM).
@@ -323,7 +324,7 @@ sub decode_it {
 
 =item encode_it INSTREAM,OUTSTREAM
 
-I<Abstract instance method>.  
+I<Abstract instance method.>  
 The back-end of the B<encode> method.  It takes an input handle
 opened for reading (INSTREAM), and an output handle opened for
 writing (OUTSTREAM).
@@ -354,7 +355,8 @@ sub encode_it {
 
 =item init ARGS...
 
-I<Instance method>.  Do any necessary initialization of the new instance,
+I<Instance method.>
+Do any necessary initialization of the new instance,
 taking whatever arguments were given to C<new()>.
 Should return the self object on success, undef on failure.
 
@@ -370,7 +372,8 @@ sub init {
 
 =item install ENCODING
 
-I<Class method>.  Install this class so that ENCODING is handled by it.
+I<Class method>.  
+Install this class so that ENCODING is handled by it.
 You should not override this method.
 
 =cut
@@ -866,14 +869,6 @@ The C<"binary"> decoder, however, really required block reads and writes:
 see L<"MIME::Decoder::Binary"> for details.
 
 
-=head1 SEE ALSO
-
-MIME::Decoder,
-MIME::Entity,
-MIME::Head, 
-MIME::Parser.
-
-
 =head1 AUTHOR
 
 Copyright (c) 1996 by Eryq / eryq@rhine.gsfc.nasa.gov
@@ -881,9 +876,10 @@ Copyright (c) 1996 by Eryq / eryq@rhine.gsfc.nasa.gov
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
 
+
 =head1 VERSION
 
-$Revision: 2.11 $ $Date: 1997/01/14 06:16:03 $
+$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
 
 =cut
 

@@ -52,7 +52,7 @@ use MIME::ToolUtils qw(:config :msgs);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+$VERSION = substr q$Revision: 3.201 $, 10;
 
 
 #------------------------------

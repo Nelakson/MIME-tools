@@ -144,6 +144,23 @@ check(((-s "testout/entity.msg2") == (-s "testout/entity.msg3")),
 	"msg2 same size as msg3");
 
 #------------------------------------------------------------
+note "Test signing";
+#------------------------------------------------------------
+$top->sign(File=>"./testin/sig");
+$top->remove_sig;
+$top->sign(File=>"./testin/sig2", Remove=>56);
+$top->sign(File=>"./testin/sig3");
+
+#------------------------------------------------------------
+note "Write it out again, after synching";
+#------------------------------------------------------------
+$top->sync_headers(Nonstandard=>'ERASE',
+		   Length=>'COMPUTE');	
+open TMP, ">testout/entity.msg4" or die "open: $!";
+$top->print(\*TMP);
+close TMP;
+
+#------------------------------------------------------------
 note "Purge the files";
 #------------------------------------------------------------
 $top->purge;

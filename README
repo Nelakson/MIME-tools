@@ -104,62 +104,47 @@ REQUIREMENTS
 
 CHANGES
 
-  Version 2.13
+  Version 3.203
 
-    New features
-        Added RFC-1522-style decoding of encoded header fields. Header
-        decoding can now be done automatically during parsing via the new
-        `decode()' method in MIME::Head... just tell your parser object that
-        you want to `decode_headers()'. I<Thanks to Kent Boortz for
-        providing the idea, and the baseline RFC-1522-decoding code!>
+    No, there haven't been any major changes between 2.x and 3.x. The major-
+    version increase was from a few more tweaks to get $VERSION to be
+    calculated better and more efficiently (I had been using RCS version
+    numbers in a way which created problems for users of CPAN::). After a
+    couple of false starts, all modules have been upgraded to RCS 3.201 or
+    higher.
 
-        Building MIME messages is even easier. Now, when you use
-        MIME::Entity's `build()' or `attach()', you can also supply
-        individual mail headers to set (e.g., `-Subject', `-From', `-To').
+    You can now parse a MIME message from a scalar, an array-of-scalars, or
+    any MIME::IO-compliant object (including IO:: objects.) Take a look at
+    parse_data() in MIME::ParserBase. The parser code has been modified to
+    support the MIME::IO interface. *Thanks to fellow Chicagoan Tim Pierce
+    (and countless others) for asking.*
 
-        Added `Disposition' to MIME::Entity's `build()' method. *Thanks to
-        Kurt Freytag for suggesting this feature.*
+    More sensible toolkit configuration. A new config() method in
+    MIME::ToolUtils makes a lot of toolkit-wide configuration cleaner. Your
+    old calls will still work, but with deprecation warnings.
 
-        An `X-Mailer' header is now output by default in all MIME-Entity-
-        prepared messages, so any bad MIME we generate can be traced back to
-        this toolkit.
+    You can now sign messages just like in Mail::Internet. See MIME::Entity
+    for the interface.
 
-        Added `purge()' method to MIME::Entity for deleteing leftover files.
-        *Thanks to Jason L. Tibbitts III for suggesting this feature.*
+    You can now remove signatures from messages just like in Mail::Internet.
+    See MIME::Entity for the interface.
 
-        Added `seek()' and `tell()' methods to built-in MIME::IO classes.
-        Only guaranteed to work when reading! *Thanks to Jason L. Tibbitts
-        III for suggesting this feature.*
+    You can now compute/strip content lengths and other non-standard MIME
+    fields. See sync_headers() in MIME::Entity. *Thanks to Tim Pierce for
+    bringing the basic problem to my attention.*
 
-        When parsing a multipart message with apparently no boundaries, the
-        error message you get has been improved. *Thanks to Andreas Koenig
-        for suggesting this.*
+    Many warnings are now silent unless $^W is true. That means unless you
+    run your Perl with -w, you won't see deprecation warnings, non-fatal-
+    error messages, etc. But of course you run with -w, so this doesn't
+    affect you. `:-)'
 
-    Bug fixes
-        B<Patched over a Perl 5.002 (and maybe earlier and later) bug
-        involving FileHandle::new_tmpfile.> It seems that the underlying
-        filehandles were not being closed when the FileHandle objects went
-        out of scope! There is now an internal routine that creates true
-        FileHandle objects for anonymous temp files. I<Thanks to Dragomir R.
-        Radev and Zyx for reporting the weird behavior that led to the
-        discovery of this bug.>
+    Completed the 7-bit encodings in MIME::Latin1. We hadn't had complete
+    coverage in the conversion from 8- to 7-bit; now we do. *Thanks to Rolf
+    Nelson for bringing this to my attention.*
 
-        MIME::Entity's `build()' method now warns you if you give it an
-        illegal boundary string, and substitutes one of its own.
-
-        MIME::Entity's `build()' method now generates safer, fully-RFC-1521-
-        compliant boundary strings.
-
-        Bug in MIME::Decoder's `install()' method was fixed. *Thanks to Rolf
-        Nelson and Nickolay Saukh for finding this.*
-
-        Changed FileHandle::new_tmpfile to FileHandle->new_tmpfile, so some
-        Perl installations will be happier. *Thanks to Larry W. Virden for
-        finding this bug.*
-
-        Gave `=over' an arg of 4 in all PODs. *Thanks to Larry W. Virden for
-        pointing out the problems of bare =over's*
-
+    Fixed broken parse_two() in MIME::ParserBase. BTW, if your code worked
+    with the "broken" code, it should *still* work. *Thanks again to Tim
+    Pierce for bringing this to my attention.*
 
 SUPPORT
 

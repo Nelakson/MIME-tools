@@ -5,7 +5,7 @@ BEGIN {
 use MIME::ToolUtils;
 use MIME::Head;
 use Checker;
-MIME::ToolUtils->emulate_version(1.0);
+config MIME::ToolUtils EMULATE_VERSION=>1.0;
 
 
 #------------------------------------------------------------

@@ -47,7 +47,7 @@
     </TABLE>
 <HR>
 <P>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
 <A HREF="Body.html">MIME::Body</A> - the body of a MIME message
 
 
@@ -55,7 +55,7 @@
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
 Here's how a typical body object is created and used:
 
 
@@ -113,7 +113,7 @@ what the subclass is.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
 MIME messages can be very long (e.g., tar files, MPEGs, etc.) or very short
 (short textual notes, as in ordinary mail). Long messages are best stored
 in files, while short ones are perhaps best stored in core.
@@ -280,7 +280,7 @@ they should not assume that the body has an underlying filehandle.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="defining_your_own_subclasses">DEFINING YOUR OWN SUBCLASSES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="defining_your_own_subclasses">DEFINING YOUR OWN SUBCLASSES</A></H2>
 So you're not happy with files and scalars? No problem: just define your
 own <A HREF="Body.html">MIME::Body</A> subclass, and make a subclass of <A
 HREF="Parser.html">MIME::Parser</A> or <A
@@ -292,7 +292,7 @@ your body class whenever appropriate in the <CODE>new_body_for(head)</CODE> meth
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="writing_a_body_class">Writing a "body" class</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="writing_a_body_class">Writing a "body" class</A></H3>
 Your ``body'' class must inherit from <A HREF="Body.html">MIME::Body</A>
 (or some subclass of it), and it must either provide or inherit the
 following methods:
@@ -353,7 +353,7 @@ data is in core). The default inherited method just returns undef.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="writingusing_an_io_handle_class">Writing/using an "I/O handle" class</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="writingusing_an_io_handle_class">Writing/using an "I/O handle" class</A></H3>
 Your ``body'' class' <CODE>open()</CODE> method must return an ``I/O handle'' object, which can be any object that
 supports a small set of standard methods for reading/writing data.  
 
@@ -372,10 +372,10 @@ See the documentation on the <STRONG><A HREF="IO.html">MIME::IO</A></STRONG>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="design_issues">Design issues</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="design_issues">Design issues</A></H3>
 One reason I didn't just use FileHandle or IO::Handle objects for message
 bodies was that I wanted a ``body'' object to be a form of completely
 encapsulated program-persistent storage; that is, I wanted users to be able
@@ -414,7 +414,7 @@ processing more than one MIME entity at a time.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="subclasses">SUBCLASSES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="subclasses">SUBCLASSES</A></H2>
 Basically, we have the following classes:
 
 
@@ -432,7 +432,7 @@ Basically, we have the following classes:
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="mimebodyfile">MIME::Body::File;</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="mimebodyfile">MIME::Body::File;</A></H3>
 A body class that stores the data in a disk file. The I/O handle is a
 wrapped filehandle. Invoke the constructor as:
 
@@ -493,7 +493,7 @@ support in 5.002, and it was too soon to require IO::Handle.
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="mimebodyscalar">MIME::Body::Scalar;</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="mimebodyscalar">MIME::Body::Scalar;</A></H3>
 A body class that stores the data in-core, in a simple scalar. Invoke the
 constructor as:
 
@@ -536,7 +536,7 @@ Uses <STRONG><A HREF="IO.html">MIME::IO::Scalar</A></STRONG>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
 Copyright (c) 1996 by Eryq / <A
 HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>  
 
@@ -558,8 +558,8 @@ FileHandles.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 1.11 $ $Date: 1997/01/13 00:21:47 $
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
 
 
 <P>

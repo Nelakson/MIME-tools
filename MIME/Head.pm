@@ -132,7 +132,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.13 $ ' =~ /\$Revision:\s+([^\s]+)/;
+$VERSION = substr q$Revision: 3.201 $, 10;
 
 # Sanity (we put this test after our own version, for CPAN::):
 $Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
@@ -634,6 +634,7 @@ Print the header out to the given filehandle.
 
 =item set TAG,TEXT
 
+I<Instance method.>
 Set the field named TAG to [the single occurence given by the TEXT:
 
     # Set the MIME type:
@@ -657,6 +658,7 @@ sub set {
 
 =item unfold [FIELD]
 
+I<Instance method, inherited.>
 Unfold the text of all occurences of the given FIELD.  
 If the FIELD is omitted, I<all> fields are unfolded.
 
@@ -668,10 +670,8 @@ Returns the "self" object.
 
 =cut
 
-sub unfold {
-    my $self = shift;
-    $self->Mail::Header::unfold(@_);
-}
+### Inherited
+
 
 #------------------------------------------------------------
 
@@ -724,6 +724,7 @@ sub params {
 
 =item mime_encoding
 
+I<Instance method.>
 Try I<real hard> to determine the content transfer encoding
 (e.g., C<"base64">, C<"binary">), which is returned in all-lowercase.
 
@@ -750,6 +751,7 @@ sub mime_encoding {
 
 =item mime_type
 
+I<Instance method.>
 Try C<real hard> to determine the content type (e.g., C<"text/plain">,
 C<"image/gif">, C<"x-weird-type">, which is returned in all-lowercase.  
 
@@ -776,6 +778,7 @@ sub mime_type {
 
 =item multipart_boundary
 
+I<Instance method.>
 If this is a header for a multipart message, return the 
 "encapsulation boundary" used to separate the parts.  The boundary
 is returned exactly as given in the C<Content-type:> field; that
@@ -810,6 +813,7 @@ sub multipart_boundary {
 
 =item recommended_filename
 
+I<Instance method.>
 Return the recommended external filename.  This is used when
 extracting the data from the MIME stream.
 
@@ -1067,7 +1071,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 2.13 $ $Date: 1997/01/14 06:02:25 $
+$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
 
 =cut
 

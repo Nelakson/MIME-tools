@@ -2,7 +2,7 @@ BEGIN {
     push(@INC, "./blib/lib", "./etc", "./t");
 }
 use MIME::ToolUtils;
-MIME::ToolUtils->debugging(1);
+# config MIME::ToolUtils DEBUGGING=>1;
 use Checker;
 use MIME::Decoder;
 

@@ -4,10 +4,15 @@ package MIME::ToolUtils;
 
 MIME::ToolUtils - MIME-tools kit configuration and utilities
 
+
 =head1 DESCRIPTION
 
 A catch-all place for miscellaneous global information related to 
 the configuration of the MIME-tools kit.
+
+Since most of the MIME-tools modules "use" it by name,  this module 
+is really not subclassable.
+
 
 =head1 PUBLIC INTERFACE
 
@@ -45,16 +50,23 @@ Exporter::export_ok_tags('config', 'msgs', 'utils');
 #------------------------------ 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.14 $ ' =~ /\$Revision:\s+([^\s]+)/;
+$VERSION = substr q$Revision: 3.203 $, 10;
 
-# Configuration:
+# Configuration (do NOT alter this directly):
 %CONFIG = 
     (
      DEBUGGING       => 0,
-     EMULATE_VERSION => 9999,
      EMULATE_TMPFILE => 'OPENDUP',
+     EMULATE_VERSION => $VERSION,
      VERSION         => $VERSION,        # toolkit version as well
      );
+
+# Unsettable:
+my %NOCONFIG  = (VERSION => 1);
+
+# Use methods to set (yes, I could do this from the symbol table...):
+my %SUBCONFIG = (EMULATE_VERSION => 1);
+
 
 
 #------------------------------
@@ -67,6 +79,8 @@ Exporter::export_ok_tags('config', 'msgs', 'utils');
 my %AlreadySaid = ();
 
 
+
+
 #------------------------------
 #
 # Configuration...
@@ -74,119 +88,126 @@ my %AlreadySaid = ();
 #------------------------------
 
 #------------------------------------------------------------
-# debugging
+# config
 #------------------------------------------------------------
 
-=item debugging [ONOFF]
+=item config [VARIABLE, [VALUE]]
 
 I<Class method.>
-Turn debugging on (if ONOFF is true) or off (if ONOFF is false) 
-for the entire MIME-tools library.  Debug messages go to STDERR.
+Set/get a configuration variable:
 
-With no argument, this method just returns the current setting.
+    # Get current debugging flag:
+    $current = config MIME::ToolUtils 'DEBUGGING';
+    
+    # Invert it:
+    config MIME::ToolUtils DEBUGGING => !$current;
 
-=cut
+I<Note:> as you can see, I like the `arrow' syntax when setting values.
 
-sub debugging {
-    my ($class, $onoff) = @_;
-    $CONFIG{DEBUGGING} = $onoff if (@_ > 1);
-    $CONFIG{DEBUGGING};
-}
+The complete list of configuration variables is listed below.  They
+are all-uppercase, possibly with underscores.  To get a list of all
+valid config variables in your program, and output their current values,
+you can say:
 
-#------------------------------------------------------------
-# emulate_tmpfile
-#------------------------------------------------------------
-
-=item emulate_tmpfile [OPTION]
-
-I<Class method.>
-Determines how to patch a Perl 5.002 bug in FileHandle::new_tmpfile, 
-and get a FileHandle object which really I<will> be destroyed when it 
-goes out of scope.  Possible options are:
-
-=over 4
-
-=item OPENDUP
-
-Always emulate FileHandle->new_tmpfile, using an fd-opened duplicate 
-filehandle.  Pretty ugly (two additional filehandles sharing the same 
-descriptor are briefly open at one point, though both are closed before
-the new tmpfile object is returned): however, it's probably quite portable 
-since it (a) doesn't require POSIX, and (b) doesn't make assumptions as 
-to the underlying implementation of FileHandle objects.
-
-=item UNLINK   
-
-Always emulate FileHandle->new_tmpfile, using tmpnam() plus unlink().
-Probably only works on Unix-like systems, but is very straightforward.
-Depends on POSIX::tmpnam() and on the autodelete-on-unlink behavior. 
-
-=item NO
-
-No emulation: always just use FileHandle->new_tmpfile to get tmpfile
-handles.
-
-=item (a subroutine reference)
-
-Use this subroutine.
-
-=back
-
-If any of the emulation options ends with '!' (e.g., "UNLINK!"),
-then the package will I<always> emulate that way.  Otherwise, it will 
-try to make a reasonable guess as to whether emulation is necessary,
-based on your version of Perl.
-
-The default setting (if you never invoke this method) is C<"OPENDUP">.
-
-With no argument, this method just returns the current setting.
-
-=cut
-
-sub emulate_tmpfile {
-    my ($class, $option) = @_;
-    if (@_ > 1) {
-	$CONFIG{EMULATE_TMPFILE} = $option;
+    foreach $var (sort (config MIME::ToolUtils)) {
+       print "MIME config $var = ", (config MIME::ToolUtils $var), "\n";
     }
-    $CONFIG{EMULATE_TMPFILE};
-}
 
-#------------------------------------------------------------
-# emulate_version
-#------------------------------------------------------------
+Note that some of these variables may have nice printed representations,
+while others may not.
 
-=item emulate_version [VERSION]
-
-I<Class method.>
-Emulate the behavior of a previous version of the MIME-tools kit (a.k.a
-the MIME-parser kit in its version 1.x incarnations).
-This will I<not> turn off warnings about deprecated usage (that would
-impede progress), but it I<will> patch things like the C<get()> method
-of MIME::Head:
-
-    MIME::ToolUtils->emulate_version(1.0)
-
-The VERSION should be '1' or '1.0'.
-
-With no argument, this method just returns the current setting.
+I<Rationale:> I wanted access to the configuration to be done via
+some kind of controllable public interface, in case "setting a config
+variable" involved making a subroutine call.  This approach is an attempt 
+to do so while preventing an explosion of lots of little methods, many
+of which will do nothing more than set an entry in the internal %CONFIG hash. 
+I suppose a tied hash would have been slicker.
 
 =cut
 
-sub emulate_version {
-    my ($class, $version) = @_;
-    if ($version) {
+sub config {
+    my $class = shift;
+
+    # No args? Just return list:
+    @_ or return keys %CONFIG; 
+    my $var = uc(shift);
+    my ($value) = (@_);
+
+    # Trap for attempt to set an illegal or unsettable:
+    exists($CONFIG{$var}) or croak "no such config variable: '$var'";
+    croak "config variable $var is read-only!" if (@_ and $NOCONFIG{$var});
+    
+    # See if this variable is mapped to a method:
+    my $methodname = "config_$var";
+    if ($SUBCONFIG{$var}) {
+	return $class->$methodname(@_);
+    }
+    else {    # just a flag
+	$CONFIG{$var} = $value if (@_);    # set if necessary
+	return $CONFIG{$var};
+    }
+}
+
+#------------------------------------------------------------
+# config_EMULATE_VERSION 
+#------------------------------------------------------------
+# Private support hook for config(EMULATE_VERSION).
+
+sub config_EMULATE_VERSION {
+    my $class = shift;
+    if (@_) {         # setting value...
+	my ($version) = @_;
+
+	# Default to current:
+	defined($version) or $version = $CONFIG{'VERSION'}; # current
 
 	# Set emulation, and warn them:
 	$CONFIG{EMULATE_VERSION} = $version;
 	warn "EMULATING MIME-parser v.$version.  You have been warned!\n";
 
 	# Do some immediate tweaks, if necessary:
-	if ($CONFIG{EMULATE_VERSION} < 2.0) {
-	  Mail::Header->mail_from('COERCE');
-	}
+	($version < 2.0) and Mail::Header->mail_from('COERCE');
     }
-    $CONFIG{EMULATE_VERSION};
+    $CONFIG{EMULATE_VERSION};       # return current value
 }
+
+
+
+
+#------------------------------
+#
+# Old-style configuration...
+#
+#------------------------------
+# All of these still work, but have been deprecated with "config"
+# variables of the same name.
+
+#------------------------------------------------------------
+# debugging
+#------------------------------------------------------------
+sub debugging {
+    usage("deprecated: please use config() from now on");
+    shift->config('DEBUGGING', @_);
+}
+
+#------------------------------------------------------------
+# emulate_tmpfile
+#------------------------------------------------------------
+sub emulate_tmpfile {
+    usage("deprecated: please use config() from now on");
+    shift->config('EMULATE_TMPFILE', @_);
+}
+
+#------------------------------------------------------------
+# emulate_version
+#------------------------------------------------------------
+sub emulate_version {
+    usage("deprecated: please use config() from now on");
+    shift->config('EMULATE_VERSION', @_);
+}
+
+
+
 
 
 #------------------------------
@@ -208,22 +229,23 @@ sub debug {
 sub error { 
     my ( $p,  $f,  $l,  $s) = caller(1);
     my $msg = join('', (($s =~ /::/) ? "$s() " : "${p}::$s() "), @_, "\n");
-    warn "$msg";
+    warn "$msg" if $^W;
     return (wantarray ? () : undef);
 }
 
 #------------------------------------------------------------
-# usage -- private: register unhappiness about usage
+# usage -- private: register unhappiness about usage (once per)
 #------------------------------------------------------------
 sub usage { 
     my ( $p,  $f,  $l,  $s) = caller(1);
     my ($cp, $cf, $cl, $cs) = caller(2);
     my $msg = join('', (($s =~ /::/) ? "$s() " : "${p}::$s() "), @_, "\n");
     my $loc = ($cf ? "\tin code called from $cf l.$cl" : '');
-    warn "$msg$loc\n" unless $AlreadySaid{$msg};   
+    warn "$msg$loc\n" if ($^W and !$AlreadySaid{$msg});
     $AlreadySaid{$msg} = 1;
     return (wantarray ? () : undef);
 }
+
 
 
 #------------------------------
@@ -318,6 +340,107 @@ sub tmpopen {
 
 =back
 
+=head1 CONFIGURATION VARIABLES
+
+You may set/get all of these via the C<config> method.
+
+=over 4
+
+
+=item AUTO_SYNC_HEADERS
+
+When printing out a MIME entity, you may find it desirable to always
+output a Content-Length header (even though this is a non-standard 
+MIME header).  If you set this configuration option true (the default
+is false), the toolkit will attempt to precompute the Content-Length
+of all singleparts in your message, and set the headers appropriately. 
+Otherwise, it will leave the headers alone.
+
+You should be aware that auto-synching the headers can slow down
+the printing of messages.
+
+
+
+=item DEBUGGING
+
+Value should be a boolean: true to turn debugging on, false to turn it off.
+
+
+
+=item EMULATE_TMPFILE
+
+Determines how to patch a Perl 5.002 bug in FileHandle::new_tmpfile, 
+and get a FileHandle object which really I<will> be destroyed when it 
+goes out of scope.  Possible values are:
+
+=over 4
+
+=item OPENDUP
+
+Always emulate FileHandle->new_tmpfile, using an fd-opened duplicate 
+filehandle.  Pretty ugly (two additional filehandles sharing the same 
+descriptor are briefly open at one point, though both are closed before
+the new tmpfile object is returned): however, it's probably quite portable 
+since it (a) doesn't require POSIX, and (b) doesn't make assumptions as 
+to the underlying implementation of FileHandle objects.
+
+=item UNLINK   
+
+Always emulate FileHandle->new_tmpfile, using tmpnam() plus unlink().
+Probably only works on Unix-like systems, but is very straightforward.
+Depends on POSIX::tmpnam() and on the autodelete-on-unlink behavior. 
+
+=item NO
+
+No emulation: always just use FileHandle->new_tmpfile to get tmpfile
+handles.
+
+=item (a subroutine reference)
+
+Use the given subroutine, with no arguments, to return a tmpfile.
+
+=back
+
+If any of the named emulation options ends with '!' (e.g., "UNLINK!"),
+then the package will I<always> emulate that way.  Otherwise, it will 
+try to make a reasonable guess as to whether emulation is necessary,
+based on your version of Perl.
+
+The default setting (if you never invoke this method) is C<"OPENDUP">.
+
+
+
+=item EMULATE_VERSION
+
+Emulate the behavior of a previous version of the MIME-tools kit (a.k.a
+the MIME-parser kit in its version 1.x incarnations).
+This will I<not> turn off warnings about deprecated usage (that would
+impede progress), but it I<will> patch things like the C<get()> method
+of MIME::Head:
+
+    config MIME::ToolUtils EMULATE_VERSION => 1.0;
+
+The value should be '1' or '1.0'.  To reliably turn off emulation,
+set it to undef.
+
+
+
+=item VERSION
+
+I<Read-only.>  The version of the I<toolkit.>
+
+    config MIME::ToolUtils VERSION => 1.0;
+
+Please notice that as of 3.x, this I<happens> to be the same as the
+$MIME::ToolUtils::VERSION: however, this was not always the case, and
+someday may not be the case again.
+
+=back
+
+
+
+
+
 =head1 AUTHOR
 
 Copyright (c) 1996 by Eryq / eryq@rhine.gsfc.nasa.gov  
@@ -325,9 +448,10 @@ Copyright (c) 1996 by Eryq / eryq@rhine.gsfc.nasa.gov
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
 
+
 =head1 VERSION
 
-$Revision: 2.14 $ $Date: 1997/01/14 06:17:36 $
+$Revision: 3.203 $ $Date: 1997/01/19 07:40:14 $
 
 I<Note: this file is used to set the version of the entire MIME-tools 
 distribution.>

@@ -90,7 +90,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.8 $ ' =~ /\$Revision:\s+([^\s]+)/;
+$VERSION = substr q$Revision: 3.202 $, 10;
 
 # Count of fake filenames generated:
 my $G_output_path = 0;
@@ -121,6 +121,7 @@ sub init {
 
 =item new_body_for HEAD
 
+I<Instance method.>
 Based on the HEAD of a part we are parsing, return a new
 body object (any desirable subclass of MIME::Body) for
 receiving that part's data.
@@ -193,6 +194,7 @@ sub new_body_for {
 
 =item output_to_core [CUTOFF]
 
+I<Instance method.>
 Normally, instances of this class output all their decoded body
 data to disk files (via MIME::Body::File).  However, you can change 
 this behaviour by invoking this method before parsing:
@@ -232,6 +234,7 @@ sub output_to_core {
 
 =item output_dir [DIRECTORY]
 
+I<Instance method.>
 Get/set the output directory for the parsing operation.
 This is the directory where the extracted and decoded body parts will go.
 The default is C<".">.
@@ -389,7 +392,8 @@ filename, but maybe just issue a I<debug> message.  I considered that,
 but then I thought: if debugging were off, people wouldn't know why 
 (or even if) a given filename had been ignored.  In mail robots
 that depend on externally-provided filenames, this could cause 
-hard-to-diagnose problems.  So, the message is still a warning.
+hard-to-diagnose problems.  So, the message is still a warning, but 
+now B<it's only output if $^W is true.>
 
 I<Thanks to Laurent Amon for pointing out problems with the original
 implementation, and for making some good suggestions.  Thanks also to
@@ -404,8 +408,8 @@ sub output_path {
     # Get the output filename:
     my $outname = $head->recommended_filename;
     if (defined($outname) && $self->evil_filename($outname)) {
-	warn "Provided filename '$outname' is regarded as evil \n",
-	     "by this parser... I'm ignoring it and supplying my own.\n";
+	warn "Provided filename '$outname' is regarded as evil by\n",
+	     "this parser... I'm ignoring it and supplying my own.\n" if $^W;
 	$outname = undef;
     }
     if (!defined($outname)) {      # evil or missing; make our OWN filename:
@@ -471,6 +475,7 @@ sub output_path_hook {
 
 =item output_prefix [PREFIX]
 
+I<Instance method.>
 Get/set the output prefix for the parsing operation.
 This is a short string that all filenames for extracted and decoded 
 body parts will begin with.  The default is F<"msg">.
@@ -532,14 +537,6 @@ the desired output directory (where extracted and decoded files are placed).
 =back
 
 
-=head1 SEE ALSO
-
-MIME::Decoder,
-MIME::Entity,
-MIME::Head, 
-MIME::Parser.
-
-
 =head1 AUTHOR
 
 Copyright (c) 1996 by Eryq / eryq@rhine.gsfc.nasa.gov
@@ -550,7 +547,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.8 $ $Date: 1997/01/13 00:23:32 $
+$Revision: 3.202 $ $Date: 1997/01/19 03:48:32 $
 
 =cut
 

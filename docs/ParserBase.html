@@ -26,6 +26,10 @@
 	<LI><A HREF="#synopsis">SYNOPSIS</A>
 	<LI><A HREF="#description">DESCRIPTION</A>
 	<LI><A HREF="#public_interface">PUBLIC INTERFACE</A>
+	<UL>
+		<LI><A HREF="#construction_and_setting_options">Construction, and setting options</A>
+		<LI><A HREF="#parsing_messages">Parsing messages</A>
+		</UL>
 	<LI><A HREF="#writing_subclasses">WRITING SUBCLASSES</A>
 	<LI><A HREF="#notes">NOTES</A>
 	<UL>
@@ -33,7 +37,6 @@
 		<LI><A HREF="#questionable_practices">Questionable practices</A>
 		</UL>
 	<LI><A HREF="#warnings">WARNINGS</A>
-	<LI><A HREF="#see_also">SEE ALSO</A>
 	<LI><A HREF="#author">AUTHOR</A>
 	<LI><A HREF="#version">VERSION</A>
 </UL>
@@ -42,7 +45,7 @@
     </TABLE>
 <HR>
 <P>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="name">NAME</A></H2>
 <A HREF="ParserBase.html">MIME::ParserBase</A> - abstract class for parsing
 MIME mail
 
@@ -51,7 +54,7 @@ MIME mail
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
 This is an <EM>abstract</EM>
  class; however, here's how one of its 
 <EM>concrete subclasses</EM>
@@ -120,7 +123,7 @@ You can also alter the behavior of the parser:
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
 Where it all begins.  
 
 
@@ -144,7 +147,10 @@ subclass,
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="construction_and_setting_options">Construction, and setting options</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_new_args">new ARGS...
 
@@ -175,6 +181,8 @@ concrete subclasses:
 <DT><STRONG><A NAME="item_decode_headers_onoff">decode_headers ONOFF
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 If set true, then the parser will attempt to decode the MIME headers as per
 RFC-1522 the moment it sees them. This will probably be of most use to
 those of you who expect some international mail, especially mail from
@@ -201,43 +209,6 @@ possibly change this in future releases, so <EM>please:</EM>
 
 if you want a particular setting, declare it when you create your parser
 object.
-
-
-<P>
-
-<DT><STRONG><A NAME="item_init_args">init ARGS...
-
-</A></STRONG><DD>
-<EM>Instance method.</EM>
-
-Initiallize the new parser object, with any args passed to <CODE>new()</CODE>.
-
-
-<P>
-
-If you override this in a subclass, make sure you call the inherited method
-to init your parents!
-
-
-<P>
-
-<PRE>
-    package MyParser;
-    @ISA = qw(MIME::Parser);
-    ...
-    sub init {
-	my $self = shift;
-	$self-&gt;SUPER::init(@_);        # do my parent's init
-	
-	# ...my init stuff goes here...	
-	
-	$self;                         # return
-    }
-</PRE>
-
-<P>
-
-Should return the self object on success, and undef on failure.
 
 
 <P>
@@ -285,6 +256,8 @@ With no VALUE, returns the VALUE currently associated with that ROLE.
 <DT><STRONG><A NAME="item_last_head">last_head
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Return the top-level MIME header of the last stream we attempted to parse.
 This is useful for replying to people who sent us bad MIME messages.
 
@@ -304,6 +277,8 @@ This is useful for replying to people who sent us bad MIME messages.
 <DT><STRONG><A NAME="item_parse_nested_messages_option">parse_nested_messages OPTION
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Some MIME messages will contain a part of type <CODE>message/rfc822</CODE>: literally, the text of an embedded mail message. The normal behavior is
 to save such a message just as if it were a <CODE>text/plain</CODE> 
 document. However, you can change this: before parsing, invoke this method
@@ -356,9 +331,94 @@ header is lost, so this option is <EM>not</EM>
 
 <P>
 
-<DT><STRONG><A NAME="item_parse_two_headfile_bodyfile">parse_two HEADFILE BODYFILE
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="parsing_messages">Parsing messages</A></H3>
+<DL>
+<DT><STRONG><A NAME="item_parse_data_data">parse_data DATA
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
+Parse a MIME message that's already in-core. You may supply the DATA in any
+of a number of ways...
+
+
+<P>
+
+<UL>
+<LI><STRONG></STRONG>
+<STRONG>A scalar</STRONG>
+ which holds the message.
+
+
+<P>
+
+<LI><STRONG></STRONG>
+<STRONG>A ref to a scalar</STRONG>
+ which holds the message. This is an efficiency hack.
+
+
+<P>
+
+<LI><STRONG></STRONG>
+<STRONG>A ref to an array of scalars.</STRONG>
+  The array elements are simply joined to produce a scalar; no newlines are
+inserted!
+
+
+<P>
+
+</UL>
+Returns a <A HREF="Entity.html">MIME::Entity,</A> which may be a single
+entity, or an arbitrarily-nested multipart entity. Returns undef on
+failure.
+
+
+<P>
+
+<STRONG>Note:</STRONG>
+ the storage of the body parts is not determined by this class, but by the
+subclass you use to do the actual parsing. For efficiency, if you know
+you'll be parsing a small amount of data, it is probably best to tell the
+parser to store the parsed parts in core. For example, here's a short test
+program, using <A HREF="Parser.html">MIME::Parser:</A>
+
+
+<P>
+
+<PRE>
+        use MIME::Parser;
+        
+        my $msg = &lt;&lt;EOF;
+    Content-type: text/html
+    Content-transfer-encoding: 7bit
+</PRE>
+
+<P>
+
+<PRE>
+    &lt;H1&gt;Hello, world!&lt;/H1&gt;;
+</PRE>
+
+<P>
+
+<PRE>
+    EOF
+        $parser = new MIME::Parser;
+        $parser-&gt;output_to_core('ALL');
+        $entity = $parser-&gt;parse_data($msg);
+        $entity-&gt;print(\*STDOUT);
+</PRE>
+
+<P>
+
+<DT><STRONG><A NAME="item_parse_two_headfile_bodyfile">parse_two HEADFILE, BODYFILE
+
+</A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Convenience front-end onto <CODE>read()</CODE>, intended for programs running under mail-handlers like <STRONG>deliver</STRONG>
 , which splits the incoming mail message into a header file and a body
 file.
@@ -381,9 +441,16 @@ blank line separating the head part and the body part.
 
 <P>
 
-<DT><STRONG><A NAME="item_read_filehandle">read FILEHANDLE
+Returns the parsed entity, or undef on error.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_read_instream">read INSTREAM
 
 </A></STRONG><DD>
+<EM>Instance method.</EM>
+
 Takes a MIME-stream and splits it into its component entities, each of
 which is decoded and placed in a separate file in the splitter's
 <CODE>output_dir().</CODE>  
@@ -391,8 +458,10 @@ which is decoded and placed in a separate file in the splitter's
 
 <P>
 
-The stream should be given as a FileHandle, or at least a glob ref to a
-readable FILEHANDLE; e.g., <CODE>\*STDIN</CODE>.
+The INSTREAM can be given as a readable FileHandle, a globref'd filehandle
+(like <CODE>\*STDIN</CODE>), or as <EM>any</EM>
+ blessed object conforming to the <A HREF="IO.html">MIME::IO</A> (or IO::)
+interface.
 
 
 <P>
@@ -407,17 +476,56 @@ failure.
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="writing_subclasses">WRITING SUBCLASSES</A></H2>
-All you have to do to write a subclass is to provide the following methods:
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="writing_subclasses">WRITING SUBCLASSES</A></H2>
+All you have to do to write a subclass is to provide or override the
+following methods:
 
 
 <P>
 
 <DL>
+<DT><STRONG><A NAME="item_init_args">init ARGS...
+
+</A></STRONG><DD>
+<EM>Instance method, private.</EM>
+
+Initiallize the new parser object, with any args passed to <CODE>new()</CODE>.
+
+
+<P>
+
+You don't <EM>need</EM>
+ to override this in your subclass. If you override it, however, make sure
+you call the inherited method to init your parents!
+
+
+<P>
+
+<PRE>
+    package MyParser;
+    @ISA = qw(MIME::Parser);
+    ...
+    sub init {
+	my $self = shift;
+	$self-&gt;SUPER::init(@_);        # do my parent's init
+	
+	# ...my init stuff goes here...	
+	
+	$self;                         # return
+    }
+</PRE>
+
+<P>
+
+Should return the self object on success, and undef on failure.
+
+
+<P>
+
 <DT><STRONG><A NAME="item_new_body_for_head">new_body_for HEAD
 
 </A></STRONG><DD>
-<EM>Abstract method.</EM>
+<EM>Abstract instance method.</EM>
 
 Based on the HEAD of a part we are parsing, return a new body object (any
 desirable subclass of <A HREF="Body.html">MIME::Body)</A> for receiving
@@ -449,7 +557,7 @@ You are of course free to override any other methods as you see fit, like <CODE>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
 <STRONG>This is an abstract class.</STRONG>
 
 If you actually want to parse a MIME stream, use one of the children of
@@ -461,7 +569,7 @@ HREF="Parser.html">MIME::Parser.</A>
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="under_the_hood">Under the hood</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="under_the_hood">Under the hood</A></H3>
 RFC-1521 gives us the following BNF grammar for the body of a multipart
 MIME message:
 
@@ -600,7 +708,7 @@ preamble.
 
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="questionable_practices">Questionable practices</A></H3>
+<H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="questionable_practices">Questionable practices</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_multipart_messages_are_always_re">Multipart messages are always read line-by-line 
 
@@ -773,7 +881,7 @@ attention.</EM>
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="warnings">WARNINGS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="warnings">WARNINGS</A></H2>
 <DL>
 <DT><STRONG><A NAME="item_binmode">binmode
 
@@ -804,17 +912,7 @@ the output was screwed up).
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
-<A HREF="Decoder.html">MIME::Decoder,</A> <A
-HREF="Entity.html">MIME::Entity,</A> <A HREF="Head.html">MIME::Head,</A> <A
-HREF="Parser.html">MIME::Parser.</A>
-
-
-<P>
-
-<P>
-<HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
 Copyright (c) 1996 by Eryq / <A
 HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
 
@@ -829,8 +927,8 @@ and/or modify it under the same terms as Perl itself.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 1.8 $ $Date: 1997/01/13 00:23:54 $
+<H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
+$Revision: 3.202 $ $Date: 1997/01/19 01:34:53 $
 
 
 <P>
