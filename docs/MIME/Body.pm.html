@@ -3,8 +3,8 @@
   <TITLE>MIME::Body</TITLE>
 </HEAD>
 <BODY 
-       bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Body</H1>
+       bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
+<FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Body</H1>
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
@@ -45,24 +45,24 @@
 <P><HR>
 <A NAME="Obtaining_bodies"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Obtaining bodies</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    ### Get the bodyhandle of a MIME::Entity object:
    $body = $entity-&gt;bodyhandle;
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
    ### Create a body which stores data in a disk file:
    $body = new MIME::Body::File &quot;/path/to/file&quot;;
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
    ### Create a body which stores data in an in-core array:
    $body = new MIME::Body::InCore \@strings;
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Opening_closing_and_using_IO_handles"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Opening, closing, and using IO handles</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    ### Write data to the body:
    $IO = $body-&gt;open(&quot;w&quot;)      || die &quot;open body: $!&quot;;
    $IO-&gt;print($message);
@@ -75,13 +75,13 @@
    }
    $IO-&gt;close                  || die &quot;close I/O handle: $!&quot;;
     
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Other_I_O"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Other I/O</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    ### Dump the ENCODED body data to a filehandle:
    $body-&gt;print(\*STDOUT);
        
@@ -90,13 +90,13 @@
    
    ### Slurp all the UNENCODED data in, and put it in an array of lines:
    @lines = $body-&gt;as_lines;
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Working_directly_with_paths_to_underlying_files"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Working directly with paths to underlying files</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    ### Where's the data?
    if (defined($body-&gt;path)) {   ### data is on disk:
        print &quot;data is stored externally, in &quot;, $body-&gt;path;
@@ -107,7 +107,7 @@
      
    ### Get rid of anything on disk:
    $body-&gt;purge;
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -276,14 +276,14 @@ that the external data is no longer available.
 
 <P>The following built-in classes are provided:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    Body                 Stores body     When open()ed,
    class:               data in:        returns:    
    --------------------------------------------------------
    MIME::Body::File     disk file       IO::Handle   
    MIME::Body::Scalar   scalar          IO::Scalar  
    MIME::Body::InCore   scalar array    IO::ScalarArray
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -293,14 +293,14 @@ that the external data is no longer available.
 <P>A body class that stores the data in a disk file.  
 The I/O handle is a wrapped filehandle.  Invoke the constructor as:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $body = new MIME::Body::File &quot;/path/to/file&quot;;
-</PRE>
+</PRE></FONT>
 
 <P>In this case, the <CODE>path()</CODE> method would return the given path,
 so you <I>could</I> say:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     if (defined($body-&gt;path)) {
 	open BODY, $body-&gt;path or die &quot;open: $!&quot;;
 	while (&lt;BODY&gt;) {
@@ -308,7 +308,7 @@ so you <I>could</I> say:
         }
 	close BODY;
     }
-</PRE>
+</PRE></FONT>
 
 <P>But you're best off not doing this.
 
@@ -321,26 +321,26 @@ so you <I>could</I> say:
 <P>A body class that stores the data in-core, in a simple scalar.
 Invoke the constructor as:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $body = new MIME::Body::Scalar \$string;
-</PRE>
+</PRE></FONT>
 
 <P>A single scalar argument sets the body to that value, exactly as though
 you'd opened for the body for writing, written the value, 
 and closed the body again:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $body = new MIME::Body::Scalar &quot;Line 1\nLine 2\nLine 3&quot;;
-</PRE>
+</PRE></FONT>
 
 <P>A single array reference sets the body to the result of joining all the
 elements of that array together:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $body = new MIME::Body::Scalar [&quot;Line 1\n&quot;,
                                     &quot;Line 2\n&quot;,
                                     &quot;Line 3&quot;];
-</PRE>
+</PRE></FONT>
 
 <P>Uses <B>IO::Scalar</B> as the I/O handle.
 
@@ -353,11 +353,11 @@ elements of that array together:
 <P>A body class that stores the data in-core.
 Invoke the constructor as:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $body = new MIME::Body::InCore \$string;
     $body = new MIME::Body::InCore  $string;
     $body = new MIME::Body::InCore \@stringarray
-</PRE>
+</PRE></FONT>
 
 <P>A simple scalar argument sets the body to that value, exactly as though
 you'd opened for the body for writing, written the value, 
@@ -369,11 +369,11 @@ and closed the body again:
 <P>A single array reference sets the body to the concatenation of all
 scalars that it holds:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $body = new MIME::Body::InCore [&quot;Line 1\n&quot;,
                                     &quot;Line 2\n&quot;,
                                     &quot;Line 3&quot;];
-</PRE>
+</PRE></FONT>
 
 <P>Uses <B>IO::ScalarArray</B> as the I/O handle.
 
@@ -396,29 +396,29 @@ methods...
 
 <P>The default inherited method <I>should suffice</I> for all these:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     new                       
     binmode [ONOFF]           
     path
-</PRE>
+</PRE></FONT>
 
 <P>The default inherited method <I>may suffice</I> for these, but perhaps 
 there's a better implementation for your subclass.                       
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     init ARGS...              
     as_lines                  
     as_string                 
     dup                       
     print                     
     purge 
-</PRE>
+</PRE></FONT>
 
 <P>The default inherited method <I>will probably not suffice</I> for these:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     open                      
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -430,7 +430,7 @@ bodies was that I wanted a &quot;body&quot; object to be a form of completely
 encapsulated program-persistent storage; that is, I wanted users
 to be able to write code like this...
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    ### Get body handle from this MIME message, and read its data:
    $body = $entity-&gt;bodyhandle;
    $IO = $body-&gt;open(&quot;r&quot;);
@@ -438,7 +438,7 @@ to be able to write code like this...
        print STDOUT $_;
    }
    $IO-&gt;close;
-</PRE>
+</PRE></FONT>
 
 <P>...without requiring that they know anything more about how the
 $body object is actually storing its data (disk file, scalar variable,
@@ -477,7 +477,7 @@ to the use of FileHandles.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jul 20 02:32:29 2000 by cvu_pod2html
+Generated Tue Aug 15 09:16:56 2000 by cvu_pod2html
 </FONT></ADDRESS>
-</BODY>
+</FONT></BODY>
 </HTML>

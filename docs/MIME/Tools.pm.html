@@ -3,8 +3,8 @@
   <TITLE>MIME-tools</TITLE>
 </HEAD>
 <BODY 
-       bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME-tools</H1>
+       bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
+<FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME-tools</H1>
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
@@ -55,56 +55,56 @@
 <P>Here's some pretty basic code for <B>parsing a MIME message,</B> and outputting
 its decoded components to a given directory:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     use MIME::Parser;
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create parser, and set some parsing options:
     my $parser = new MIME::Parser;
     $parser-&gt;output_under(&quot;$ENV{HOME}/mimemail&quot;);
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Parse input:
     $entity = $parser-&gt;parse(\*STDIN) or die &quot;parse failed\n&quot;;
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Take a look at the top-level entity (and any parts it has):
     $entity-&gt;dump_skeleton;
-</PRE>
+</PRE></FONT>
 
 <P>Here's some code which <B>composes and sends a MIME message</B> containing
 three parts: a text file, an attached GIF, and some more text:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     use MIME::Entity;
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create the top-level, and set up the mail headers:
     $top = MIME::Entity-&gt;build(Type    =&gt;&quot;multipart/mixed&quot;,
                                From    =&gt; &quot;me\@myhost.com&quot;,
 	                       To      =&gt; &quot;you\@yourhost.com&quot;,
                                Subject =&gt; &quot;Hello, nurse!&quot;);
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Part #1: a simple text document:
     $top-&gt;attach(Path=&gt;&quot;./testin/short.txt&quot;);
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Part #2: a GIF file:
     $top-&gt;attach(Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
                  Type        =&gt; &quot;image/gif&quot;,
                  Encoding    =&gt; &quot;base64&quot;);
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Part #3: some literal text:
     $top-&gt;attach(Data=&gt;$message);
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Send it:
     open MAIL, &quot;| /usr/lib/sendmail -t -oi -oem&quot; or die &quot;open: $!&quot;;
     $top-&gt;print(\*MAIL);
     close MAIL;
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -124,7 +124,7 @@ GIF files).
 
 <P>You will need the following installed on your system:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
 	File::Path
 	File::Spec
 	IPC::Open2              (optional)
@@ -133,7 +133,7 @@ GIF files).
 	MIME::QuotedPrint
 	Net::SMTP
 	Mail::Internet, ...     from the MailTools distribution.
-</PRE>
+</PRE></FONT>
 
 <P>See the Makefile.PL in your distribution for the most-comprehensive
 list of prerequisite modules and their version numbers.
@@ -151,7 +151,7 @@ list of prerequisite modules and their version numbers.
 
 <P>Here are the classes you'll generally be dealing with directly:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     (START HERE)            results() .-----------------.
           \                 .--------&gt;| MIME::          |
            .-----------.   /          | Parser::Results |
@@ -180,7 +180,7 @@ list of prerequisite modules and their version numbers.
                                 | IO::   | getline()
                                 | Handle | print()
                                 `--------' etc...
-</PRE>
+</PRE></FONT>
 
 <P>To illustrate, parsing works this way:
 
@@ -225,7 +225,7 @@ data source.
 and an &quot;attached&quot; GIF file -- would be a tree of MIME::Entity objects,
 each of which would have its own MIME::Head.  Like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     .--------.
     | MIME:: | Content-type: multipart/mixed
     | Entity | Subject: Happy Samhaine!
@@ -242,7 +242,7 @@ each of which would have its own MIME::Head.  Like this:
                   | Entity | Content-transfer-encoding: base64
                   `--------' Content-disposition: inline;
                                filename=&quot;hs.gif&quot;
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -330,16 +330,7 @@ sent <CODE>quoted-printable</CODE> for reliability.
 when printing MIME entities.  All the standard encodings are supported
 (see <A HREF="#A_MIME_PRIMER">A MIME PRIMER</A> for details):
 
-<PRE>
-    Encoding...       Normally used when message contents are...
-    -------------------------------------------------------------------
-    7bit              7-bit data with under 1000 chars/line, or multipart.
-    8bit              8-bit data with under 1000 chars/line.
-    binary            8-bit data with possibly long lines (or no line breaks).
-    quoted-printable  Text files with some 8-bit chars (e.g., Latin-1 text).
-    base64            Binary files.
-</PRE>
-
+<P><TABLE CELLPADDING=4 CELLSPACING=0 BORDER=1 ALIGN=CENTER BGCOLOR=#EEEEEE><TR><TH BGCOLOR=#AA0055 ALIGN=LEFT><FONT SIZE=2 COLOR=#FFFFFF FACE="sans-serif">Encoding:&nbsp;</FONT></TH BGCOLOR=#AA0055><TH BGCOLOR=#AA0055 ALIGN=LEFT><FONT SIZE=2 COLOR=#FFFFFF FACE="sans-serif">Normally used when message contents are:&nbsp;</FONT></TH BGCOLOR=#AA0055></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">7bit</FONT></TD><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">7-bit data with under 1000 chars/line, or multipart.</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">8bit</FONT></TD><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">8-bit data with under 1000 chars/line.</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">binary</FONT></TD><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">8-bit data with some long lines (or no line breaks).</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">quoted-printable</FONT></TD><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">Text files with some 8-bit chars (e.g., Latin-1 text).</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">base64</FONT></TD><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">Binary files.</FONT></TD></TR></UL></TABLE>
 <P>Which encoding you choose for a given document depends largely on
 (1) what you know about the document's contents (text vs binary), and
 (2) whether you need the resulting message to have a reliable encoding
@@ -373,23 +364,23 @@ turn on debugging), use the routines in the <B>MIME::Tools</B> module.
 <DD>
 Turn debugging on/off.  Default is off.
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
      MIME::Tools-&gt;debugging(1);
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:quiet">quiet</A></B></DT>
 <DD>
 Turn warnings on/off.  Default is quiet, meaning that warnings are silenced.
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
      MIME::Tools-&gt;quiet(1);
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:version">version</A></B></DT>
 <DD>
 Return the toolkit version
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
      print MIME::Tools-&gt;version, &quot;\n&quot;;
-</PRE>
+</PRE></FONT>
 </DL>
 
 
@@ -414,9 +405,9 @@ read your messages.
 For example, if your mail-handling code absolutely must not die,
 then perform mail parsing like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $entity = eval { $parser-&gt;parse(\*INPUT) };
-</PRE>
+</PRE></FONT>
 
 <P>Parsing is a complex process, and some components may throw exceptions
 if seriously-bad things happen.  Since &quot;seriously-bad&quot; is in the
@@ -738,7 +729,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.306 $
+<P>$Revision: 5.310 $
 
 
 
@@ -748,6 +739,25 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.310   (2000/08/15)</A></B></DT>
+<DD>
+<B>Fixed a bug in the back-compat output_prefix() method of MIME::Parser.</B>
+Basically, output prefixes were not being set through this mechanism.
+<I>Thanks to ajos1 for the alert.</I>
+
+<FONT SIZE=3 FACE="courier"><PRE>
+	shift at-underscore
+	   leaves at-underscore crippled,	   
+	lacking arg zero
+</PRE></FONT>
+
+<P><B>Added some backcompat methods,</B> like parse_FH().
+<I>Thanks (and apologies) to Alain Kotoujansky.</I>
+
+
+<P><B>Added filenames-with-spaces support to MIME::Decoder::UU.</B>
+<I>Thanks to Richard Pun for the suggestion.</I>
+
 <P><DT><B><A NAME="item:Version">Version 5.305   (2000/07/20)</A></B></DT>
 <DD>
 <B>Added MIME::Entity::parts_DFS</B> as convenient way to &quot;get all parts&quot;.
@@ -764,11 +774,11 @@ Scads of them: bad handling of filename collisions, bad implementation
 of output_under(), bad linking to results, POD errors, you name it.
 If this had gone to CPAN, I'd have issued a factory recall. <CODE>:-(</CODE>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Errors, like beetles,
           Multiply ferociously
        In the small hours
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:Version">Version 5.301   (2000/07/06)</A></B></DT>
 <DD>
 <B>READ ME BEFORE UPGRADING PAST THIS POINT!</B>
@@ -781,14 +791,14 @@ into its own separate class, inheriting from the new
 If you <I>override</I> any of the following in a MIME::Parser subclass,
 you will need to change your code accordingly:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
 	evil_filename
 	output_dir
 	output_filename
 	output_path
 	output_prefix
 	output_under
-</PRE>
+</PRE></FONT>
 
 <P>My sincere apologies for any inconvenience this will cause, but
 it's ultimately for the best, and is quite likely the last structural
@@ -797,11 +807,11 @@ change to 5.x.
 Incidentally, the new code also fixes a bug where identically-named
 files in the same message could clobber each other.
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        A message arrives:
            &quot;Here are three files, all named 'Foo'&quot;
        Only one survives.  :-(
-</PRE>
+</PRE></FONT>
 
 <P><B>Fixed bug in MIME::Words header decoding.</B>
 Underscores were not being handled properly.
@@ -809,11 +819,11 @@ Underscores were not being handled properly.
 submitted the same fix within 2 hours of each other, after this
 bug has lain dormant for months:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Two users, same bug,
           same patch -- mere hours apart:
        Truly, life is odd.
-</PRE>
+</PRE></FONT>
 
 <P><B>Removed escaping of underscore in regexps.</B>
 Escaping the underscore (\_) in regexps was sloppy and wrong
@@ -821,11 +831,11 @@ Escaping the underscore (\_) in regexps was sloppy and wrong
 Perls warn about it.
 <I>Thanks to David Dyck for bringing this to my attention.</I>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        What, then, is a word?
 	  Some letters, digits, and, yes:
        Underscores as well
-</PRE>
+</PRE></FONT>
 
 <P><B>Added Force option to MIME::Entity's make_multipart</B>.
 <I>Thanks to Bob Glickstein for suggesting this.</I>
@@ -846,16 +856,16 @@ when uuencoded entity was a <I>singlepart</I> message (ironically,
 uuencoded parts of multiparts worked fine).
 <I>Thanks to Michael Mohlere for testing uudecode and finding this.</I>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        The hurrying bee
           Flies far for nectar, missing
        The nearest flowers
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
        Say ten thousand times:
           Complex cases may succeed
        Where simple ones fail
-</PRE>
+</PRE></FONT>
 
 <P><B>Parse errors now generate warnings.</B>
 Parser errors now cause warn()s to be generated if they are
@@ -875,11 +885,11 @@ warning was removed.
 Made MIME::Parser's evil_filename stricter by having it reject
 &quot;path&quot; characters: any of '/' '\' ':' '[' ']'.
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Just as with beauty
 	  The eye of the beholder
        Is where &quot;evil&quot; lives.
-</PRE>
+</PRE></FONT>
 
 <P><B>Documentation fixes.</B>
 Corrected a number of docs in MIME::Entity which were obsoleted
@@ -887,23 +897,23 @@ in the transition from 4.x to 5.x.
 <I>Thanks to Michael Fischer for pointing these out.</I>
 For this one, a special 5-5-5-5 Haiku of anagrams:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Documentation
 	  in mutant code, O!
        Edit -- no, CUT! [moan]
 	  I meant to un-doc...
-</PRE>
+</PRE></FONT>
 
 <P><B>IO::Lines usage bug fixed.</B>
 MIME::Entity was missing a &quot;use IO::Lines&quot;, which caused an
 exception when you tried to use the body() method of MIME::Entity.
 <I>Thanks to Hideyo Imazu and Michael Fischer for pointing this out.</I>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Bareword looks fine, but
           Perl cries: &quot;Whoa there... IO::Lines?
        Never heard of it.&quot;
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:Version">Version 5.209   (2000/06/10)</A></B></DT>
 <DD>
 <B>Autodetection of uuencode.</B>
@@ -940,42 +950,42 @@ whine() was called as a static function instead of invoked as an
 instance method.
 <I>Thanks to Todd A. Bradfute for reporting this.</I>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        A simple warning
           Invokes method as function:
        &quot;Warning&quot; makes us die
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:Version">Version 5.206   (2000/06/08)</A></B></DT>
 <DD>
 Ahem.  Cough cough:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Way too many bugs
           Thus, a self-imposed penance:
        Write haiku for each
-</PRE>
+</PRE></FONT>
 
 <P><B>Fixed bug in MIME::Parser:</B> the reader was not handling the odd
 (but legal) case where a multipart boundary is followed by linear
 whitespace.
 <I>Thanks to Jon Agnew for reporting this with the RFC citation.</I>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Legal message fails
           And 'round the globe, thousands cry:
        READ THE RFC
-</PRE>
+</PRE></FONT>
 
 <P>Empty preambles are now handled properly by MIME::Entity when
 printing: there is now no space between the header-terminator
 and the initial boundary.
 <I>Thanks to &quot;sen_ml&quot; for suggesting this.</I>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
        Nature hates vacuum
           But please refrain from tossing
        Newlines in the void
-</PRE>
+</PRE></FONT>
 
 <P>Started using Benchmark for benchmarking.
 
@@ -1552,13 +1562,13 @@ Added COPYING file, and improved README.
 
 <P>MIME-tools was created by:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ___  _ _ _   _  ___ _
    / _ \| '_| | | |/ _ ' /    Eryq, (eryq@zeegee.com)
   |  __/| | | |_| | |_| |     President, ZeeGee Software Inc.
    \___||_|  \__, |\__, |__   http://www.zeegee.com/
              |___/    |___/
-</PRE>
+</PRE></FONT>
 
 <P>Released as MIME-parser (1.0): 28 April 1996.
 Released as MIME-tools (2.0): Halloween 1996.
@@ -1574,7 +1584,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 <P><B>This kit would not have been possible</B> but for the direct
 contributions of the following:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Gisle Aas             The MIME encoding/decoding modules.
     Laurent Amon          Bug reports and suggestions.
     Graham Barr           The new MailTools.
@@ -1584,12 +1594,12 @@ contributions of the following:
                             and help with CPAN-friendly packaging.
     Igor Starovoitov      Bug reports and suggestions.
     Jason L Tibbitts III  Bug reports, suggestions, patches.
-</PRE>
+</PRE></FONT>
 
 <P>Not to mention the Accidental Beta Test Team, whose bug reports (and
 comments) have been invaluable in improving the whole:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Phil Abercrombie
     Mike Blazer
     Brandon Browning
@@ -1606,7 +1616,7 @@ comments) have been invaluable in improving the whole:
     Russell Sutherland
     Larry Virden
     Zyx
-</PRE>
+</PRE></FONT>
 
 <P>Please forgive me if I've accidentally left you out.
 Better yet, email me, and I'll put you in.
@@ -1630,7 +1640,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jul 20 02:33:12 2000 by cvu_pod2html
+Generated Tue Aug 15 09:17:37 2000 by cvu_pod2html
 </FONT></ADDRESS>
-</BODY>
+</FONT></BODY>
 </HTML>

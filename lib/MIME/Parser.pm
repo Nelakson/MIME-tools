@@ -171,7 +171,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.214 $, 10;
+$VERSION = substr q$Revision: 5.217 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -1008,6 +1008,7 @@ sub parse {
     my $self = shift;
     my $in = wraphandle(shift);    ### coerce old-style filehandles to objects
     my $entity;
+    local $/ = "\n";    ### just to be safe
 
     my $bm = benchmark {
 	$self->init_parse;
@@ -1020,6 +1021,9 @@ sub parse {
 
 ### Backcompat:
 sub read { 
+    shift->parse(@_); 
+}
+sub parse_FH { 
     shift->parse(@_); 
 }
 
@@ -1183,15 +1187,20 @@ sub output_under {
 }
 
 #------------------------------
-#
-# output_path HEAD
-#
-# I<Instance method, DEPRECATED.>
-# Given a MIME head for a file to be extracted, come up with a good
-# output pathname for the extracted file.
-#
-# We just delegate this to the underlying L<filer()|/filer> object.
-#
+
+=item output_path HEAD
+
+I<Instance method, DEPRECATED.>
+Given a MIME head for a file to be extracted, come up with a good
+output pathname for the extracted file.
+Identical to the preferred form:
+ 
+     $parser->filer->output_path(...args...);
+
+We just delegate this to the underlying L<filer()|/filer> object.
+
+=cut
+
 sub output_path {
     my $self = shift;
     ### We use it, so don't warn!
@@ -1200,29 +1209,39 @@ sub output_path {
 }
 
 #------------------------------
-#
-# output_prefix [PREFIX]
-#
-# I<Instance method, DEPRECATED.>
-# Get/set the short string that all filenames for extracted body-parts 
-# will begin with (assuming that there is no better "recommended filename").  
-#
-# We just delegate this to the underlying L<filer()|/filer> object.
-#
+
+=item output_prefix [PREFIX]
+
+I<Instance method, DEPRECATED.>
+Get/set the short string that all filenames for extracted body-parts 
+will begin with (assuming that there is no better "recommended filename").  
+Identical to the preferred form:
+ 
+     $parser->filer->output_prefix(...args...);
+
+We just delegate this to the underlying L<filer()|/filer> object.
+
+=cut
+
 sub output_prefix {
-    my ($self, $prefix) = @_;
+    my $self = shift;
     &MIME::Tools::whine("output_prefix deprecated in MIME::Parser");
     $self->filer->output_prefix(@_);
 }
 
 #------------------------------
-#
-# evil_filename NAME
-#
-# I<Instance method, DEPRECATED.>
-#
-# We just delegate this to the underlying L<filer()|/filer> object.
-#
+
+=item evil_filename NAME
+
+I<Instance method, DEPRECATED.>
+Identical to the preferred form:
+ 
+     $parser->filer->evil_filename(...args...);
+
+We just delegate this to the underlying L<filer()|/filer> object.
+
+=cut
+
 sub evil_filename {
     my $self = shift;
     &MIME::Tools::whine("evil_filename deprecated in MIME::Parser");
@@ -1335,8 +1354,9 @@ sub use_inner_files {
     $self->{MP5_UseInnerFiles};
 }
 
+=back
 
-
+=cut
 
 
 #------------------------------------------------------------
@@ -1380,10 +1400,6 @@ sub interface {
     $self->{MP5_Interface}{$role} = $value if (defined($value));
     $self->{MP5_Interface}{$role};
 }
-
-=back
-
-=cut
 
 #------------------------------
 
@@ -1564,7 +1580,7 @@ Optimum input mechanisms:
     parse_open()               YES
     parse_data()               NO  (see below)
     parse_two()                NO  (see below)
-    
+
 Optimum settings:
 
     decode_headers()           *** (no real difference; 0 is slightly faster)
@@ -1613,7 +1629,7 @@ Optimum input mechanisms:
     parse_open()               YES
     parse_data()               NO  (in-core I/O will burn core)
     parse_two()                NO  (in-core I/O will burn core)
-    
+
 Optimum settings:
 
     decode_headers()           *** (no real difference)
@@ -1635,7 +1651,7 @@ Optimum input mechanisms:
     parse_open()               *** (doesn't matter)
     parse_data()               *** (doesn't matter)
     parse_two()                *** (doesn't matter)
-    
+
 Optimum settings:
 
     decode_headers()           0   (sidesteps problem of bad hdr encodings)
@@ -1655,7 +1671,7 @@ Optimum input mechanisms:
     parse_open()               YES (becomes a seekable handle) 
     parse_data()               NO  (unless you set tmp_to_core(1))
     parse_two()                NO  (unless you set tmp_to_core(1))
-    
+
 Optimum settings:
 
     decode_headers()           *** (doesn't matter)
@@ -1815,7 +1831,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.214 $ $Date: 2000/07/07 05:55:19 $
+$Revision: 5.217 $ $Date: 2000/08/15 13:15:37 $
 
 =cut
 

@@ -26,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.306 $, 10;
+$VERSION = substr q$Revision: 5.310 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -475,13 +475,13 @@ The B<MIME::Decoder> class can be used to I<encode> as well; this is done
 when printing MIME entities.  All the standard encodings are supported
 (see L<"A MIME PRIMER"> for details):
 
-    Encoding...       Normally used when message contents are...
+    Encoding:        | Normally used when message contents are:
     -------------------------------------------------------------------
-    7bit              7-bit data with under 1000 chars/line, or multipart.
-    8bit              8-bit data with under 1000 chars/line.
-    binary            8-bit data with possibly long lines (or no line breaks).
-    quoted-printable  Text files with some 8-bit chars (e.g., Latin-1 text).
-    base64            Binary files.
+    7bit             | 7-bit data with under 1000 chars/line, or multipart.
+    8bit             | 8-bit data with under 1000 chars/line.
+    binary           | 8-bit data with some long lines (or no line breaks).
+    quoted-printable | Text files with some 8-bit chars (e.g., Latin-1 text).
+    base64           | Binary files.
 
 Which encoding you choose for a given document depends largely on
 (1) what you know about the document's contents (text vs binary), and
@@ -849,12 +849,29 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.306 $
+$Revision: 5.310 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.310   (2000/08/15)
+
+B<Fixed a bug in the back-compat output_prefix() method of MIME::Parser.>
+Basically, output prefixes were not being set through this mechanism.
+I<Thanks to ajos1 for the alert.>
+
+	shift at-underscore
+	   leaves at-underscore crippled,	   
+	lacking arg zero
+
+B<Added some backcompat methods,> like parse_FH().
+I<Thanks (and apologies) to Alain Kotoujansky.>
+
+B<Added filenames-with-spaces support to MIME::Decoder::UU.>
+I<Thanks to Richard Pun for the suggestion.>
+
 
 =item Version 5.305   (2000/07/20)
 

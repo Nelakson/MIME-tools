@@ -3,8 +3,8 @@
   <TITLE>MIME::Decoder::NBit</TITLE>
 </HEAD>
 <BODY 
-       bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Decoder::NBit</H1>
+       bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
+<FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Decoder::NBit</H1>
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
@@ -45,19 +45,19 @@ transfer encodings.  These are not &quot;encodings&quot; per se: rather, they
 are simply assertions of the content of the message.
 From RFC-2045 Section 6.2.:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    Three transformations are currently defined: identity, the &quot;quoted-
    printable&quot; encoding, and the &quot;base64&quot; encoding.  The domains are
    &quot;binary&quot;, &quot;8bit&quot; and &quot;7bit&quot;.
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
    The Content-Transfer-Encoding values &quot;7bit&quot;, &quot;8bit&quot;, and &quot;binary&quot; all
    mean that the identity (i.e. NO) encoding transformation has been
    performed.  As such, they serve simply as indicators of the domain of
    the body data, and provide useful information about the sort of
    encoding that might be needed for transmission in a given transport
    system.  
-</PRE>
+</PRE></FONT>
 
 <P>In keeping with this: as of MIME-tools 4.x, 
 <I>this class does no modification of its input when encoding;</I> 
@@ -72,14 +72,14 @@ and issue a warning (one per message) if any are found.
 
 <P>RFC-2045 Section 2.7 defines legal <CODE>7bit</CODE> data:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    &quot;7bit data&quot; refers to data that is all represented as relatively
    short lines with 998 octets or less between CRLF line separation
    sequences [RFC-821].  No octets with decimal values greater than 127
    are allowed and neither are NULs (octets with decimal value 0).  CR
    (decimal value 13) and LF (decimal value 10) octets only occur as
    part of CRLF line separation sequences.
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -88,13 +88,13 @@ and issue a warning (one per message) if any are found.
 
 <P>RFC-2045 Section 2.8 defines legal <CODE>8bit</CODE> data:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    &quot;8bit data&quot; refers to data that is all represented as relatively
    short lines with 998 octets or less between CRLF line separation
    sequences [RFC-821]), but octets with decimal values greater than 127
    may be used.  As with &quot;7bit data&quot; CR and LF octets only occur as part
    of CRLF line separation sequences and no NULs are allowed.
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -140,7 +140,7 @@ it and/or modify it under the same terms as Perl itself.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jul 20 02:32:41 2000 by cvu_pod2html
+Generated Tue Aug 15 09:17:06 2000 by cvu_pod2html
 </FONT></ADDRESS>
-</BODY>
+</FONT></BODY>
 </HTML>

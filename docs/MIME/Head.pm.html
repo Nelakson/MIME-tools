@@ -3,8 +3,8 @@
   <TITLE>MIME::Head</TITLE>
 </HEAD>
 <BODY 
-       bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Head</H1>
+       bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
+<FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Head</H1>
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
@@ -45,7 +45,7 @@
 <P><HR>
 <A NAME="Construction"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Construction</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create a new, empty header, and populate it manually:    
     $head = MIME::Head-&gt;new;
     $head-&gt;replace('content-type', 'text/plain; charset=US-ASCII');
@@ -57,26 +57,26 @@
     ### Parse a new header from a file, or a readable pipe:
     $testhead = MIME::Head-&gt;from_file(&quot;/tmp/test.hdr&quot;);
     $a_b_head = MIME::Head-&gt;from_file(&quot;cat a.hdr b.hdr |&quot;);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Output"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Output</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Output to filehandle:
     $head-&gt;print(\*STDOUT);  
     
     ### Output as string:
     print STDOUT $head-&gt;as_string;
     print STDOUT $head-&gt;stringify;
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Getting_field_contents"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Getting field contents</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Is this a reply?
     $is_reply = 1 if ($head-&gt;get('Subject') =~ /^Re: /);
     
@@ -92,41 +92,41 @@
     
     ### Test whether a given field exists
     warn &quot;missing subject!&quot; if (! $head-&gt;count('subject'));
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Setting_field_contents"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Setting field contents</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Declare this to be an HTML header:
     $head-&gt;replace('Content-type', 'text/html');
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Manipulating_field_contents"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Manipulating field contents</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Get rid of internal newlines in fields:
     $head-&gt;unfold;
     
     ### Decode any Q- or B-encoded-text in fields:
     $head-&gt;decode;
      
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Getting_high-level_MIME_information"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Getting high-level MIME information</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Get/set a given MIME attribute:
     unless ($charset = $head-&gt;mime_attr('content-type.charset')) {
         $head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; &quot;US-ASCII&quot;);
     }
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### The content type (e.g., &quot;text/html&quot;):
     $mime_type     = $head-&gt;mime_type;
     
@@ -138,7 +138,7 @@
     
     ### The boundary text, for multipart messages:
     $boundary      = $head-&gt;multipart_boundary;
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -176,18 +176,18 @@ which may actually be any expression that can be sent to open() so as to
 return a readable filehandle.  The &quot;file&quot; will be opened, read, and then 
 closed:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create a new header by parsing in a file:
     my $head = MIME::Head-&gt;from_file(&quot;/tmp/test.hdr&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>Since this method can function as either a class constructor <I>or</I> 
 an instance initializer, the above is exactly equivalent to:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create a new header by parsing in a file:
     my $head = MIME::Head-&gt;new-&gt;from_file(&quot;/tmp/test.hdr&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>On success, the object will be returned; on failure, the undefined value.
 
@@ -209,10 +209,10 @@ A syntax error or end-of-stream will also halt processing.
 
 <P>Supply this routine with a reference to a filehandle glob; e.g., <CODE>\*STDIN</CODE>:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create a new header by parsing in STDIN:
     $head-&gt;read(\*STDIN);
-</PRE>
+</PRE></FONT>
 
 <P>On success, the self object will be returned; on failure, a false value.
 
@@ -247,11 +247,11 @@ documentation around for convenience.
 <I>Instance method, inherited.</I>
 Add a new occurence of the field named TAG, given by TEXT:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Add the trace information:    
     $head-&gt;add('Received', 
                'from eryq.pr.mcs.net by gonzo.net with smtp');
-</PRE>
+</PRE></FONT>
 
 <P>Normally, the new occurence will be <I>appended</I> to the existing 
 occurences.  However, if the optional INDEX argument is 0, then the 
@@ -270,10 +270,10 @@ this method: consider using <CODE>replace()</CODE> instead.
 Returns the number of occurences of a field; in a boolean context, this
 tells you whether a given field exists:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Was a &quot;Subject:&quot; field given?
     $subject_was_given = $head-&gt;count('subject');
-</PRE>
+</PRE></FONT>
 
 <P>The TAG is treated in a case-insensitive manner.
 This method returns some false value if the field doesn't exist,
@@ -290,24 +290,24 @@ talking about.  Europeans, Russians, et al, you probably do.  <CODE>:-)</CODE>.
 
 <P>For example, here's a valid header you might get:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     From: =?US-ASCII?Q?Keith_Moore?= &lt;moore@cs.utk.edu&gt;
     To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= &lt;keld@dkuug.dk&gt;
     CC: =?ISO-8859-1?Q?Andr=E9_?= Pirard &lt;PIRARD@vm1.ulg.ac.be&gt;
     Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
      =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=
      =?US-ASCII?Q?.._cool!?=
-</PRE>
+</PRE></FONT>
 
 <P>That basically decodes to (sorry, I can only approximate the
 Latin characters with 7 bit sequences /o and 'e):
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     From: Keith Moore &lt;moore@cs.utk.edu&gt;
     To: Keld J/orn Simonsen &lt;keld@dkuug.dk&gt;
     CC: Andr'e  Pirard &lt;PIRARD@vm1.ulg.ac.be&gt;
     Subject: If you can read this you understand the example... cool!
-</PRE>
+</PRE></FONT>
 
 <P><B>Note:</B> currently, the decodings are done without regard to the
 character set: thus, the Q-encoding <CODE>=F8</CODE> is simply translated to the
@@ -334,11 +334,11 @@ RFC-1522-decoding code.</I>
 <I>Instance method, inherited.</I>
 Delete all occurences of the field named TAG.
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Remove some MIME information:
     $head-&gt;delete('MIME-Version');
     $head-&gt;delete('Content-type');
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:get">get TAG,[INDEX]</A></B></DT>
 <DD>
 <I>Instance method, inherited.</I>  
@@ -348,45 +348,45 @@ Get the contents of field TAG.
 <P>If a <B>numeric INDEX</B> is given, returns the occurence at that index, 
 or undef if not present:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Print the first and last 'Received:' entries (explicitly):
     print &quot;First, or most recent: &quot;, $head-&gt;get('received', 0), &quot;\n&quot;;
     print &quot;Last, or least recent: &quot;, $head-&gt;get('received',-1), &quot;\n&quot;; 
-</PRE>
+</PRE></FONT>
 
 <P>If <B>no INDEX</B> is given, but invoked in a <B>scalar</B> context, then
 INDEX simply defaults to 0:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Get the first 'Received:' entry (implicitly):
     my $most_recent = $head-&gt;get('received');
-</PRE>
+</PRE></FONT>
 
 <P>If <B>no INDEX</B> is given, and invoked in an <B>array</B> context, then
 <I>all</I> occurences of the field are returned:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Get all 'Received:' entries:
     my @all_received = $head-&gt;get('received');
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:get_all">get_all FIELD</A></B></DT>
 <DD>
 <I>Instance method.</I>
 Returns the list of <I>all</I> occurences of the field, or the 
 empty list if the field is not present:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### How did it get here?
     @history = $head-&gt;get_all('Received');
-</PRE>
+</PRE></FONT>
 
 <P><B>Note:</B> I had originally experimented with having <CODE>get()</CODE> return all 
 occurences when invoked in an array context... but that causes a lot of 
 accidents when you get careless and do stuff like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     print &quot;\u$field: &quot;, $head-&gt;get($field), &quot;\n&quot;;
-</PRE>
+</PRE></FONT>
 
 <P>It also made the intuitive behaviour unclear if the INDEX argument 
 was given in an array context.  So I opted for an explicit approach
@@ -429,11 +429,11 @@ Returns the &quot;self&quot; object.
 
 <P>All of the following methods extract information from the following fields:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Content-type
     Content-transfer-encoding
     Content-disposition
-</PRE>
+</PRE></FONT>
 
 <P>Be aware that they do not just return the raw contents of those fields,
 and in some cases they will fill in sensible (I hope) default values.
@@ -456,17 +456,17 @@ field, you should really use the Mail::Field interface to get it.
 A quick-and-easy interface to set/get the attributes in structured 
 MIME fields:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $head-&gt;mime_attr(&quot;content-type&quot;         =&gt; &quot;text/html&quot;);
     $head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; &quot;US-ASCII&quot;);
     $head-&gt;mime_attr(&quot;content-type.name&quot;    =&gt; &quot;homepage.html&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>This would cause the final output to look something like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Content-type: text/html; charset=US-ASCII; name=&quot;homepage.html&quot;
-</PRE>
+</PRE></FONT>
 
 <P>Note that the special empty sub-field tag indicates the anonymous 
 first sub-field.
@@ -475,17 +475,17 @@ first sub-field.
 <P><B>Giving VALUE as undefined</B> will cause the contents of the named subfield 
 to be deleted:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; undef);
-</PRE>
+</PRE></FONT>
 
 <P><B>Supplying no VALUE argument</B> just returns the attribute's value,
 or undefined if it isn't there:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $type = $head-&gt;mime_attr(&quot;content-type&quot;);      ### text/html
     $name = $head-&gt;mime_attr(&quot;content-type.name&quot;); ### homepage.html
-</PRE>
+</PRE></FONT>
 
 <P>In all cases, the new/current value is returned.
 
@@ -499,10 +499,10 @@ Try <I>real hard</I> to determine the content transfer encoding
 <P>If no encoding could be found, the default of <CODE>&quot;7bit&quot;</CODE> is returned.  
 I quote from RFC-1521 section 5:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     This is the default value -- that is, &quot;Content-Transfer-Encoding: 7BIT&quot; 
     is assumed if the Content-Transfer-Encoding header field is not present.
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:mime_type">mime_type [DEFAULT]</A></B></DT>
 <DD>
 <I>Instance method.</I>
@@ -511,10 +511,10 @@ Try <CODE>real hard</CODE> to determine the content type (e.g., <CODE>&quot;text
 &quot;Real hard&quot; means that if no content type could be found, the default 
 (usually <CODE>&quot;text/plain&quot;</CODE>) is returned.  From RFC-1521 section 7.1:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     The default Content-Type for Internet mail is 
     &quot;text/plain; charset=us-ascii&quot;.
-</PRE>
+</PRE></FONT>
 
 <P>Unless this is a part of a &quot;multipart/digest&quot;, in which case 
 &quot;message/rfc822&quot; is the default.  Note that you can also <I>set</I> the 
@@ -533,10 +533,10 @@ is, the leading double-hyphen (<CODE>--</CODE>) is <I>not</I> prepended.
 <P>Well, <I>almost</I> exactly... this passage from RFC-1521 dictates
 that we remove any trailing spaces:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    If a boundary appears to end with white space, the white space 
    must be presumed to have been added by a gateway, and must be deleted.
-</PRE>
+</PRE></FONT>
 
 <P>Returns undef (<B>not</B> the empty string) if either the message is not
 multipart, if there is no specified boundary, or if the boundary is
@@ -573,16 +573,16 @@ I quote from Achim Bohnet, who gave feedback on v.1.9 (I think
 he's using the word &quot;header&quot; where I would use &quot;field&quot;; e.g.,
 to refer to &quot;Subject:&quot;, &quot;Content-type:&quot;, etc.):
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     There is also IMHO no requirement [for] MIME::Heads to look 
     like [email] headers; so to speak, the MIME::Head [simply stores] 
     the attributes of a complex object, e.g.:
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
         new MIME::Head type =&gt; &quot;text/plain&quot;,
                        charset =&gt; ...,
                        disposition =&gt; ..., ... ;
-</PRE>
+</PRE></FONT>
 
 <P>I agree in principle, but (alas and dammit) RFC-1521 says otherwise.
 RFC-1521 [MIME] headers are a syntactic subset of RFC-822 [email] headers.
@@ -593,11 +593,11 @@ MIME::, but we're a little beyond that stage now.
 <P>In my mind's eye, I see an abstract class, call it MIME::Attrs, which does
 what Achim suggests... so you could say:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
      my $attrs = new MIME::Attrs type =&gt; &quot;text/plain&quot;,
 				 charset =&gt; ...,
                                  disposition =&gt; ..., ... ;
-</PRE>
+</PRE></FONT>
 
 <P>We could even make it a superclass of MIME::Head: that way, MIME::Head
 would have to implement its interface, <I>and</I> allow itself to be
@@ -621,7 +621,7 @@ Unfortunately, there's the little matter of the <CODE>Received:</CODE> field,
 which (unlike <CODE>From:</CODE>, <CODE>To:</CODE>, etc.) will often have multiple 
 occurences; e.g.:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Received: from gsfc.nasa.gov by eryq.pr.mcs.net  with smtp
         (Linux Smail3.1.28.1 #5) id m0tStZ7-0007X4C; 
 	 Thu, 21 Dec 95 16:34 CST
@@ -636,7 +636,7 @@ occurences; e.g.:
     Message-Id: &lt;199512212227.RAA28069@rhine.gsfc.nasa.gov&gt;
     To: eryq@eryq.pr.mcs.net
     Subject: Stuff and things
-</PRE>
+</PRE></FONT>
 
 <P>The <CODE>Received:</CODE> field is used for tracing message routes, and although
 it's not generally used for anything other than human debugging, I
@@ -677,7 +677,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jul 20 02:32:58 2000 by cvu_pod2html
+Generated Tue Aug 15 09:17:24 2000 by cvu_pod2html
 </FONT></ADDRESS>
-</BODY>
+</FONT></BODY>
 </HTML>

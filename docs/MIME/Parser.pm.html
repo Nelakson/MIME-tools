@@ -3,8 +3,8 @@
   <TITLE>MIME::Parser</TITLE>
 </HEAD>
 <BODY 
-       bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Parser</H1>
+       bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
+<FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Parser</H1>
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
@@ -55,7 +55,7 @@
 <P><HR>
 <A NAME="Basic_usage_examples"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Basic usage examples</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create a new parser object:
     my $parser = new MIME::Parser;
      
@@ -67,13 +67,13 @@
     
     ### Congratulations: you now have a (possibly multipart) MIME entity!
     $entity-&gt;dump_skeleton;          # for debugging 
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Examples_of_input"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Examples of input</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Parse from filehandles:
     $entity = $parser-&gt;parse(\*STDIN);
     $entity = $parser-&gt;parse(IO::File-&gt;new(&quot;some command|&quot;);
@@ -92,13 +92,13 @@
       
     ### Parse already-split input (as &quot;deliver&quot; would give it to you):
     $entity = $parser-&gt;parse_two(&quot;msg.head&quot;, &quot;msg.body&quot;);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Examples_of_output_control"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Examples of output control</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Keep parsed message bodies in core (default outputs to disk):
     $parser-&gt;output_to_core(1);
      
@@ -110,13 +110,13 @@
     
     ### Change how nameless message-component files are named:
     $parser-&gt;output_prefix(&quot;msg&quot;);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Examples_of_error_recovery"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Examples of error recovery</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Normal mechanism:
     eval { $entity = $parser-&gt;parse(\*STDIN) };
     if ($@) {
@@ -128,13 +128,13 @@
     $parser-&gt;ignore_errors(1);
     $entity = eval { $parser-&gt;parse(\*STDIN) };
     $error = ($@ || $parser-&gt;last_error);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Examples_of_parser_options"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Examples of parser options</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Automatically attempt to RFC-1522-decode the MIME headers?
     $parser-&gt;decode_headers(1);             ### default is false
           
@@ -146,17 +146,17 @@
           
     ### Should we forgive normally-fatal errors?
     $parser-&gt;ignore_errors(0);              ### default is true 
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Miscellaneous_examples"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Miscellaneous examples</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Convert a Mail::Internet object to a MIME::Entity:
     @lines = (@{$mail-&gt;header}, &quot;\n&quot;, @{$mail-&gt;body});
     $entity = $parser-&gt;parse_data(\@lines);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -186,12 +186,12 @@ Create a new parser object.
 Once you do this, you can then set up various parameters
 before doing the actual parsing.  For example:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     my $parser = new MIME::Parser;
     $parser-&gt;output_dir(&quot;/tmp&quot;);
     $parser-&gt;output_prefix(&quot;msg1&quot;);
     my $entity = $parser-&gt;parse(\*STDIN);
-</PRE>
+</PRE></FONT>
 
 <P>Any arguments are passed into <CODE>init()</CODE>.
 Don't override this in your subclasses; override init() instead.
@@ -434,6 +434,40 @@ BASEDIR, one subdirectory per message.  It does this by setting the
 underlying <A HREF="#item:filer">filer()</A> to a new instance of MIME::Parser::FileUnder,
 and passing the arguments into that class' new() method.
 
+<P><DT><B><A NAME="item:output_path">output_path HEAD</A></B></DT>
+<DD>
+<I>Instance method, DEPRECATED.</I>
+Given a MIME head for a file to be extracted, come up with a good
+output pathname for the extracted file.
+Identical to the preferred form:
+ 
+     $parser-&gt;filer-&gt;output_path(...args...);
+
+
+<P>We just delegate this to the underlying <A HREF="#item:filer">filer()</A> object.
+
+<P><DT><B><A NAME="item:output_prefix">output_prefix [PREFIX]</A></B></DT>
+<DD>
+<I>Instance method, DEPRECATED.</I>
+Get/set the short string that all filenames for extracted body-parts 
+will begin with (assuming that there is no better &quot;recommended filename&quot;).  
+Identical to the preferred form:
+ 
+     $parser-&gt;filer-&gt;output_prefix(...args...);
+
+
+<P>We just delegate this to the underlying <A HREF="#item:filer">filer()</A> object.
+
+<P><DT><B><A NAME="item:evil_filename">evil_filename NAME</A></B></DT>
+<DD>
+<I>Instance method, DEPRECATED.</I>
+Identical to the preferred form:
+ 
+     $parser-&gt;filer-&gt;evil_filename(...args...);
+
+
+<P>We just delegate this to the underlying <A HREF="#item:filer">filer()</A> object.
+
 <P><DT><B><A NAME="item:output_to_core">output_to_core YESNO</A></B></DT>
 <DD>
 <I>Instance method.</I>
@@ -504,6 +538,8 @@ this option will probably depend on your choice for
 <A HREF="#item:tmp_to_core">tmp_to_core()</A> and the kind of input streams you are 
 parsing.
 
+</DL>
+
 
 
 <P><HR>
@@ -524,7 +560,7 @@ your &quot;head&quot; class may provide some additional MIME-field-oriented meth
 <P>If so, then this is the method that your subclass should invoke during 
 init.  Use it like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     package MyParser;
     @ISA = qw(MIME::Parser);
     ...
@@ -535,11 +571,9 @@ init.  Use it like this:
 	$self-&gt;interface(HEAD_CLASS   =&gt; 'MIME::MyHead');
 	$self;                         ### return
     }
-</PRE>
+</PRE></FONT>
 
 <P>With no VALUE, returns the VALUE currently associated with that ROLE.
-
-</DL>
 
 <P><DT><B><A NAME="item:new_body_for">new_body_for HEAD</A></B></DT>
 <DD>
@@ -573,14 +607,14 @@ You shouldn't need to.
 <P>If you do override this, make certain that the object you return is 
 set for binmode(), and is able to handle the following methods:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     read(BUF, NBYTES)
     getline()
     getlines()
     print(@ARGS)
     flush() 
     seek(0, 0)
-</PRE>
+</PRE></FONT>
 
 <P>Fatal exception if the stream could not be established.
 
@@ -611,14 +645,14 @@ Return the error (if any) that we ignored in the last parse.
 Return the top-level MIME header of the last stream we attempted to parse.
 This is useful for replying to people who sent us bad MIME messages.
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Parse an input stream:
     eval { $entity = $parser-&gt;parse(\*STDIN) };
     if (!$entity) {    ### parse failed!
 	my $decapitated = $parser-&gt;last_head;  
 	...
     }
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:results">results</A></B></DT>
 <DD>
 <I>Instance method.</I>
@@ -641,16 +675,17 @@ This will be an instance of class
 
 <P>Optimum input mechanisms:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     parse()                    YES (if you give it a globref or a 
 				    subclass of IO::File)
     parse_open()               YES
     parse_data()               NO  (see below)
     parse_two()                NO  (see below)
-    
-Optimum settings:
-</PRE>
-<PRE>
+</PRE></FONT>
+
+<P>Optimum settings:
+
+<FONT SIZE=3 FACE="courier"><PRE>
     decode_headers()           *** (no real difference; 0 is slightly faster)
     extract_nested_messages()  0   (may be slightly faster, but in 
                                     general you want it set to 1)
@@ -659,7 +694,7 @@ Optimum settings:
     tmp_to_core()              0   (will be MUCH faster)
     use_inner_files()          0   (if tmp_to_core() is 0; 
 				    use 1 otherwise)
-</PRE>
+</PRE></FONT>
 
 <P><B>File I/O is much faster than in-core I/O.</B>
 Although it <I>seems</I> like slurping a message into core and
@@ -688,9 +723,9 @@ then MIME::Parser is able to perform some crucial optimizations.
 Currently this is just a front-end onto parse_data().
 If your OS supports it, you're <I>far</I> better off doing something like:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $parser-&gt;parse_open(&quot;/bin/cat msg.head msg.body |&quot;);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -699,15 +734,16 @@ If your OS supports it, you're <I>far</I> better off doing something like:
 
 <P>Optimum input mechanisms:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     parse()                    YES
     parse_open()               YES
     parse_data()               NO  (in-core I/O will burn core)
     parse_two()                NO  (in-core I/O will burn core)
-    
-Optimum settings:
-</PRE>
-<PRE>
+</PRE></FONT>
+
+<P>Optimum settings:
+
+<FONT SIZE=3 FACE="courier"><PRE>
     decode_headers()           *** (no real difference)
     extract_nested_messages()  *** (no real difference)
     output_to_core()           0   (will use MUCH less memory)
@@ -717,7 +753,7 @@ Optimum settings:
     use_inner_files()          *** (no real difference, but set it to 1 
 				    if you *must* have tmp_to_core set to 1,
 				    so that you avoid in-core tmpfiles)
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -726,15 +762,16 @@ Optimum settings:
 
 <P>Optimum input mechanisms:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     parse()                    *** (doesn't matter)
     parse_open()               *** (doesn't matter)
     parse_data()               *** (doesn't matter)
     parse_two()                *** (doesn't matter)
-    
-Optimum settings:
-</PRE>
-<PRE>
+</PRE></FONT>
+
+<P>Optimum settings:
+
+<FONT SIZE=3 FACE="courier"><PRE>
     decode_headers()           0   (sidesteps problem of bad hdr encodings)
     extract_nested_messages()  0   (sidesteps problems of bad nested messages,
                                     but often you want it set to 1 anyway).
@@ -742,7 +779,7 @@ Optimum settings:
     tmp_recycling()            *** (doesn't matter)
     tmp_to_core()              *** (doesn't matter)
     use_inner_files()          *** (doesn't matter)
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -751,22 +788,23 @@ Optimum settings:
 
 <P>Optimum input mechanisms:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     parse()                    YES (if you give it a seekable handle)
     parse_open()               YES (becomes a seekable handle) 
     parse_data()               NO  (unless you set tmp_to_core(1))
     parse_two()                NO  (unless you set tmp_to_core(1))
-    
-Optimum settings:
-</PRE>
-<PRE>
+</PRE></FONT>
+
+<P>Optimum settings:
+
+<FONT SIZE=3 FACE="courier"><PRE>
     decode_headers()           *** (doesn't matter)
     extract_nested_messages()  *** (doesn't matter)
     output_to_core()           *** (doesn't matter)
     tmp_recycling              1   (restricts created files to 1 per parser)
     tmp_to_core()              1 
     use_inner_files()          1
-</PRE>
+</PRE></FONT>
 
 <P><B>If we can use them, inner files avoid most tmpfiles.</B>`&lt;
 If you parse from a seekable-and-tellable filehandle, then the internal 
@@ -869,14 +907,14 @@ regard it as syntactically incorrect MIME, which it is.
 <P>Why do I say that?  Well, in RFC-1521, the syntax of a boundary is 
 given quite clearly:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
       boundary := 0*69&lt;bchars&gt; bcharsnospace
         
       bchars := bcharsnospace / &quot; &quot;
       
       bcharsnospace :=    DIGIT / ALPHA / &quot;'&quot; / &quot;(&quot; / &quot;)&quot; / &quot;+&quot; /&quot;_&quot;
                    / &quot;,&quot; / &quot;-&quot; / &quot;.&quot; / &quot;/&quot; / &quot;:&quot; / &quot;=&quot; / &quot;?&quot;
-</PRE>
+</PRE></FONT>
 
 <P>All of which means that a valid boundary string <I>cannot</I> have 
 newlines in it, and any newlines in such a string in the message header
@@ -888,7 +926,7 @@ inserting to-be-removed newlines for readability and line-shortening
 <P>Yet, there is at least one brain-damaged user agent out there 
 that composes mail like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
       MIME-Version: 1.0
       Content-type: multipart/mixed; boundary=&quot;----ABC-
        123----&quot;
@@ -900,7 +938,7 @@ that composes mail like this:
        123----
       
       Hi there! 
-</PRE>
+</PRE></FONT>
 
 <P>We have <I>got</I> to discourage practices like this (and the recent file
 upload idiocy where binary files that are part of a multipart MIME
@@ -931,11 +969,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.214 $ $Date: 2000/07/07 05:55:19 $
+<P>$Revision: 5.217 $ $Date: 2000/08/15 13:15:37 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jul 20 02:33:02 2000 by cvu_pod2html
+Generated Tue Aug 15 09:17:27 2000 by cvu_pod2html
 </FONT></ADDRESS>
-</BODY>
+</FONT></BODY>
 </HTML>

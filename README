@@ -207,13 +207,13 @@ A QUICK TOUR
     when printing MIME entities. All the standard encodings are supported
     (see the section on "A MIME PRIMER" for details):
 
-        Encoding...       Normally used when message contents are...
+        Encoding:        | Normally used when message contents are:
         -------------------------------------------------------------------
-        7bit              7-bit data with under 1000 chars/line, or multipart.
-        8bit              8-bit data with under 1000 chars/line.
-        binary            8-bit data with possibly long lines (or no line breaks).
-        quoted-printable  Text files with some 8-bit chars (e.g., Latin-1 text).
-        base64            Binary files.
+        7bit             | 7-bit data with under 1000 chars/line, or multipart.
+        8bit             | 8-bit data with under 1000 chars/line.
+        binary           | 8-bit data with some long lines (or no line breaks).
+        quoted-printable | Text files with some 8-bit chars (e.g., Latin-1 text).
+        base64           | Binary files.
 
     Which encoding you choose for a given document depends largely on (1)
     what you know about the document's contents (text vs binary), and (2)
@@ -478,9 +478,24 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.306 $
+    $Revision: 5.310 $
 
 CHANGE LOG
+    Version 5.310   (2000/08/15)
+        Fixed a bug in the back-compat output_prefix() method of
+        MIME::Parser. Basically, output prefixes were not being set through
+        this mechanism. *Thanks to ajos1 for the alert.*
+
+                shift at-underscore
+                   leaves at-underscore crippled,          
+                lacking arg zero
+
+        Added some backcompat methods, like parse_FH(). *Thanks (and
+        apologies) to Alain Kotoujansky.*
+
+        Added filenames-with-spaces support to MIME::Decoder::UU. *Thanks to
+        Richard Pun for the suggestion.*
+
     Version 5.305   (2000/07/20)
         Added MIME::Entity::parts_DFS as convenient way to "get all parts".
         *Thanks to Xavier Armengou for suggesting this method.*

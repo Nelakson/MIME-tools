@@ -3,8 +3,8 @@
   <TITLE>MIME::Decoder</TITLE>
 </HEAD>
 <BODY 
-       bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Decoder</H1>
+       bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
+<FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Decoder</H1>
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
@@ -41,40 +41,40 @@
 Here's a simple filter program to read quoted-printable data from STDIN
 (until EOF) and write the decoded data to STDOUT:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     use MIME::Decoder;
     
     $decoder = new MIME::Decoder 'quoted-printable' or die &quot;unsupported&quot;;
     $decoder-&gt;decode(\*STDIN, \*STDOUT);
-</PRE>
+</PRE></FONT>
 
 <P><B>Encoding a data stream.</B>
 Here's a simple filter program to read binary data from STDIN
 (until EOF) and write base64-encoded data to STDOUT:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     use MIME::Decoder;
     
     $decoder = new MIME::Decoder 'base64' or die &quot;unsupported&quot;;
     $decoder-&gt;encode(\*STDIN, \*STDOUT);
-</PRE>
+</PRE></FONT>
 
 <P>You can <B>write and install your own decoders</B> so that
 MIME::Decoder will know about them:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     use MyBase64Decoder;
     
     install MyBase64Decoder 'base64';
-</PRE>
+</PRE></FONT>
 
 <P>You can also <B>test if an encoding is supported:</B> 
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     if (supported MIME::Decoder 'x-uuencode') {
         ### we can uuencode!
     }
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -124,9 +124,9 @@ encoding action.
 Create and return a new decoder object which can handle the 
 given ENCODING.
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     my $decoder = new MIME::Decoder &quot;7bit&quot;;
-</PRE>
+</PRE></FONT>
 
 <P>Returns the undefined value if no known decoders are appropriate.
 
@@ -137,9 +137,9 @@ Exactly like new(), except that this defaults any unsupported encoding to
 &quot;binary&quot;, after raising a suitable warning (it's a fatal error if there's 
 no binary decoder).
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     my $decoder = best MIME::Decoder &quot;x-gzip64&quot;;
-</PRE>
+</PRE></FONT>
 
 <P>Will either return a decoder, or a raise a fatal exception.
 
@@ -184,9 +184,9 @@ Completely optional: some decoders need to know a little about the file
 they are encoding/decoding; e.g., x-uu likes to have the filename.
 The HEAD is any object which responds to messages like:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $head-&gt;mime_attr('content-disposition.filename');
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:supported">supported [ENCODING]</A></B></DT>
 <DD>
 <I>Class method.</I>
@@ -194,14 +194,14 @@ With one arg (an ENCODING name), returns truth if that encoding
 is currently handled, and falsity otherwise.  The ENCODING will
 be automatically coerced to lowercase:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     if (supported MIME::Decoder '7BIT') {
         ### yes, we can handle it...
     }
     else {
         ### drop back six and punt...
     } 
-</PRE>
+</PRE></FONT>
 
 <P>With no args, returns a reference to a hash of all available decoders,
 where the key is the encoding name (all lowercase, like '7bit'),
@@ -286,12 +286,12 @@ and writes output to its STDOUT (which will go to the OUT argument).
 
 <P>For example, here's a decoder that un-gzips its data:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     sub decode_it {
         my ($self, $in, $out) = @_;
         $self-&gt;filter($in, $out, &quot;gzip -d -&quot;);
     }
-</PRE>
+</PRE></FONT>
 
 <P>The usage is similar to IPC::Open2::open2 (which it uses internally), 
 so you can specify COMMAND as a single argument or as an array.
@@ -308,9 +308,9 @@ Should return the self object on success, undef on failure.
 <I>Class method</I>.  
 Install this class so that each encoding in ENCODINGS is handled by it:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     install MyBase64Decoder 'base64', 'x-base64super';
-</PRE>
+</PRE></FONT>
 
 <P>You should not override this method.
 
@@ -320,9 +320,9 @@ Install this class so that each encoding in ENCODINGS is handled by it:
 Uninstall support for encodings.  This is a way to turn off the decoding
 of &quot;experimental&quot; encodings.  For safety, always use MIME::Decoder directly:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     uninstall MIME::Decoder 'x-uu', 'x-uuencode';
-</PRE>
+</PRE></FONT>
 
 <P>You should not override this method.
 
@@ -337,24 +337,10 @@ of &quot;experimental&quot; encodings.  For safety, always use MIME::Decoder dir
 <P>You don't need to <CODE>&quot;use&quot;</CODE> any other Perl modules; the
 following &quot;standard&quot; subclasses are included as part of MIME::Decoder:
 
-<PRE>
-     Class:                         Handles encodings:
-     ------------------------------------------------------------
-     MIME::Decoder::Binary          binary
-     MIME::Decoder::NBit            7bit, 8bit
-     MIME::Decoder::Base64          base64
-     MIME::Decoder::QuotedPrint     quoted-printable
-</PRE>
-
+<P><TABLE CELLPADDING=4 CELLSPACING=0 BORDER=1 ALIGN=CENTER BGCOLOR=#EEEEEE><TR><TH BGCOLOR=#AA0055 ALIGN=LEFT><FONT SIZE=2 COLOR=#FFFFFF FACE="sans-serif">Class:                         Handles encodings:&nbsp;</FONT></TH BGCOLOR=#AA0055></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">MIME::Decoder::Binary          binary</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">MIME::Decoder::NBit            7bit, 8bit</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">MIME::Decoder::Base64          base64</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">MIME::Decoder::QuotedPrint     quoted-printable</FONT></TD></TR></UL></TABLE>
 <P>The following &quot;non-standard&quot; subclasses are also included:
 
-<PRE>
-     Class:                         Handles encodings:
-     ------------------------------------------------------------
-     MIME::Decoder::UU              x-uu, x-uuencode
-     MIME::Decoder::Gzip64          x-gzip64            ** requires gzip!
-</PRE>
-
+<P><TABLE CELLPADDING=4 CELLSPACING=0 BORDER=1 ALIGN=CENTER BGCOLOR=#EEEEEE><TR><TH BGCOLOR=#AA0055 ALIGN=LEFT><FONT SIZE=2 COLOR=#FFFFFF FACE="sans-serif">Class:                         Handles encodings:&nbsp;</FONT></TH BGCOLOR=#AA0055></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">MIME::Decoder::UU              x-uu, x-uuencode</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">MIME::Decoder::Gzip64          x-gzip64            ** requires gzip!</FONT></TD></TR></UL></TABLE>
 
 <P><HR>
 <A NAME="NOTES"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> NOTES</H2></A>
@@ -375,11 +361,11 @@ all that they can assume) is that INSTREAMs and OUTSTREAMs are objects
 which respond to a subset of the messages defined in the IO::Handle 
 interface; minimally: 
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
       print
       getline
       read(BUF,NBYTES)
-</PRE>
+</PRE></FONT>
 
 <P>For backwards compatibilty, if you supply a scalar filehandle name
 (like <CODE>&quot;STDOUT&quot;</CODE>) or an unblessed glob reference (like <CODE>\*STDOUT</CODE>)
@@ -408,32 +394,32 @@ Declare it to be a subclass of MIME::Decoder.
 <P><LI>
 <P>Create the following instance methods in your class, as described above:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     decode_it
     encode_it
     init
-</PRE>
+</PRE></FONT>
 <P><LI>
 <P>In your application program, activate your decoder for one or
 more encodings like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     require MyDecoder;
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     install MyDecoder &quot;7bit&quot;;   ### use MyDecoder to decode &quot;7bit&quot;    
     install MyDecoder &quot;x-foo&quot;;  ### also use MyDecoder to decode &quot;x-foo&quot;
-</PRE>
+</PRE></FONT>
 </OL>
 
 
 <P>To illustrate, here's a custom decoder class for the <CODE>quoted-printable</CODE> 
 encoding:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     package MyQPDecoder;
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     @ISA = qw(MIME::Decoder);    
     use MIME::Decoder;
     use MIME::QuotedPrint;
@@ -460,7 +446,7 @@ encoding:
         }
         1;
     }
-</PRE>
+</PRE></FONT>
 
 <P>That's it.  The task was pretty simple because the <CODE>&quot;quoted-printable&quot;</CODE> 
 encoding can easily be converted line-by-line... as can
@@ -495,7 +481,7 @@ it and/or modify it under the same terms as Perl itself.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jul 20 02:32:32 2000 by cvu_pod2html
+Generated Tue Aug 15 09:16:59 2000 by cvu_pod2html
 </FONT></ADDRESS>
-</BODY>
+</FONT></BODY>
 </HTML>

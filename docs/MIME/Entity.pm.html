@@ -3,8 +3,8 @@
   <TITLE>MIME::Entity</TITLE>
 </HEAD>
 <BODY 
-       bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Entity</H1>
+       bgcolor="#FFFFFF" link="#CC3366" vlink="#993366" alink="#FF6666">
+<FONT FACE="sans-serif" SIZE=-1><A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Entity</H1>
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
@@ -45,7 +45,7 @@
 <P><HR>
 <A NAME="SYNOPSIS"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SYNOPSIS</H2></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create an entity:
     $top = MIME::Entity-&gt;build(From    =&gt; 'me@myhost.com',
                                To      =&gt; 'you@yourhost.com',
@@ -62,7 +62,7 @@
     
     ### Output it:
     $top-&gt;print(\*STDOUT);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -89,44 +89,44 @@ as specified in RFC 1521, <I>Multipurpose Internet Mail Extensions</I>.
 <P>Create a document for an ordinary 7-bit ASCII text file (lots of 
 stuff is defaulted for us):
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $ent = MIME::Entity-&gt;build(Path=&gt;&quot;english-msg.txt&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>Create a document for a text file with 8-bit (Latin-1) characters:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $ent = MIME::Entity-&gt;build(Path     =&gt;&quot;french-msg.txt&quot;,
                                Encoding =&gt;&quot;quoted-printable&quot;,
                                From     =&gt;'jean.luc@inria.fr',
                                Subject  =&gt;&quot;C'est bon!&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>Create a document for a GIF file (the description is completely optional;
 note that we have to specify content-type and encoding since they're
 not the default values):
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $ent = MIME::Entity-&gt;build(Description =&gt; &quot;A pretty picture&quot;,
                                Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
                                Type        =&gt; &quot;image/gif&quot;,
                                Encoding    =&gt; &quot;base64&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>Create a document that you already have the text for, using &quot;Data&quot;:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $ent = MIME::Entity-&gt;build(Type        =&gt; &quot;text/plain&quot;,
                                Encoding    =&gt; &quot;quoted-printable&quot;,
                                Data        =&gt; [&quot;First line.\n&quot;,
                                               &quot;Second line.\n&quot;,
                                               &quot;Last line.\n&quot;]);
-</PRE>
+</PRE></FONT>
 
 <P>Create a multipart message, with the entire structure given
 explicitly:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Create the top-level, and set up the mail headers:
     $top = MIME::Entity-&gt;build(Type     =&gt; &quot;multipart/mixed&quot;,
                                From     =&gt; 'me@myhost.com',
@@ -143,12 +143,12 @@ explicitly:
      
     ### Attachment #3: text we'll create with text we have on-hand:
     $top-&gt;attach(Data =&gt; $contents);
-</PRE>
+</PRE></FONT>
 
 <P>Suppose you don't know ahead of time that you'll have attachments?
 No problem: you can &quot;attach&quot; to singleparts as well:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $top = MIME::Entity-&gt;build(From    =&gt; 'me@myhost.com',
 			       To      =&gt; 'you@yourhost.com',
 			       Subject =&gt; &quot;Hello, nurse!&quot;,
@@ -157,19 +157,19 @@ No problem: you can &quot;attach&quot; to singleparts as well:
 	$top-&gt;attach(Path     =&gt; $GIF_path,
 	             Type     =&gt; 'image/gif');
     }
-</PRE>
+</PRE></FONT>
 
 <P>Copy an entity (headers, parts... everything but external body data):
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     my $deepcopy = $top-&gt;dup;				  
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
 <A NAME="Access_examples"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Access examples</H3></A>
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Get the head, a MIME::Head:
     $head = $ent-&gt;head;
     
@@ -187,7 +187,7 @@ No problem: you can &quot;attach&quot; to singleparts as well:
     $num_parts  = $ent-&gt;parts;
     $first_part = $ent-&gt;parts(0);          ### an entity
     $epilogue   = $ent-&gt;epilogue;          ### ref to array of lines
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -196,7 +196,7 @@ No problem: you can &quot;attach&quot; to singleparts as well:
 
 <P>Muck about with the body data:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Read the (unencoded) body data:
     if ($io = $ent-&gt;open(&quot;r&quot;)) {
 	while (defined($_ = $io-&gt;getline)) { print $_ }
@@ -211,43 +211,43 @@ No problem: you can &quot;attach&quot; to singleparts as well:
     
     ### Delete the files for any external (on-disk) data:
     $ent-&gt;purge;
-</PRE>
+</PRE></FONT>
 
 <P>Muck about with the signature:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Sign it (automatically removes any existing signature):
     $top-&gt;sign(File=&gt;&quot;$ENV{HOME}/.signature&quot;);
         
     ### Remove any signature within 15 lines of the end:
     $top-&gt;remove_sig(15);
-</PRE>
+</PRE></FONT>
 
 <P>Muck about with the headers:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Compute content-lengths for singleparts based on bodies:
     ###   (Do this right before you print!)
     $entity-&gt;sync_headers(Length=&gt;'COMPUTE');
-</PRE>
+</PRE></FONT>
 
 <P>Muck about with the structure:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### If a 0- or 1-part multipart, collapse to a singlepart:
     $top-&gt;make_singlepart;
     
     ### If a singlepart, inflate to a multipart with 1 part:
     $top-&gt;make_multipart;
-</PRE>
+</PRE></FONT>
 
 <P>Delete parts:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Delete some parts of a multipart message:
     my @keep = grep { keep_part($_) } $msg-&gt;parts;
     $msg-&gt;parts(\@keep); 
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -256,7 +256,7 @@ No problem: you can &quot;attach&quot; to singleparts as well:
 
 <P>Print to filehandles:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Print the entire message:
     $top-&gt;print(\*STDOUT);
      
@@ -265,12 +265,12 @@ No problem: you can &quot;attach&quot; to singleparts as well:
     
     ### Print just the (encoded) body... includes parts as well!
     $top-&gt;print_body(\*STDOUT);
-</PRE>
+</PRE></FONT>
 
 <P>Stringify... note that <CODE>stringify_xx</CODE> can also be written <CODE>xx_as_string</CODE>;
 the methods are synonymous, and neither form will be deprecated:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Stringify the entire message:
     print $top-&gt;stringify;              ### or $top-&gt;as_string
     
@@ -279,14 +279,14 @@ the methods are synonymous, and neither form will be deprecated:
     
     ### Stringify just the (encoded) body... includes parts as well!
     print $top-&gt;stringify_body;         ### or $top-&gt;body_as_string
-</PRE>
+</PRE></FONT>
 
 <P>Debug:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Output debugging info:
     $entity-&gt;dump_skeleton(\*STDERR);
-</PRE>
+</PRE></FONT>
 
 
 <P><HR>
@@ -343,9 +343,9 @@ The real quick-and-easy way to create multipart messages.
 The PARAMHASH is used to <CODE>build</CODE> a new entity; this method is
 basically equivalent to:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $entity-&gt;add_part(ref($entity)-&gt;build(PARAMHASH, Top=&gt;0));
-</PRE>
+</PRE></FONT>
 
 <P><B>Note:</B> normally, you attach to multipart entities; however, if you 
 attach something to a singlepart (like attaching a GIF to a text
@@ -357,50 +357,50 @@ message), the singlepart will be coerced into a multipart automatically.
 A quick-and-easy catch-all way to create an entity.  Use it like this
 to build a &quot;normal&quot; single-part entity:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    $ent = MIME::Entity-&gt;build(Type     =&gt; &quot;image/gif&quot;,
 		              Encoding =&gt; &quot;base64&quot;,
                               Path     =&gt; &quot;/path/to/xyz12345.gif&quot;,
                               Filename =&gt; &quot;saveme.gif&quot;,
                               Disposition =&gt; &quot;attachment&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>And like this to build a &quot;multipart&quot; entity:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    $ent = MIME::Entity-&gt;build(Type     =&gt; &quot;multipart/mixed&quot;,
                               Boundary =&gt; &quot;---1234567&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>A minimal MIME header will be created.  If you want to add or modify
 any header fields afterwards, you can of course do so via the underlying 
 head object... but hey, there's now a prettier syntax!
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    $ent = MIME::Entity-&gt;build(Type          =&gt;&quot;multipart/mixed&quot;,
                               From          =&gt; $myaddr,
                               Subject       =&gt; &quot;Hi!&quot;,
                               'X-Certified' =&gt; ['SINED',
                                                 'SEELED',
                                                 'DELIVERED']);
-</PRE>
+</PRE></FONT>
 
 <P>Normally, an <CODE>X-Mailer</CODE> header field is output which contains this 
 toolkit's name and version (plus this module's RCS version).
 This will allow any bad MIME we generate to be traced back to us.
 You can of course overwrite that header with your own:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    $ent = MIME::Entity-&gt;build(Type        =&gt; &quot;multipart/mixed&quot;,
                               'X-Mailer'  =&gt; &quot;myprog 1.1&quot;);
-</PRE>
+</PRE></FONT>
 
 <P>Or remove it entirely:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    $ent = MIME::Entity-&gt;build(Type       =&gt; &quot;multipart/mixed&quot;,
                               'X-Mailer' =&gt; undef);
-</PRE>
+</PRE></FONT>
 
 <P>OK, enough hype.  The parameters are:
 
@@ -412,14 +412,14 @@ You can of course overwrite that header with your own:
 Any field you want placed in the message header, taken from the
 standard list of header fields (you don't need to worry about case):
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Bcc           Encrypted     Received      Sender         
     Cc            From          References    Subject 
     Comments	  Keywords      Reply-To      To 
     Content-*	  Message-ID    Resent-*      X-*
     Date          MIME-Version  Return-Path   
                   Organization
-</PRE>
+</PRE></FONT>
 
 <P>To give experienced users some veto power, these fields will be set 
 <I>after</I> the ones I set... so be careful: <I>don't set any MIME fields</I>
@@ -565,11 +565,11 @@ Set/get the <I>effective</I> MIME type of this entity.  This is <I>usually</I>
 identical to the actual (or defaulted) MIME type, but in some cases 
 it differs.  For example, from RFC-2045:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
    Any entity with an unrecognized Content-Transfer-Encoding must be
    treated as if it has a Content-Type of &quot;application/octet-stream&quot;,
    regardless of what the Content-Type header field actually says.
-</PRE>
+</PRE></FONT>
 
 <P>Why? because if we can't decode the message, then we have to take
 the bytes as-is, in their (unrecognized) encoded form.  So the
@@ -674,11 +674,11 @@ or undef if it doesn't exist.
 the parts to a copy of that array, and returns the parts.  This can
 be used to delete parts, as follows:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     ### Delete some parts of a multipart message:
     $msg-&gt;parts([ grep { keep_part($_) } $msg-&gt;parts ]);
     
-</PRE>
+</PRE></FONT>
 
 <P><B>Note:</B> for multipart messages, the preamble and epilogue are <I>not</I> 
 considered parts.  If you need them, use the <CODE>preamble()</CODE> and <CODE>epilogue()</CODE> 
@@ -733,18 +733,18 @@ but all-new MIME headers (&quot;Content-type&quot;, etc.).  We then create
 a copy of the original singlepart, <I>strip out</I> the non-MIME headers
 from that, and make it a part of the new multipart.  So this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     From: me
     To: you
     Content-type: text/plain
     Content-length: 12
     
     Hello there!
-</PRE>
+</PRE></FONT>
 
 <P>Becomes something like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     From: me
     To: you
     Content-type: multipart/mixed; boundary=&quot;----abc----&quot;
@@ -755,7 +755,7 @@ from that, and make it a part of the new multipart.  So this:
     
     Hello there!
     ------abc------
-</PRE>
+</PRE></FONT>
 
 <P>The actual type of the new top-level multipart will be &quot;multipart/SUBTYPE&quot; 
 (default SUBTYPE is &quot;mixed&quot;).
@@ -896,17 +896,7 @@ Based on the effective content type, return a good suggested encoding.
 for 8-bit characters and long lines; lack of either means that the
 message is 7bit-ok.  Other types are chosen independent of their body:
 
-<PRE>
-    Major type:      7bit ok?    Suggested encoding:
-    -----------------------------------------------------------
-    text             yes         7bit
-    text             no          quoted-printable    
-    message          yes         7bit
-    message          no          binary    
-    multipart        *           binary (in case some parts are bad)
-    image, etc...    *           base64
-</PRE>
-<P><DT><B><A NAME="item:sync_headers">sync_headers OPTIONS</A></B></DT>
+<P><TABLE CELLPADDING=4 CELLSPACING=0 BORDER=1 ALIGN=CENTER BGCOLOR=#EEEEEE><TR><TH BGCOLOR=#AA0055 ALIGN=LEFT><FONT SIZE=2 COLOR=#FFFFFF FACE="sans-serif">Major type:      7bit ok?    Suggested encoding:&nbsp;</FONT></TH BGCOLOR=#AA0055></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">text             yes         7bit</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">text             no          quoted-printable</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">message          yes         7bit</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">message          no          binary</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">multipart        *           binary (in case some parts are bad)</FONT></TD></TR><TR><TD ALIGN=LEFT><FONT SIZE=2 COLOR=#000000 FACE="sans-serif">image, etc...    *           base64</FONT></TD></TR></UL></TABLE><P><DT><B><A NAME="item:sync_headers">sync_headers OPTIONS</A></B></DT>
 <DD>
 <I>Instance method.</I>
 This method does a variety of activities which ensure that
@@ -984,13 +974,13 @@ to the currently-selected one if none given.
 <P>Each entity is output with an appropriate indentation level,
 the following selection of attributes:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Content-type: multipart/mixed
     Effective-type: multipart/mixed
     Body-file: NONE
     Subject: Hey there!
     Num-parts: 2
-</PRE>
+</PRE></FONT>
 
 <P>This is really just useful for debugging purposes; I make no guarantees
 about the consistency of the output format over time.
@@ -1008,19 +998,19 @@ header is always output first, and the body data (if any) will be
 encoded if the header says that it should be.
 For example, your output may look like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Subject: Greetings
     Content-transfer-encoding: base64
      
     SGkgdGhlcmUhCkJ5ZSB0aGVyZSEK
-</PRE>
+</PRE></FONT>
 
 <P><I>If this entity has MIME type &quot;multipart/*&quot;,</I> 
 the preamble, parts, and epilogue are all output with appropriate
 boundaries separating each.  
 Any bodyhandle is ignored:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Content-type: multipart/mixed; boundary=&quot;*----*&quot;
     Content-transfer-encoding: 7bit
     
@@ -1031,19 +1021,19 @@ Any bodyhandle is ignored:
     [Entity: Part 1]
     --*----*--
     [Epilogue]
-</PRE>
+</PRE></FONT>
 
 <P><I>If this entity has a single-part MIME type with no attached parts,</I>
 then we're looking at a normal singlepart entity: the body is output 
 according to the encoding specified by the header.  
 If no body exists, a warning is output and the body is treated as empty:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Content-type: image/gif
     Content-transfer-encoding: base64
     
     [Encoded body]
-</PRE>
+</PRE></FONT>
 
 <P><I>If this entity has a single-part MIME type but it also has parts,</I> 
 then we're probably looking at a &quot;re-parsed&quot; singlepart, usually one
@@ -1052,14 +1042,14 @@ of type <CODE>message/*</CODE> (you can get entities like this if you set the
 In this case, the parts are output with single blank lines separating each,
 and any bodyhandle is ignored:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     Content-type: message/rfc822
     Content-transfer-encoding: 7bit
     
     [Entity: Part 0]
     
     [Entity: Part 1]
-</PRE>
+</PRE></FONT>
 
 <P>In all cases, when outputting a &quot;part&quot; of the entity, this method 
 is invoked recursively.
@@ -1092,9 +1082,9 @@ a sendmail-ready stream whose body is consistent with its head.
 If you want the <I>raw body data</I> to be output, you can either read it from
 the bodyhandle yourself, or use:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $ent-&gt;bodyhandle-&gt;print($outstream);
-</PRE>
+</PRE></FONT>
 
 <P>which uses read() calls to extract the information, and thus will 
 work with both text and binary bodies.
@@ -1127,14 +1117,14 @@ would print it.  You can also use <CODE>body_as_string()</CODE>.
 <P>If you want the <I>unencoded</I> body, and you are dealing with a
 singlepart message (like a &quot;text/plain&quot;), use <CODE>bodyhandle()</CODE> instead:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     if ($ent-&gt;bodyhandle) {
 	$unencoded_data = $ent-&gt;bodyhandle-&gt;as_string;
     }
     else {
 	### this message has no body data (but it might have parts!)
     }
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:stringify_header">stringify_header</A></B></DT>
 <DD>
 <I>Instance method.</I>
@@ -1168,22 +1158,22 @@ containing the header information.
 containing the decoded body data.  This is only defined if 
 the message is a &quot;singlepart&quot; type:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     application/*
     audio/*
     image/*
     text/*
     video/*
-</PRE>
+</PRE></FONT>
 <P><LI>
 <P>An array of <I>parts</I>, where each part is a MIME::Entity object.  
 The number of parts will only be nonzero if the content-type 
 is <I>not</I> one of the &quot;singlepart&quot; types:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     message/*        (should have exactly one part)
     multipart/*      (should have one or more parts)
-</PRE>
+</PRE></FONT>
 </UL>
 
 
@@ -1235,7 +1225,7 @@ For &quot;singlepart&quot; types (<CODE>text/*</CODE>, <CODE>image/*</CODE>, etc
 body data is referenced via a MIME::Body object, accessed via 
 the <CODE>bodyhandle()</CODE> method:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
                       bodyhandle()   parts()
     Content-type:     returns:       returns:
     ------------------------------------------------------------
@@ -1247,7 +1237,7 @@ the <CODE>bodyhandle()</CODE> method:
     text/*            MIME::Body     empty     
     video/*           MIME::Body     empty     
     x-*/*             MIME::Body     empty 
-</PRE>
+</PRE></FONT>
 
 <P>As a special case, <CODE>message/*</CODE> is currently ambiguous: depending 
 on the parser, a <CODE>message/*</CODE> might be treated as a singlepart,
@@ -1289,10 +1279,10 @@ Use the body() method.
 <P><B>MIME::Entity:</B> 
 Use the body() method.  You can also use:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     $entity-&gt;print_body()
     $entity-&gt;stringify_body()   ### a.k.a. $entity-&gt;body_as_string()
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:How_do_I_get_the_unencoded_body_data">How do I get the &quot;unencoded&quot; body data?</A></B></DT>
 <DD>
 <B>Mail::Internet:</B> 
@@ -1308,7 +1298,7 @@ then the entity is probably a &quot;container&quot; that has no real body data o
 its own (e.g., a &quot;multipart&quot; message): in this case, you should access
 the components via the parts() method.  Like this:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     if ($bh = $entity-&gt;bodyhandle) {
 	$io = $bh-&gt;open;
 	...access unencoded data via $io-&gt;getline or $io-&gt;read...
@@ -1319,18 +1309,18 @@ the components via the parts() method.  Like this:
 	    ...do something with the part...
 	}
     }
-</PRE>
+</PRE></FONT>
 
 <P>You can also use:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     if ($bh = $entity-&gt;bodyhandle) {
 	$unencoded_data = $bh-&gt;as_string;
     }
     else {
 	...do stuff with the parts...
     }
-</PRE>
+</PRE></FONT>
 <P><DT><B><A NAME="item:What_does_the_body_method_return">What does the body() method return?</A></B></DT>
 <DD>
 <B>Mail::Internet:</B> 
@@ -1406,14 +1396,14 @@ that follows the last encapsulation boundary.
 
 <P>According to RFC-1521:
 
-<PRE>
+<FONT SIZE=3 FACE="courier"><PRE>
     There appears to be room for additional information prior 
     to the first encapsulation boundary and following the final 
     boundary.  These areas should generally be left blank, and
     implementations must ignore anything that appears before the 
     first boundary or after the last one.
-</PRE>
-<PRE>
+</PRE></FONT>
+<FONT SIZE=3 FACE="courier"><PRE>
     NOTE: These &quot;preamble&quot; and &quot;epilogue&quot; areas are generally 
     not used because of the lack of proper typing of these parts 
     and the lack of clear semantics for handling these areas at 
@@ -1423,7 +1413,7 @@ that follows the last encapsulation boundary.
     explanatory note for recipients who read the message with 
     pre-MIME software, since such notes will be ignored by 
     MIME-compliant software.
-</PRE>
+</PRE></FONT>
 
 <P>In the world of standards-and-practices, that's the standard.  
 Now for the practice: 
@@ -1462,7 +1452,7 @@ it and/or modify it under the same terms as Perl itself.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jul 20 02:32:48 2000 by cvu_pod2html
+Generated Tue Aug 15 09:17:13 2000 by cvu_pod2html
 </FONT></ADDRESS>
-</BODY>
+</FONT></BODY>
 </HTML>

@@ -36,7 +36,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.203 $ $Date: 2000/06/10 06:38:05 $
+$Revision: 5.204 $ $Date: 2000/08/15 03:51:46 $
 
 =cut
 
@@ -49,7 +49,7 @@ use MIME::Tools qw(whine);
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.203 $, 10;
+$VERSION = substr q$Revision: 5.204 $, 10;
 
 
 #------------------------------
@@ -69,7 +69,13 @@ sub decode_it {
 
     ### Find beginning...
     while (defined($_ = $in->getline)) {
-	last if ($mode, $file) = /^begin\s*(\d*)\s*(\S*)/; 
+	if (/^begin(.*)/) {        ### found it: now decode it...
+	    my $modefile = $1;
+	    if ($modefile =~ /^(\s+(\d+))?(\s+(.*?\S))?\s*\Z/) {
+		($mode, $file) = ($2, $4);
+	    }
+	    last;                  ### decoded or not, we're done
+	}
 	push @preamble, $_;
     }
     die("uu decoding: no begin found\n") if !defined($_);      # hit eof!
