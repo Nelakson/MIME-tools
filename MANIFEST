@@ -41,6 +41,7 @@ lib/MIME/Tools.pm
 lib/MIME/WordDecoder.pm
 lib/MIME/Words.pm
 patch
+set-version.pl
 t/Body.t
 t/Decoder.t
 t/Entity.t

@@ -1,4 +1,13 @@
+2004-09-15  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.413 RELEASED
+
+	* Fix some $VERSION = xxx assignments that were broken; make sure
+	VERSION shows up as 5.413 everywhere.  Sorry about that!
+
 2004-09-09  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.412 RELEASED
 
 	* Recognize "binhex40", "mac-binhex" and "mac-binhex40"
 	Content-Transfer-Encodings.

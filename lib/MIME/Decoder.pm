@@ -126,7 +126,7 @@ use Carp;
 );
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 1.6 $, 10;
+$VERSION = "5.413";
 
 ### Me:
 my $ME = 'MIME::Decoder';
@@ -639,7 +639,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.6 $ $Date: 2004/09/08 19:14:23 $
+$Revision: 1.7 $ $Date: 2004/09/15 14:01:55 $
 
 =cut
 

@@ -182,7 +182,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 1.8 $, 10;
+$VERSION = "5.413";
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -1992,6 +1992,6 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.8 $ $Date: 2004/09/08 00:41:04 $
+$Revision: 1.9 $ $Date: 2004/09/15 14:01:55 $
 
 =cut

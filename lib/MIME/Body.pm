@@ -142,7 +142,7 @@ use IO::Scalar;
 use Carp;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 1.2 $, 10;
+$VERSION = "5.413";
 
 
 #------------------------------
@@ -672,7 +672,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 1.2 $ $Date: 2004/09/07 15:13:54 $
+$Revision: 1.3 $ $Date: 2004/09/15 14:01:55 $
 
 =cut
 
