@@ -65,10 +65,11 @@ MIME::Parser - experimental class for parsing MIME streams
     ### Normal mechanism:
     eval { $entity = $parser->parse(\*STDIN) };
     if ($@) {
+	$results  = $parser->results;
 	$decapitated = $parser->last_head;  ### get last top-level head
     }
     
-    ### Dangerous ultra-tolerant mechanism:
+    ### Ultra-tolerant mechanism:
     $parser->ignore_errors(1);
     $entity = eval { $parser->parse(\*STDIN) };
     $error = ($@ || $parser->last_error);
@@ -82,8 +83,8 @@ MIME::Parser - experimental class for parsing MIME streams
     ### Parse contained "message/rfc822" objects as nested MIME streams?
     $parser->extract_nested_messages('REPLACE');
      
-    ### Forgive a lot of normally-fatal errors (NOT RECOMMENDED!)
-    $parser->ignore_errors(1);
+    ### Forgive a lot of normally-fatal errors:
+    $parser->ignore_errors;
 
 
 =head2 Miscellaneous examples
@@ -124,17 +125,23 @@ use IO::Lines        1.108;
 use IO::File;
 use IO::InnerFile;
 use File::Spec;
+use File::Path;
 use Config qw(%Config);
 
 ### Kit modules:
-use MIME::Tools qw(:config :msgs :utils);
+use MIME::Tools qw(:config :utils);
 use MIME::Head;
 use MIME::Body;
 use MIME::Entity;
 use MIME::Decoder;
+use MIME::Parser::Reader;
+use MIME::Parser::Results;
 
 
 #============================================================
+#
+# A special kind of inner file that we can virtually print to.
+#
 package MIME::Parser::InnerFile;
 
 use vars qw(@ISA);
@@ -143,11 +150,13 @@ use vars qw(@ISA);
 sub print {
     shift->add_length(length(join('', @_)));
 }
+
 sub PRINT  {
     shift->{LG} += length(join('', @_));
 }
 
 #============================================================
+
 package MIME::Parser;
 
 
@@ -158,7 +167,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.117 $, 10;
+$VERSION = substr q$Revision: 5.203 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -234,7 +243,7 @@ sub init {
     $self->{MP5_Tmp}             = undef;
     $self->{MP5_TmpRecycling}    = 1;
     $self->{MP5_TmpToCore}       = 0;
-    $self->{MP5_IgnoreErrors}    = 0;
+    $self->{MP5_IgnoreErrors}    = 1;
     $self->{MP5_UseInnerFiles}   = 0;
 
     $self->interface(ENTITY_CLASS => 'MIME::Entity');
@@ -256,18 +265,28 @@ is called, to reset the parser to a "ready" state.
 sub init_parse {
     my $self = shift;
 
-    $self->{MP5_FyiIndent}  = 0;
-    $self->{MP5_LastHead}   = undef;   
-    $self->{MP5_LastError}  = undef;
+    ### Parse info:
+    $self->{MP5_Results} = new MIME::Parser::Results;
+    $self->{MP5_EOS} = undef;
 
-    ### If using output_under, set actual output_dir directly (not by method!)
+    ### If using output_under, set actual output_dir directly 
+    ### (not by its method!) and purge existing contents:
     if (defined($self->{MP5_OutputBase})) {
-	my $subdir = "msg-".scalar(time)."-$$-".$G_subdir++;	       
-	$self->fyi("subdir = $subdir");
+
+	### Determine the subdirectory of ther base to use:
+	my $subdir = (defined($self->{MP5_OutputDirName})
+		      ? $self->{MP5_OutputDirName}
+		      : ("msg-".scalar(time)."-$$-".$G_subdir++));
+	$self->debug("subdir = $subdir");
 	
+	### Determine full path to output directory:
 	$self->{MP5_OutputDir} = catfile($self->{MP5_OutputBase}, $subdir);
-	mkdir $self->output_dir, 0700 or 
-	    die "mkdir ".$self->output_dir.": $!\n";
+
+	### Remove and re-create it:
+	rmtree $self->output_dir if $self->{OutputPurge};
+	(-d $self->output_dir) or
+	    mkdir $self->output_dir, 0700 or 
+		die "mkdir ".$self->output_dir.": $!\n";
     }
     1;
 }
@@ -370,11 +389,10 @@ sub parse_nested_messages {
 
 I<Instance method.>
 Controls whether the parser will attempt to ignore normally-fatal
-errors, treating them as warnings and continuaing with the parse.
-B<Use of this is STRONGLY discouraged.>
+errors, treating them as warnings and continuing with the parse.
 
-If YESNO is true, some fatal errors are ignored.
-If YESNO is false (the default), fatal errors throw exceptions.
+If YESNO is true (the default), many syntax errors are tolerated.
+If YESNO is false, fatal errors throw exceptions.
 With no argument, just returns the current setting.
 
 =cut
@@ -391,38 +409,49 @@ sub ignore_errors {
 
 #------------------------------
 #
-# PARSING...
+# MESSAGES...
 #
 
 #------------------------------
 #
-# oops PROBLEM
+# error PROBLEM...
 #
 # Possibly-forgivable parse error occurred.
 # Normally raise a fatal exception; might just warn and continue.
 #
-sub oops {
+sub error {
     my $self = shift;
-    if ($self->{MP5_IgnoreErrors}) {
-	$self->{MP5_LastError} = join '', @_;
-	warn "$ME: ignoring error: $self->{MP5_LastError}";
-	return 1;
-    }
-    else {
-	die "$ME: ", @_;
-    }
+    $self->results->msg('error', @_);     ### record it
+    $self->{MP5_IgnoreErrors} ? return undef : die @_;
 }
 
 #------------------------------
 #
-# fyi MESSAGE
+# whine PROBLEM...
 #
-# Record information about this parse.  Also debugs it.
-#
-sub fyi {
+sub whine {
     my $self = shift;
-    debug(('   ' x $self->{MP5_FyiIndent}), @_);
+    $self->results->msg('warning', @_);   ### record it
+    MIME::Tools::whine(@_);               ### say it
 }
+
+#------------------------------
+#
+# debug MESSAGE...
+#
+sub debug {
+    my $self = shift;
+    unshift @_, ('   ' x $self->results->level);
+    $self->results->msg('debug', @_);     ### record it
+    MIME::Tools::debug(@_);               ### say it
+}
+
+
+
+#------------------------------
+#
+# PARSING...
+#
 
 #------------------------------
 #
@@ -432,32 +461,23 @@ sub fyi {
 # Note: The boundary is mandatory!
 # Note: We watch out for illegal zero-part messages.
 #
-# Returns what we ended on (DELIM).  Exception on error.
+# Returns DELIM if we ended on a normal delimiter for this multipart,
+#   where a part is expected to follow.
+# Returns CLOSE if this looks like a degenerate multipart, where the
+#   epilogue is expected to follow.
+# Exception on error.
 #
 sub process_preamble {
-    my ($self, $in, $ent, $inner_bound) = @_;
-    $self->fyi("process_preamble ($inner_bound)");
+    my ($self, $in, $rdr, $ent) = @_;
 
-    ### Get possible delimiters:
-    my ($delim, $close) = ("--$inner_bound", "--$inner_bound--");
-
+    ### Sanity:
+    ($rdr->depth > 0) or die "internal logic error";
+    
     ### Parse preamble:
     my @saved;
+    $rdr->read_lines($in, \@saved);
     $ent->preamble(\@saved);
-    while (defined($_ = $in->getline)) {
-	s/\r?\n$//o;        ### chomps both \r and \r\n
-	($_ eq $delim) and return 'DELIM';
-	($_ eq $close) and $self->oops("multipart message has no parts\n");
-
-	### A real line, and *not* a kind of inner bound... save it:
-	push @saved, "$_\n";
-    }
-
-    $self->oops("Unexpected EOF in preamble.\n".
-		"Message looks illegal: I couldn't find the boundary...\n".
-		qq{BOUND = "$inner_bound"\n}.
-		"...as --BOUND or --BOUND-- on any line of this message\n");
-    return 'CLOSE';
+    1;
 }
 
 #------------------------------
@@ -470,32 +490,20 @@ sub process_preamble {
 # the multipart message we are parsing is itself part of 
 # an outer multipart message.
 #
-# Returns what we ended on (DELIM, CLOSE, EOF).  Exception on error.
+# Returns DELIM if we ended on a normal delimiter for this multipart,
+#   where a part is expected to follow.
+# Returns CLOSE if it looks like the epilogue is expected to follow.
+# Exception on error.
 #
 sub process_epilogue {
-    my ($self, $in, $ent, $outer_bound) = @_;
-    $self->fyi("process_epilogue");
-
-    ### If there's a boundary, get possible delimiters (for efficiency):
-    my ($delim, $close) = ("--$outer_bound", "--$outer_bound--") 
-	if defined($outer_bound);
+    my ($self, $in, $rdr, $ent) = @_;
+    $self->debug("process_epilogue");
 
     ### Parse epilogue:
     my @saved;
+    $rdr->read_lines($in, \@saved);
     $ent->epilogue(\@saved);
-    while (defined($_ = $in->getline)) {
-	s/\r?\n$//o;        ### chomps both \r and \r\n
-
-	### If there's a boundary, look for it:
-	if (defined($outer_bound)) {    
-	    ($_ eq $delim) and return 'DELIM';
-	    ($_ eq $close) and return 'CLOSE';
-	}
-
-	### A real line, and *not* a kind of outer bound... save it:
-	push @saved, "$_\n";
-    }
-    return 'EOF';       ### the only way to get here!
+    1;
 }
 
 #------------------------------
@@ -524,108 +532,42 @@ sub process_epilogue {
 #------------------------------
 
 sub process_to_bound {
-    my ($self, $bound, $in, $out) = @_;        
+    my ($self, $in, $rdr, $out) = @_;        
 
-    ### Can we use the [fast] native I/O for input?
-    my $in_n  = $in->isa('IO::File');
-    if ($in->isa('IO::Wrap') && (ref($$in) eq 'GLOB')) {
-	$in = $$in;
-	$in_n = 1;
-    }
-    $self->fyi("ptb: native input? ".($in_n ? 'yes' : 'no'));
-
-    ### Can we use the [fast] native I/O for output?
-    my $out_n = $out->isa('IO::File');
-    if ($out->isa('IO::Wrap') && (ref($$out) eq 'GLOB')) {
-	$out = $$out;
-	$out_n = 1;
-    }
-    $self->fyi("ptb: native output? ".($out_n ? 'yes' : 'no'));
-
-    ### Set up strings for faster checking:
-    my ($delim, $close) = ("--$bound", "--$bound--");
-    my $delim_len = length($delim);
-
-    ### Prepare buffer vars:
-    local $_ = ' ' x 1000;
-    my $last = $_; $last = '';
-
-    ### Read:
-    if ($in_n) {           ### Native [fast] input
-	while (<$in>) {
-
-	    ### Did we hit the boundary?
-	    if (substr($_, 0, $delim_len) eq $delim) {   ### maybe...!
-		my $rem = substr($_, $delim_len); $rem =~ s/\r?\n//;
-		if (($rem eq '') || ($rem eq '--')) {
-		    $last =~ s/\r?\n$//o;
-		    ($out_n ? print $out $last : $out->print($last)); 	
-		    return ($rem eq '') ? 'DELIM' : 'CLOSE';
-		}
-	    }
-	    
-	    ### Print the last line. 
-	    ($out_n ? print $out $last : $out->print($last));
-	    $last = $_;
-	}
-    }
-    else {                 ### Object-oriented [slow] input
-	while (defined($_ = $in->getline)) {
-
-	    ### Did we hit the boundary?
-	    if (substr($_, 0, $delim_len) eq $delim) {   ### maybe...!
-		my $rem = substr($_, $delim_len); $rem =~ s/\r?\n//;
-		if (($rem eq '') || ($rem eq '--')) {
-		    $last =~ s/\r?\n$//o;
-		    ($out_n ? print $out $last : $out->print($last));
-		    return ($rem eq '') ? 'DELIM' : 'CLOSE';
-		}
-	    }
-	    
-	    ### Print the last line. 
-	    ($out_n ? print $out $last : $out->print($last));
-	    $last = $_;
-	}
-    }
- 
-    $self->oops("Unexpected EOF.\n".
-		"Message looks illegal: I couldn't find the boundary...\n".
-		qq{BOUND = "$bound"\n}.
-		"...as --BOUND or --BOUND-- on any line of this message!\n");
-    return 'CLOSE';
+    ### Parse:
+    $rdr->read_chunk($in, $out);
+    
+    ### How did we do?
+    ($rdr->eos_type =~ /^(DELIM|CLOSE)$/) or
+	$self->error("unexpected end of part before proper boundary\n");
+    1;
 }
 
 #------------------------------
 #
-# process_header IN, [OUTERBOUND]
+# process_header IN, READER
 #
 # Process and return the next header.
 # Fatal exception on failure.
 #
 sub process_header {
-    my ($self, $in, $outer_bound) = @_;
-    my $delim = ($outer_bound ? "--$outer_bound" : "");
-    $self->fyi("process_header");
+    my ($self, $in, $rdr) = @_;
+    $self->debug("process_header");
 
     ### Parse and save the (possibly empty) header, up to and including the
     ###    blank line that terminates it:
     my $head = $self->interface('HEAD_CLASS')->new;
 
-    ### Read the header off.
+    ### Read the lines of the header.
     ### We localize IO inside here, so that we can support the IO:: interface
-    my ($headline, @headlines);
-    while (defined($headline = $in->getline)) {
+    my @headlines;
+    my $hdr_rdr = $rdr->spawn->add_terminator("");
+    $hdr_rdr->read_lines($in, \@headlines);
+    foreach (@headlines) { s/[\r\n]+\Z/\n/ }  ### fold
 
-	### Check for boundary:
-	if ($delim and substr($headline, 0, length($delim)) eq $delim) {
-	    die("$ME: unexpected boundary in header ($delim)\n");  # gotta die
-	}
-	
-	### Ok, looks good:
-	$headline =~ s/[\r\n]+$/\n/;     # folds \r\n, etc. into \n
-	last if ($headline eq "\n");     # blank line ends head
-	push @headlines, $headline;
-    }
+    ### How did we do?
+    ($hdr_rdr->eos_type eq 'DONE') or
+	$self->error("unexpected end of header\n");
 
     ### Cleanup ">From " lines.
     ###    Some folks like to parse mailboxes, so the header will start
@@ -633,13 +575,10 @@ sub process_header {
     ###    of lines silently (can't use Mail::Header for this).
     shift @headlines while (@headlines and $headlines[0] =~ /^>?From /);
 
-    ### TBD: at this point we can check for parse errors
-
-    ### Extract the header:
-    $head->extract(\@headlines) or 
-	$self->oops("couldn't parse head\n");
-    !@headlines or 
-	$self->oops("syntax error in header, near: ", @headlines, "\n");
+    ### Extract the header (note that zero-size headers are admissible!):
+    $head->extract(\@headlines);
+    @headlines and 
+	$self->error("couldn't parse head; error near:\n",@headlines);
 
     ### If desired, auto-decode the header as per RFC-1522.  
     ###    This shouldn't affect non-encoded headers; however, it will decode
@@ -648,23 +587,24 @@ sub process_header {
     $head->decode if $self->{MP5_DecodeHeaders};
 
     ### If this is the top-level head, save it:
-    $self->{MP5_LastHead} or $self->{MP5_LastHead} = $head;
+    $self->results->top_head($head) if !$self->results->top_head;
+
     return $head;
 }
 
 #------------------------------
 #
-# process_multipart IN, ENTITY, [OUTERBOUND]
+# process_multipart IN, READER, ENTITY
 #
 # Process the multipart body, and return the state.
 # Fatal exception on failure.
 # Invoked by process_part().
 #
 sub process_multipart {
-    my ($self, $in, $ent, $outer_bound) = @_;
+    my ($self, $in, $rdr, $ent) = @_;
     my $head = $ent->head;
     
-    $self->fyi("process_multipart...");
+    $self->debug("process_multipart...");
 
     ### Get type and subtype:
     my ($type, $subtype) = (split('/', $head->mime_type), "");
@@ -675,92 +615,110 @@ sub process_multipart {
     my $retype = (($subtype eq 'digest') ? 'message/rfc822' : '');
 
     ### Get the boundaries for the parts:
-    my $inner_bound = $head->multipart_boundary;
-    defined($inner_bound) or die "$ME: no multipart boundary\n";  # gotta die
+    my $bound = $head->multipart_boundary;
+    if (!defined($bound) || ($bound =~ /[\r\n]/)) {
+	$self->error("multipart boundary is missing, or contains CR or LF\n");
+	$ent->effective_type("application/x-unparseable-multipart");
+	return $self->process_singlepart($in, $rdr, $ent);
+    }
+    my $part_rdr = $rdr->spawn->add_boundary($bound);
 
-    ### Check for unparseable boundaries...
-    $inner_bound !~ /[\r\n]/ or
-	die "$ME: can't parse: CR or LF in multipart boundary\n"; # gotta die
-    
-    ### Parse preamble; kill final \n (since terminated by a boundary):
-    my $state = $self->process_preamble($in, $ent, $inner_bound);
-    chomp($ent->preamble->[-1]) if @{$ent->preamble};
+    ### Prepare to parse:
+    my $eos_type;
+    my $more_parts;
+
+    ### Parse preamble...
+    $self->process_preamble($in, $part_rdr, $ent);
+
+    ### ...and look at how we finished up:
+    $eos_type = $part_rdr->eos_type;
+    if    ($eos_type eq 'DELIM'){ $more_parts = 1 }
+    elsif ($eos_type eq 'CLOSE'){ $self->whine("empty multipart message\n");
+				  $more_parts = 0; }
+    else                        { $self->error("unexpected end of preamble\n");
+				  return 1; }
 
     ### Parse parts: 
     my $partno = 0;
     my $part;
-    while (1) {
+    while ($more_parts) {
 	++$partno;
-	$self->fyi("parsing part $partno...");
+	$self->debug("parsing part $partno...");
 	
-	### Parse the next part:
-	($part, $state) = $self->process_part($in, $inner_bound,
-					      Retype => $retype);
-	if ($state eq 'EOF') {
-	    $self->oops("unexpected EOF before close\n");
-	    $state = 'CLOSE';
-	}
-	
-	### Add the part to the entity:
+	### Parse the next part, and add it to the entity...
+	my $part = $self->process_part($in, $part_rdr, Retype=>$retype);
 	$ent->add_part($part);
-	last if ($state eq 'CLOSE');        # done!
+
+	### ...and look at how we finished up:
+	$eos_type = $part_rdr->eos_type;
+	if    ($eos_type eq 'DELIM') { $more_parts = 1 }
+	elsif ($eos_type eq 'CLOSE') { $more_parts = 0; }
+	else                         { $self->error("unexpected end of parts ".
+						    "before epilogue\n");
+				       return 1; }
     }
     
-    ### Parse epilogue; and kill final newline if terminated by a boundary:
-    $state = $self->process_epilogue($in, $ent, $outer_bound);
-    chomp($ent->epilogue->[-1]) if (@{$ent->epilogue} and $state ne 'EOF');
+    ### Parse epilogue... 
+    ###    (note that we use the *parent's* reader here, which does not
+    ###     know about the boundaries in this multipart!)
+    $self->process_epilogue($in, $rdr, $ent);
 
-    ### Return the state:
-    return ($ent, $state);
+    ### ...and there's no need to look at how we finished up!
+    1;
 }
 
 #------------------------------
 #
 # process_singlepart IN, ENTITY, OUTERBOUND
 #
-# Process the singlepart body, and return the state.
+# Process the singlepart body.  Returns true.
 # Fatal exception on failure.
 # Invoked by process_part().
 #
 sub process_singlepart {
-    my ($self, $in, $ent, $outer_bound) = @_;
+    my ($self, $in, $rdr, $ent) = @_;
     my $head    = $ent->head;
-    my $state;
 
-    $self->fyi("process_singlepart...");
+    $self->debug("process_singlepart...");
 
     ### Obtain a filehandle for reading the encoded information:
     ###    We have two different approaches, based on whether or not we 
     ###    have to contend with boundaries.
     my $ENCODED;             ### handle
-    if (defined($outer_bound)) {     ### boundaries...
+    if ($rdr->has_bounds) {     ### boundaries...
 
 	### Can we read real fast?
 	if ($self->{MP5_UseInnerFiles} && 
 	    $in->can('seek') && $in->can('tell')) {
-	    $self->fyi("using inner file");
+	    $self->debug("using inner file");
 	    $ENCODED = MIME::Parser::InnerFile->new($in, $in->tell, 0);
 	}
 	else {
-	    $self->fyi("using temp file");
+	    $self->debug("using temp file");
 	    $ENCODED = $self->new_tmpfile($self->{Tmp});
 	    $self->{Tmp} = $ENCODED if $self->{TmpRecycle};
 	}
 
-	### Read:
+	### Read encoded body until boundary...
 	my $time = benchmark {
-	$state = $self->process_to_bound($outer_bound, $in, $ENCODED);
+	$self->process_to_bound($in, $rdr, $ENCODED);
         };
-	$self->fyi("process_to_bound: $time");
-	
-	### Flush and rewind it, so we can read it:
+	$self->debug("process_to_bound: $time");
+
+	### ...and look at how we finished up:
+	($rdr->eos_type =~ /^(DELIM|CLOSE)$/) or
+	    $self->whine("part did not end with expected boundary\n");
+
+	### Flush and rewind encoded buffer, so we can read it:
 	$ENCODED->flush;
 	$ENCODED->seek(0, 0);
     }
     else {                           ### no boundaries: read fast!
-	$self->fyi("no boundaries; taking shortcut");
+	$self->debug("no boundaries; taking shortcut");
 	$ENCODED = $in;
-	$state = 'EOF';
+
+	### Be sure to bogus-up the reader state to EOF:
+	$rdr->eos('EOF');
     }
 
     ### Get a content-decoder to decode this part's encoding:
@@ -782,50 +740,53 @@ sub process_singlepart {
     my $DECODED = $body->open("w") || die "$ME: body not opened: $!\n"; 
     my $time = benchmark {
 	eval { $decoder->decode($ENCODED, $DECODED); };
-	$@ and $self->oops($@);
+	$@ and $self->error($@);
     };
-    $self->fyi("decoding of normal part: $time");
+    $self->debug("decoding of normal part: $time");
     $DECODED->close;
     
     ### Success!  Remember where we put stuff:
     $ent->bodyhandle($body);
 
     ### Done!
-    return ($ent, $state);
+    1;
 }
 
 #------------------------------
 #
 # process_message IN, ENTITY, OUTERBOUND
 #
-# Process the singlepart body, and return the state.
+# Process the singlepart body, and return true.
 # Fatal exception on failure.
 # Invoked by process_part().
 #
 sub process_message {
-    my ($self, $in, $ent, $outer_bound) = @_;
+    my ($self, $in, $rdr, $ent) = @_;
     my $head = $ent->head;
 
-    $self->fyi("process_message");
+    $self->debug("process_message");
 
     ### Verify the encoding restrictions:
     my $encoding = $head->mime_encoding;
     if ($encoding !~ /^(7bit|8bit|binary)$/) {
-	$self->oops("illegal encoding [$encoding] for ".$head->mime_type."\n");
+	$self->error("illegal encoding [$encoding] for MIME type ".
+		     $head->mime_type."\n");
 	$encoding = 'binary';
     }
 
     ### Parse the message:
-    my ($msg, $state) = $self->process_part($in, $outer_bound);
+    my $msg = $self->process_part($in, $rdr);
 
+    ### How to handle nested messages?
     if ($self->extract_nested_messages eq 'REPLACE') {
-	$ent = $msg;
+	%$ent = %$msg;          ### shallow replace
+	%$msg = ();
     }
     else {                      ### "NEST" or generic 1:
 	$ent->bodyhandle(undef);
 	$ent->add_part($msg);
     }
-    return ($ent, $state);
+    1;
 }
 
 #------------------------------
@@ -838,51 +799,47 @@ sub process_message {
 #
 #    Retype => retype this part to the given content-type
 #
-# Returns the array ($entity, $state); the following states are legal:
-#
-#    "EOF"   -- stopped on end of file
-#    "DELIM" -- stopped on "--boundary"
-#    "CLOSE" -- stopped on "--boundary--"
-#
+# Return the entity.
 # Fatal exception on failure.
 #
 sub process_part {
-    my ($self, $in, $outer_bound, %p) = @_;
-    my $state = 'OK';
+    my ($self, $in, $rdr, %p) = @_;
+
+    $rdr ||= MIME::Parser::Reader->new;
     #debug "process_part";
-    ++$self->{MP5_FyiIndent};
+    $self->results->level(+1);
 
     ### Create a new entity:
     my $ent = $self->interface('ENTITY_CLASS')->new;
 
     ### Parse and add the header:
-    my $head = $self->process_header($in, $outer_bound);
-    $ent->head($head);
+    my $head = $self->process_header($in, $rdr);
+    $ent->head($head);   
 
     ### Tweak the content-type based on context from our parent...
     ### For example, multipart/digest messages default to type message/rfc822:
     $head->mime_type($p{Retype}) if $p{Retype};
     
     ### Get the MIME type and subtype:
-    my ($type, $subtype) = split('/', $head->mime_type);
-    defined($subtype) or $subtype = '';
+    my ($type, $subtype) = (split('/', $head->mime_type), '');
+    $self->debug("type = $type, subtype = $subtype");
 
     ### Handle, according to the MIME type:
     if ($type eq 'multipart') {
-	($ent, $state) = $self->process_multipart( $in, $ent, $outer_bound);
+	$self->process_multipart($in, $rdr, $ent);
     }
     elsif (("$type/$subtype" eq "message/rfc822") && 
 	   $self->extract_nested_messages) {
-	$self->fyi("attempting to process a nested message");
-	($ent, $state) = $self->process_message(   $in, $ent, $outer_bound);
+	$self->debug("attempting to process a nested message");
+	$self->process_message($in, $rdr, $ent);
     }
     else {                     
-	($ent, $state) = $self->process_singlepart($in, $ent, $outer_bound);
+	$self->process_singlepart($in, $rdr, $ent);
     }
 
     ### Done (we hope!):
-    --$self->{MP5_FyiIndent};
-    return ($ent, $state);
+    $self->results->level(-1);
+    return $ent;
 }
 
 
@@ -1096,6 +1053,18 @@ sub evil_filename {
 }
 
 #------------------------------
+# Function.
+# Cleanup a directory, defaulting empty to "."
+#
+sub cleanup_dir {
+    my $dir = shift;
+    $dir = '.' if (!defined($dir) || ($dir eq ''));   # coerce empty to "."
+    $dir = '/.' if ($dir eq '/');   # coerce "/" so "$dir/$filename" works
+    $dir =~ s|/$||;                 # be nice: get rid of any trailing "/"
+    $dir;
+}
+
+#------------------------------
 
 =item output_dir [DIRECTORY]
 
@@ -1119,24 +1088,39 @@ sub output_dir {
     my ($self, $dir) = @_;
 
     if (@_ > 1) {     ### arg given...
-	$dir = '.' if (!defined($dir) || ($dir eq ''));   # coerce empty to "."
-	$dir = '/.' if ($dir eq '/');   # coerce "/" so "$dir/$filename" works
-	$dir =~ s|/$||;                 # be nice: get rid of any trailing "/"
-	$self->{MP5_OutputDir} = $dir;
-	delete $self->{MP5_OutputBase};
+	$self->{MP5_OutputDir} = cleanup_dir($dir);
+	delete $self->{MP5_OutputBase};           ### out with the old
+	delete $self->{MP5_OutputDirName};        ### out with the old
     }
     $self->{MP5_OutputDir};
 }
 
 #------------------------------
 
-=item output_under BASEDIR
+=item output_under BASEDIR, [OPTSHASH...]
 
 I<Instance method.>
 An alternative to explicitly setting the L<output_dir()|/output_dir>.
-If used, then each parse begins by creating a subdirectory of BASEDIR
-(named using time, process id, and a sequence number) where the actual 
-parts are placed.  
+If used, then each parse begins by creating a new subdirectory of BASEDIR
+where the actual parts are placed.  OPTSHASH can contain the following:
+
+=over 4
+
+=item DirName
+
+Explicitly set the name of the subdirectory which is created.
+The default is to use the time, process id, and a sequence number,
+but you might want a predictable directory.  
+
+=item Purge
+
+Automatically purge the contents of the directory (including all
+subdirectories) before each parse.  This is really only needed if
+using an explicit DirName, and is provided as a convenience only.
+Currently we use the 1-arg form of File::Path::rmtree; you should
+familiarize yourself with the caveats therein.
+
+=back
 
 The output_dir() will return the path to this message-specific directory 
 until the next parse is begun, so you can do this:
@@ -1145,11 +1129,11 @@ until the next parse is begun, so you can do this:
      
     $parser->output_under("/tmp");
     $ent = eval { $parser->parse_open($msg); };   ### parse
-    if (!$ent) {	
-	rmtree($parser->output_dir);  
-	die "parse failed, but I cleaned up: $@";
+    if (!$ent) {	 ### parse failed
+	rmtree($parser->output_dir);
+	die "parse failed: $@";
     } 
-    else {
+    else {               ### parse succeeded
 	...do stuff...
     }
 
@@ -1159,11 +1143,12 @@ With no argument, returns the current BASEDIR.
 =cut
 
 sub output_under {
-    my ($self, $basedir) = @_;
+    my ($self, $basedir, %opts) = @_;
     if (@_ > 1) {
-	$self->output_dir($basedir);
-	$self->{MP5_OutputBase} = $self->{MP5_OutputDir};
-	delete $self->{MP5_OutputDir};
+	$self->{MP5_OutputBase}    = cleanup_dir($basedir);
+	$self->{MP5_OutputDirName} = $opts{DirName}; 
+	$self->{MP5_OutputPurge}   = $opts{Purge}; 
+	delete $self->{MP5_OutputDir};      ### out with the old!
     }
     $self->{MP5_OutputBase};
 }
@@ -1254,7 +1239,7 @@ sub output_path {
 	$outname = undef;
     }
     if (!defined($outname)) {      ### evil or missing; make our OWN filename:
-	$self->fyi("no filename recommended: synthesizing our own");
+	$self->debug("no filename recommended: synthesizing our own");
 	++$G_output_path;
 	$outname = ($self->output_prefix . "-$$-$G_output_path.dat");
     }
@@ -1469,12 +1454,12 @@ sub new_body_for {
     my ($self, $head) = @_;
 
     if ($self->output_to_core) {
-	$self->fyi("outputting body to core");
+	$self->debug("outputting body to core");
 	return (new MIME::Body::InCore);
     }
     else {
 	my $outpath = $self->output_path($head);
-	$self->fyi("outputting body to disk file: $outpath");
+	$self->debug("outputting body to disk file: $outpath");
 	return (new MIME::Body::File $outpath);
     }
 }
@@ -1521,7 +1506,7 @@ sub new_tmpfile {
 	    $recycle &&                              ### something to recycle
 	    $Config{'truncate'} && $io->can('seek')  ### recycling will work
 	    ){                 	
-	    $self->fyi("recycling tmpfile: $io");
+	    $self->debug("recycling tmpfile: $io");
 	    $io->seek(0, 0);
 	    truncate($io, 0);
 	}
@@ -1544,7 +1529,7 @@ sub new_tmpfile {
 
 #------------------------------------------------------------
 
-=head2 Recovering from errors
+=head2 Parse results and error recovery
 
 =over 4
 
@@ -1560,7 +1545,7 @@ Return the error (if any) that we ignored in the last parse.
 =cut
 
 sub last_error {
-    shift->{MP5_LastError};
+    join '', shift->results->errors;
 }
 
 
@@ -1582,8 +1567,24 @@ This is useful for replying to people who sent us bad MIME messages.
 =cut
 
 sub last_head {
-    shift->{MP5_LastHead};
+    shift->results->top_head;
 }
+
+#------------------------------
+
+=item results
+
+I<Instance method.>
+Return an object containing lots of info from the last entity parsed.
+This will be an instance of class 
+L<MIME::Parser::Results|MIME::Parser::Results>.
+
+=cut
+
+sub results {
+    shift->{MP5_Results};
+}
+
 
 =back
 
@@ -1856,7 +1857,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.117 $ $Date: 2000/05/23 05:36:19 $
+$Revision: 5.203 $ $Date: 2000/06/06 04:35:13 $
 
 =cut
 

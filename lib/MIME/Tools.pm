@@ -6,11 +6,13 @@ package MIME::Tools;
 #------------------------------
 
 use strict;
-use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION)); 
+use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION $ME)); 
 
 require Exporter;
 use FileHandle;
 use Carp;
+
+$ME = "MIME-tools";
 
 @ISA = qw(Exporter);
 
@@ -23,7 +25,7 @@ use Carp;
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.116 $, 10;
+$VERSION = substr q$Revision: 5.205 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -33,7 +35,7 @@ $VERSION = substr q$Revision: 5.116 $, 10;
      QUIET           => 1,
      );
 
-# Was this warning given?
+# Was this whine given?
 my %AlreadySaid;
 
 
@@ -92,12 +94,12 @@ sub debug {
 #
 # whine MESSAGE...
 #
-# Private: issue a warning, but only if $^W (-w) is true, and
+# Private: issue a whine, but only if $^W (-w) is true, and
 # we're not being QUIET.
 #
 sub whine { 
     my ( $p,  $f,  $l,  $s) = caller(1);
-    my $msg = join('', (($s =~ /::/) ? "$s(): " : "${p}::$s(): "), @_, "\n");
+    my $msg = "$ME: warning: ".join('', @_)."\n";
     warn $msg if ($^W && !$CONFIG{QUIET});
     return (wantarray ? () : undef);
 }
@@ -109,8 +111,7 @@ sub whine {
 # Private: something failed; register general unhappiness.
 #
 sub error { 
-    my ( $p,  $f,  $l,  $s) = caller(1);
-    my $msg = join('', (($s =~ /::/) ? "$s(): " : "${p}::$s(): "), @_, "\n");
+    my $msg = "$ME: error: ".join('', @_)."\n";
     warn $msg if $^W;
     return (wantarray ? () : undef);
 }
@@ -798,6 +799,22 @@ bugs I<before> they become problems...
 
 =over 4
 
+=item Version 5.205
+
+Added terminating newline to all parser messages, and fixed
+small parser bug that was dropping parts when errors occurred
+in certain places.
+
+
+=item Version 5.203
+
+Brand new parser based on new (private) MIME::Parser::Reader and 
+(public) MIME::Parser::Results.  Fast and yet simple and very tolerant
+of bad MIME when desired.  Message reporting needs some muzzling.
+
+MIME::Parser now has ignore_errors() set true by default.
+
+
 =item Version 5.116
 
 Removed Tmpfile.t test, which was causing a bogus failure in 
@@ -1335,7 +1352,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 
 =head1 VERSION
 
-$Revision: 5.116 $ 
+$Revision: 5.205 $ 
 
 
 =head1 ACKNOWLEDGMENTS

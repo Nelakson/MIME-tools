@@ -34,6 +34,15 @@ docs/MIME/Field/icons/up.gif
 docs/MIME/Field/icons/zeegee.gif
 docs/MIME/Head.pm.html
 docs/MIME/Parser.pm.html
+docs/MIME/Parser/Reader.pm.html
+docs/MIME/Parser/Results.pm.html
+docs/MIME/Parser/icons/h1bullet.gif
+docs/MIME/Parser/icons/h1bullet1.gif
+docs/MIME/Parser/icons/h1bullet2.gif
+docs/MIME/Parser/icons/h2bullet.gif
+docs/MIME/Parser/icons/h2bullet1.gif
+docs/MIME/Parser/icons/up.gif
+docs/MIME/Parser/icons/zeegee.gif
 docs/MIME/Tools.pm.html
 docs/MIME/Words.pm.html
 docs/MIME/h1bullet.gif
@@ -93,6 +102,8 @@ lib/MIME/Field/ContType.pm
 lib/MIME/Field/ParamVal.pm
 lib/MIME/Head.pm
 lib/MIME/Parser.pm
+lib/MIME/Parser/Reader.pm
+lib/MIME/Parser/Results.pm
 lib/MIME/Tools.pm
 lib/MIME/Words.pm
 t/Body.t
@@ -168,6 +179,7 @@ testmsgs/multi-clen.msg
 testmsgs/multi-clen.ref
 testmsgs/multi-digest.msg
 testmsgs/multi-digest.ref
+testmsgs/multi-frag.msg
 testmsgs/multi-igor.msg
 testmsgs/multi-igor.ref
 testmsgs/multi-igor2.msg

@@ -55,13 +55,15 @@ MIME::ToolUtils->config('DEBUGGING' => $opt_v);
 
 # Set up parser:
 my $parser = new MIME::Parser;
-$parser->output_to_core('ALL');       # 512 bytes or less goes to core
-$parser->parse_nested_messages($opt_n) if ($opt_n);
+$parser->output_to_core('ALL');
+$parser->parse_nested_messages($opt_n) if defined($opt_n);
 $parser->decode_headers($opt_h);
+$parser->ignore_errors(1);
 
 # Parse:
-my $ent = $parser->parse_in($ARGV[0]);
+my $ent = $parser->parse_open($ARGV[0]);
 $ent or die "MIME parsing failed!\n";
+print STDERR $parser->results->msgs;
 if ($opt_e and !$ent->is_multipart) {
     supported MIME::Decoder $opt_e or die "unsupported encoding: $opt_e\n";
     $ent->head->mime_attr("Content-transfer-encoding" => $opt_e);

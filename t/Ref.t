@@ -50,10 +50,11 @@ foreach my $refpath (@refpaths) {
     $parser->output_dir($output_dir);
     $parser->extract_nested_messages($ref->{Parser}{ExtractNested});
     $parser->output_to_core(0);
+    $parser->ignore_errors(0);
     
     ### Parse:
     my $ent = eval { $parser->parse_open($msgpath) };
-    if (!$ent) {
+    if ($@ || !$ent) {
 	$T->ok($ref->{Msg}{Fail},
 	       $refpath,
 	       Problem => $@);

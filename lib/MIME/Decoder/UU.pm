@@ -33,7 +33,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.102 $ $Date: 2000/04/20 04:56:45 $
+$Revision: 5.202 $ $Date: 2000/06/05 13:37:56 $
 
 =cut
 
@@ -46,7 +46,7 @@ use MIME::Tools qw(whine);
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.102 $, 10;
+$VERSION = substr q$Revision: 5.202 $, 10;
 
 
 #------------------------------

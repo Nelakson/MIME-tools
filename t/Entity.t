@@ -183,8 +183,10 @@ my $bodylines = $top->parts(0)->body;
 #-----test------
 $T->ok($bodylines > 0, 
        "old-style body call ok");
-my $preamble_len = length(join '', @{$top->preamble || []});
-my $epilogue_len = length(join '', @{$top->epilogue || []});
+my $preamble_str = join '', @{$top->preamble || []};
+my $preamble_len = length($preamble_str);
+my $epilogue_str = join '', @{$top->epilogue || []};
+my $epilogue_len = length($epilogue_str);
 
 #------------------------------------------------------------
 $T->msg("Output msg1 to explicit filehandle glob");
@@ -225,14 +227,22 @@ $top = $parser->parse(\*IN);
 #-----test------
 $T->ok($top, "parsed msg1 back in");
 
-my $preamble_len2 = length(join '', @{$top->preamble || []});
-my $epilogue_len2 = length(join '', @{$top->epilogue || []});
+my $preamble_str2 = join '', @{$top->preamble || []};
+my $preamble_len2 = length($preamble_str2);
+my $epilogue_str2 = join '', @{$top->epilogue || []};
+my $epilogue_len2 = length($epilogue_str2);
 #-----test------
 $T->ok(($preamble_len == $preamble_len2), 
-	"preambles match ($preamble_len == $preamble_len2)");
+	"preambles match ($preamble_len == $preamble_len2)",
+	Pre1 => $preamble_str,
+	Pre2 => $preamble_str2,
+	);
 #-----test------
 $T->ok(($epilogue_len == $epilogue_len2), 
-	"epilogues match ($epilogue_len == $epilogue_len2)");
+	"epilogues match ($epilogue_len == $epilogue_len2)",
+	Epi1 => $epilogue_str,
+	Epi2 => $epilogue_str2,
+	);
 
 #------------------------------------------------------------
 $T->msg("Check the number of parts");

@@ -6,7 +6,7 @@
        bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
 <A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME::Parser</H1>
 </A>
-<P><B>This module is <FONT COLOR="#990000">BETA</FONT> code, which means that the interfaces are fairly stable BUT it has not been out in the community long enough to guarantee much testing. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
+<P><B>This module is <FONT COLOR="#990000">ALPHA</FONT> code, which means that public interfaces are largely untested, and may change in future releases. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
 <UL>
@@ -25,7 +25,7 @@
 <LI> <A HREF="#Parsing_an_input_source">Parsing an input source</A>
 <LI> <A HREF="#Specifying_output_destination">Specifying output destination</A>
 <LI> <A HREF="#Specifying_classes_to_be_instantiated">Specifying classes to be instantiated</A>
-<LI> <A HREF="#Recovering_from_errors">Recovering from errors</A>
+<LI> <A HREF="#Parse_results_and_error_recovery">Parse results and error recovery</A>
 </UL>
 <LI> <A HREF="#OPTIMIZING_YOUR_PARSER">OPTIMIZING YOUR PARSER</A>
 <UL>
@@ -121,10 +121,11 @@
     ### Normal mechanism:
     eval { $entity = $parser-&gt;parse(\*STDIN) };
     if ($@) {
+	$results  = $parser-&gt;results;
 	$decapitated = $parser-&gt;last_head;  ### get last top-level head
     }
     
-    ### Dangerous ultra-tolerant mechanism:
+    ### Ultra-tolerant mechanism:
     $parser-&gt;ignore_errors(1);
     $entity = eval { $parser-&gt;parse(\*STDIN) };
     $error = ($@ || $parser-&gt;last_error);
@@ -141,8 +142,8 @@
     ### Parse contained &quot;message/rfc822&quot; objects as nested MIME streams?
     $parser-&gt;extract_nested_messages('REPLACE');
      
-    ### Forgive a lot of normally-fatal errors (NOT RECOMMENDED!)
-    $parser-&gt;ignore_errors(1);
+    ### Forgive a lot of normally-fatal errors:
+    $parser-&gt;ignore_errors;
 </PRE>
 
 
@@ -277,12 +278,11 @@ the sender's address and the subject line.  <CODE>:-/</CODE>.
 <DD>
 <I>Instance method.</I>
 Controls whether the parser will attempt to ignore normally-fatal
-errors, treating them as warnings and continuaing with the parse.
-<B>Use of this is STRONGLY discouraged.</B>
+errors, treating them as warnings and continuing with the parse.
 
 
-<P>If YESNO is true, some fatal errors are ignored.
-If YESNO is false (the default), fatal errors throw exceptions.
+<P>If YESNO is true (the default), many syntax errors are tolerated.
+If YESNO is false, fatal errors throw exceptions.
 With no argument, just returns the current setting.
 
 </DL>
@@ -427,13 +427,31 @@ It should also be used by subclasses, but if a subclass decides to
 output parts in some completely different manner, this method may 
 of course be completely ignored.
 
-<P><DT><B><A NAME="item:output_under">output_under BASEDIR</A></B></DT>
+<P><DT><B><A NAME="item:output_under">output_under BASEDIR, [OPTSHASH...]</A></B></DT>
 <DD>
 <I>Instance method.</I>
 An alternative to explicitly setting the <A HREF="#item:output_dir">output_dir()</A>.
-If used, then each parse begins by creating a subdirectory of BASEDIR
-(named using time, process id, and a sequence number) where the actual 
-parts are placed.  
+If used, then each parse begins by creating a new subdirectory of BASEDIR
+where the actual parts are placed.  OPTSHASH can contain the following:
+
+
+
+<DL>
+<P><DT><B><A NAME="item:DirName">DirName</A></B></DT>
+<DD>
+Explicitly set the name of the subdirectory which is created.
+The default is to use the time, process id, and a sequence number,
+but you might want a predictable directory.  
+
+<P><DT><B><A NAME="item:Purge">Purge</A></B></DT>
+<DD>
+Automatically purge the contents of the directory (including all
+subdirectories) before each parse.  This is really only needed if
+using an explicit DirName, and is provided as a convenience only.
+Currently we use the 1-arg form of File::Path::rmtree; you should
+familiarize yourself with the caveats therein.
+
+</DL>
 
 
 <P>The output_dir() will return the path to this message-specific directory 
@@ -444,11 +462,11 @@ until the next parse is begun, so you can do this:
      
     $parser-&gt;output_under(&quot;/tmp&quot;);
     $ent = eval { $parser-&gt;parse_open($msg); };   ### parse
-    if (!$ent) {	
-	rmtree($parser-&gt;output_dir);  
-	die &quot;parse failed, but I cleaned up: $@&quot;;
+    if (!$ent) {	 ### parse failed
+	rmtree($parser-&gt;output_dir);
+	die &quot;parse failed: $@&quot;;
     } 
-    else {
+    else {               ### parse succeeded
 	...do stuff...
     }
 </PRE>
@@ -700,7 +718,7 @@ recycling, just ignore it and always return a new object.
 
 
 <P><HR>
-<A NAME="Recovering_from_errors"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Recovering from errors</H3></A>
+<A NAME="Parse_results_and_error_recovery"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Parse results and error recovery</H3></A>
 
 
 
@@ -724,6 +742,13 @@ This is useful for replying to people who sent us bad MIME messages.
 	...
     }
 </PRE>
+<P><DT><B><A NAME="item:results">results</A></B></DT>
+<DD>
+<I>Instance method.</I>
+Return an object containing lots of info from the last entity parsed.
+This will be an instance of class 
+<A HREF="../MIME/Parser/Results.pm.html">MIME::Parser::Results</A>.
+
 </DL>
 
 
@@ -1027,11 +1052,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.117 $ $Date: 2000/05/23 05:36:19 $
+<P>$Revision: 5.203 $ $Date: 2000/06/06 04:35:13 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Fri May 26 00:32:03 2000 by cvu_pod2html
+Generated Tue Jun  6 00:42:07 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

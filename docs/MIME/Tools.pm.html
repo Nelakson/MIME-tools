@@ -6,7 +6,7 @@
        bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
 <A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME-tools</H1>
 </A>
-<P><B>This module is <FONT COLOR="#990000">BETA</FONT> code, which means that the interfaces are fairly stable BUT it has not been out in the community long enough to guarantee much testing. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
+<P><B>This module is <FONT COLOR="#990000">ALPHA</FONT> code, which means that public interfaces are largely untested, and may change in future releases. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
@@ -683,6 +683,21 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.205</A></B></DT>
+<DD>
+Added terminating newline to all parser messages, and fixed
+small parser bug that was dropping parts when errors occurred
+in certain places.
+
+<P><DT><B><A NAME="item:Version">Version 5.203</A></B></DT>
+<DD>
+Brand new parser based on new (private) MIME::Parser::Reader and 
+(public) MIME::Parser::Results.  Fast and yet simple and very tolerant
+of bad MIME when desired.  Message reporting needs some muzzling.
+
+
+<P>MIME::Parser now has ignore_errors() set true by default.
+
 <P><DT><B><A NAME="item:Version">Version 5.116</A></B></DT>
 <DD>
 Removed Tmpfile.t test, which was causing a bogus failure in 
@@ -1259,7 +1274,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.116 $ 
+<P>$Revision: 5.205 $ 
 
 
 
@@ -1325,7 +1340,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Fri May 26 00:32:06 2000 by cvu_pod2html
+Generated Tue Jun  6 00:42:19 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

@@ -242,7 +242,7 @@ use IO::Wrap;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.108 $, 10;
+$VERSION = substr q$Revision: 5.202 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -858,18 +858,22 @@ sub head {
 =item is_multipart
 
 I<Instance method.>
-Does this entity's MIME type indicate that it's a multipart entity?
+Does this entity's effective MIME type indicate that it's a multipart entity?
 Returns undef (false) if the answer couldn't be determined, 0 (false)
 if it was determined to be false, and true otherwise.
 Note that this says nothing about whether or not parts were extracted.
 
+NOTE: we switched to effective_type so that multiparts with 
+bad or missing boundaries could be coerced to an effective type
+of C<application/x-unparseable-multipart>.
+
+
 =cut
 
-### NOTE: should we use effective_type() instead?
 sub is_multipart {
     my $self = shift;
     $self->head or return undef;        ### no head, so no MIME type!
-    my ($type, $subtype) = split('/', $self->head->mime_type);
+    my ($type, $subtype) = split('/', $self->effective_type);
     (($type eq 'multipart') ? 1 : 0);
 }
 
@@ -2071,7 +2075,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.108 $ $Date: 2000/05/24 05:12:52 $
+$Revision: 5.202 $ $Date: 2000/06/05 13:37:53 $
 
 =cut
 

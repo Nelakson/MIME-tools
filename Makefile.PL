@@ -12,7 +12,7 @@ WriteMakefile(
 		       "IO::Stringy"       => 1.211,
 		       },
       'dist'       => {
-	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools -B", 
+	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools -A", 
 	  COMPRESS     =>'gzip',
 	  SUFFIX       =>'gz',	      
       },

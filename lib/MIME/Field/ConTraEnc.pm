@@ -43,7 +43,7 @@ use vars qw($VERSION @ISA);
 @ISA = qw(MIME::Field::ParamVal);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.101 $, 10;
+$VERSION = substr q$Revision: 5.202 $, 10;
 
 # Install it: 
 bless([])->register('Content-transfer-encoding');
