@@ -11,6 +11,7 @@ use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION $ME));
 require Exporter;
 use FileHandle;
 use Carp;
+use Benchmark;
 
 $ME = "MIME-tools";
 
@@ -25,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.205 $, 10;
+$VERSION = substr q$Revision: 5.206 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -148,10 +149,16 @@ sub usage {
 #
 sub benchmark(&) {
     my ($code) = @_;
-    my $stime = time();
-    &$code; 
-    my $etime = time();
-    return ($etime - $stime)." seconds";
+    if (1) {
+	my $t0 = new Benchmark;
+	&$code;
+	my $t1 = new Benchmark;
+	return timestr(timediff($t1, $t0));
+    }
+    else {
+	&$code;
+	return "";
+    }
 }
 
 #------------------------------
@@ -799,6 +806,21 @@ bugs I<before> they become problems...
 
 =over 4
 
+=item Version 5.206
+
+Fixed bug in MIME::Parser: the reader was not correctly handling the 
+odd (but legal) case where a multipart boundary is followed by linear 
+whitespace.
+I<Thanks to Jon Agnew for reporting this with the RFC citation.>
+
+Empty preambles are now handled properly by MIME::Entity when
+printing: there is now no space between the header-terminator
+and the initial boundary.
+I<Thanks to "sen_ml" for suggesting this.>
+
+Started using Benchmark for benchmarking.
+
+
 =item Version 5.205
 
 Added terminating newline to all parser messages, and fixed
@@ -1352,7 +1374,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 
 =head1 VERSION
 
-$Revision: 5.205 $ 
+$Revision: 5.206 $ 
 
 
 =head1 ACKNOWLEDGMENTS

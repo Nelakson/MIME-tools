@@ -21,6 +21,9 @@ use IO::ScalarArray;
 ### Note that "" is included because last line of stream may have no newline!
 my @EOLs = ("", "\r", "\n", "\r\n", "\n\r");
 
+### Long line:
+my $LONGLINE = ' ' x 1000;
+
 
 #------------------------------
 #
@@ -34,6 +37,7 @@ sub new {
     return bless {
 	Bounds => [],
 	BH     => {},
+	TH     => {},
 	EOS    => \$eos,
     }, $class;
 }
@@ -50,6 +54,7 @@ sub spawn {
     my $dup = bless {}, ref($self);
     $dup->{Bounds} = [ @{$self->{Bounds}} ];  ### deep copy
     $dup->{BH}     = { %{$self->{BH}} };      ### deep copy
+    $dup->{TH}     = { %{$self->{TH}} };      ### deep copy
     $dup->{EOS}    = $self->{EOS};            ### shallow copy; same ref!
     $dup;
 }
@@ -63,10 +68,8 @@ sub spawn {
 sub add_boundary {
     my ($self, $bound) = @_;
     unshift @{$self->{Bounds}}, $bound;   ### now at index 0
-    foreach my $eol (@EOLs) {
-	$self->{BH}{"--$bound$eol"}   = "DELIM $bound";
-	$self->{BH}{"--$bound--$eol"} = "CLOSE $bound";
-    }
+    $self->{BH}{"--$bound"}   = "DELIM $bound";
+    $self->{BH}{"--$bound--"} = "CLOSE $bound";
     $self;
 }
 
@@ -78,8 +81,8 @@ sub add_boundary {
 #
 sub add_terminator {
     my ($self, $line) = @_;
-    foreach my $eol (@EOLs) {
-	$self->{BH}{"$line$eol"} = "DONE $line";
+    foreach (@EOLs) {
+	$self->{TH}{"$line$_"} = "DONE $line";
     }
     $self;
 }
@@ -175,10 +178,12 @@ sub read_chunk {
     
     ### Init:
     my %bh = %{$self->{BH}};
+    my %th = %{$self->{TH}}; my $thx = keys %th;
+    local $_ = $LONGLINE;
+    my $maybe;
     my $last = '';
-    my $eos = '';
-    local $_ = ' ' x 1000;
-
+    my $eos  = '';
+    
     ### Determine types:
     my $n_in  = native_handle($in);
     my $n_out = native_handle($out);
@@ -186,26 +191,46 @@ sub read_chunk {
     ### Handle efficiently by type:
     if ($n_in) {
 	if ($n_out) {            ### native input, native output [fastest]
-	    while (<$n_in>) { 
-		$bh{$_} and do { $eos = $bh{$_}; last };
-		print $n_out $last; $last = $_;  }
+	    while (<$n_in>) {
+		if (substr($_, 0, 2) eq '--') {
+		    ($maybe = $_) =~ s/[ \t\r\n]+\Z//;
+		    $bh{$maybe} and do { $eos = $bh{$maybe}; last };
+		}
+		$thx and $th{$_} and do { $eos = $th{$_}; last };
+		print $n_out $last; $last = $_; 
+	    }
 	}
 	else {                   ### native input, OO output [slower]
 	    while (<$n_in>) { 
-		$bh{$_} and do { $eos = $bh{$_}; last };
-		$out->print($last); $last = $_; }
+		if (substr($_, 0, 2) eq '--') {
+		    ($maybe = $_) =~ s/[ \t\r\n]+\Z//;
+		    $bh{$maybe} and do { $eos = $bh{$maybe}; last };
+		}
+		$thx and $th{$_} and do { $eos = $th{$_}; last };
+		$out->print($last); $last = $_; 
+	    }
 	}
     }
     else {
 	if ($n_out) {            ### OO input, native output [even slower]
 	    while (defined($_ = $in->getline)) { 
-		$bh{$_} and do { $eos = $bh{$_}; last };
-		print $n_out $last; $last = $_;  }
+		if (substr($_, 0, 2) eq '--') {
+		    ($maybe = $_) =~ s/[ \t\r\n]+\Z//;
+		    $bh{$maybe} and do { $eos = $bh{$maybe}; last };
+		}
+		$thx and $th{$_} and do { $eos = $th{$_}; last };
+		print $n_out $last; $last = $_;  
+	    }
 	}
 	else {                   ### OO input, OO output [slowest]
 	    while (defined($_ = $in->getline)) { 
-		$bh{$_} and do { $eos = $bh{$_}; last };
-		$out->print($last); $last = $_; }
+		if (substr($_, 0, 2) eq '--') {
+		    ($maybe = $_) =~ s/[ \t\r\n]+\Z//;
+		    $bh{$maybe} and do { $eos = $bh{$maybe}; last };
+		}
+		$thx and $th{$_} and do { $eos = $th{$_}; last };
+		$out->print($last); $last = $_; 
+	    }
 	}
     }
     
@@ -228,7 +253,6 @@ sub read_lines {
     my ($self, $in, $outlines) = @_;
     $self->read_chunk($in, IO::ScalarArray->new($outlines));
     shift @$outlines if ($outlines->[0] eq '');   ### leading empty line
-#   foreach (@$outlines) { s/[\r\n]+\Z/\n/ };
     1;
 }
 

@@ -113,7 +113,7 @@ require 5.004;
 
 ### Pragmas:
 use strict;
-use vars (qw($VERSION $CAT $CRLF));
+use vars (qw($VERSION $CAT $CRLF $BM));
 
 ### Built-in modules:
 use FileHandle ();
@@ -167,7 +167,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.203 $, 10;
+$VERSION = substr q$Revision: 5.204 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -535,7 +535,10 @@ sub process_to_bound {
     my ($self, $in, $rdr, $out) = @_;        
 
     ### Parse:
-    $rdr->read_chunk($in, $out);
+    my $bm = benchmark {
+	$rdr->read_chunk($in, $out);
+    };
+    $self->debug("t bound: $bm");
     
     ### How did we do?
     ($rdr->eos_type =~ /^(DELIM|CLOSE)$/) or
@@ -700,10 +703,7 @@ sub process_singlepart {
 	}
 
 	### Read encoded body until boundary...
-	my $time = benchmark {
 	$self->process_to_bound($in, $rdr, $ENCODED);
-        };
-	$self->debug("process_to_bound: $time");
 
 	### ...and look at how we finished up:
 	($rdr->eos_type =~ /^(DELIM|CLOSE)$/) or
@@ -738,11 +738,11 @@ sub process_singlepart {
     
     ### Decode and save the body (using the decoder):
     my $DECODED = $body->open("w") || die "$ME: body not opened: $!\n"; 
-    my $time = benchmark {
-	eval { $decoder->decode($ENCODED, $DECODED); };
+    my $bm = benchmark {
+	eval { $decoder->decode($ENCODED, $DECODED); }; 
 	$@ and $self->error($@);
     };
-    $self->debug("decoding of normal part: $time");
+    $self->debug("t decode: $bm");
     $DECODED->close;
     
     ### Success!  Remember where we put stuff:
@@ -926,9 +926,14 @@ Throws exception on failure.
 sub parse {
     my $self = shift;
     my $in = wraphandle(shift);    ### coerce old-style filehandles to objects
+    my $entity;
 
-    $self->init_parse;
-    my ($entity) = $self->process_part($in, undef);  ### parse!
+    my $bm = benchmark {
+	$self->init_parse;
+	($entity) = $self->process_part($in, undef);  ### parse!
+    };
+    $self->debug("t parse: $bm");
+
     $entity;
 }
 
@@ -1857,7 +1862,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.203 $ $Date: 2000/06/06 04:35:13 $
+$Revision: 5.204 $ $Date: 2000/06/08 07:26:46 $
 
 =cut
 

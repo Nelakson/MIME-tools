@@ -242,7 +242,7 @@ use IO::Wrap;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+$VERSION = substr q$Revision: 5.203 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -349,11 +349,10 @@ the end of the array.  (An INDEX of -1 will place the new part at the
 very end of the array, -2 will place it as the penultimate item in the
 array, etc.)  If OFFSET is not given, the new part is added to the end
 of the array.
+I<Thanks to Jason L Tibbitts III for providing support for OFFSET.>
 
 B<Warning:> in general, you only want to attach parts to entities
 with a content-type of C<multipart/*>).
-
-I<Thanks to Jason L Tibbitts III for providing support for OFFSET.>
 
 =cut
 
@@ -1688,18 +1687,21 @@ sub print_body {
 	my $boundary = $self->head->multipart_boundary; 
 
 	### Preamble:
-	$out->print(join('', @{ $self->preamble || $DefPreamble }));
+	my $preamble = join('', @{ $self->preamble || $DefPreamble });
+	$out->print("$preamble\n") if ($preamble ne '');
 
 	### Parts:
 	my $part;
 	foreach $part ($self->parts) {
-	    $out->print("\n--$boundary\n");
+	    $out->print("--$boundary\n");
 	    $part->print($out);
+	    $out->print("\n");           ### needed for next delim/close
 	}
+	$out->print("--$boundary--\n");
 
 	### Epilogue:
-	$out->print("\n--$boundary--\n");
-	$out->print(join('', @{ $self->epilogue || $DefEpilogue }));
+	my $epilogue = join('', @{ $self->epilogue || $DefEpilogue });
+	$out->print("$epilogue\n") if ($epilogue ne '');
     }
 
     ### Singlepart type with parts...
@@ -1711,7 +1713,7 @@ sub print_body {
 	foreach $part ($self->parts) {
 	    $out->print("\n\n") if $need_sep++;
 	    $part->print($out);
-	}	
+	}
     }
 
     ### Singlepart type, or no parts: output body...
@@ -2075,7 +2077,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.202 $ $Date: 2000/06/05 13:37:53 $
+$Revision: 5.203 $ $Date: 2000/06/08 07:26:45 $
 
 =cut
 
