@@ -29,7 +29,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.410 $, 10;
+$VERSION = substr q$Revision: 5.411 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -1043,12 +1043,17 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.410 $
+$Revision: 5.411 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.411
+
+B<Regenerated docs.>
+Bug in HTML docs, now all fixed.
 
 =item Version 5.410   (2000/11/23)
 
@@ -1985,7 +1990,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date: 2000/11/23 05:04:01 $), the MIME-tools homepage was
+At the time of this writing ($Date: 2001/01/17 06:57:21 $), the MIME-tools homepage was
 F<http://www.zeegee.com/code/perl/MIME-tools>.
 Check there for updates and support.
 

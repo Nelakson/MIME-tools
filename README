@@ -654,9 +654,12 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.410 $
+    $Revision: 5.411 $
 
 CHANGE LOG
+    Version 5.411
+        Regenerated docs. Bug in HTML docs, now all fixed.
+
     Version 5.410   (2000/11/23)
         Better detection of evil filenames. Now we check for filenames which
         are suspiciously long, and a new MIME::Filer::exorcise_filename()
@@ -1419,7 +1422,7 @@ ACKNOWLEDGMENTS
     me, and I'll put you in.
 
 SEE ALSO
-    At the time of this writing ($Date: 2000/11/23 05:04:01 $), the MIME-
+    At the time of this writing ($Date: 2001/01/17 06:57:21 $), the MIME-
     tools homepage was http://www.zeegee.com/code/perl/MIME-tools. Check
     there for updates and support.
 
