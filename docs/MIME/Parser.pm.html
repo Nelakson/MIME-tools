@@ -137,13 +137,16 @@
 
 <PRE>
     ### Automatically attempt to RFC-1522-decode the MIME headers:
-    $parser-&gt;decode_headers(1);
+    $parser-&gt;decode_headers(1);              ### default is false
     
     ### Parse contained &quot;message/rfc822&quot; objects as nested MIME streams?
-    $parser-&gt;extract_nested_messages('REPLACE');
+    $parser-&gt;extract_nested_messages(0);     ### default is true
      
+    ### Look for uuencode in &quot;text&quot; messages, and extract it?
+    $parser-&gt;extract_uuencode(1);            ### default is false
+          
     ### Forgive a lot of normally-fatal errors:
-    $parser-&gt;ignore_errors;
+    $parser-&gt;ignore_errors(0);               ### default is true
 </PRE>
 
 
@@ -273,6 +276,20 @@ the sender's address and the subject line.  <CODE>:-/</CODE>.
 
 
 <P><I>Thanks to Andreas Koenig for suggesting this method.</I>
+
+<P><DT><B><A NAME="item:extract_uuencode">extract_uuencode [YESNO]</A></B></DT>
+<DD>
+<I>Instance method.</I>
+If set true, then whenever we are confronted with a message
+whose effective content-type is &quot;text/plain&quot; and whose encoding
+is 7bit/8bit/binary, we scan the encoded body to see if it contains
+uuencoded data (generally given away by a &quot;begin XXX&quot; line). 
+
+
+<P>If it does, we explode the uuencoded message into a multipart, 
+where the text before the first &quot;begin XXX&quot; becomes the first part,
+and all &quot;begin...end&quot; sections following become the subsequent parts. 
+The filename (if given) is accessible through the normal means.
 
 <P><DT><B><A NAME="item:ignore_errors">ignore_errors [YESNO]</A></B></DT>
 <DD>
@@ -1052,11 +1069,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.205 $ $Date: 2000/06/09 03:32:08 $
+<P>$Revision: 5.207 $ $Date: 2000/06/10 07:55:23 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jun  8 23:33:42 2000 by cvu_pod2html
+Generated Sat Jun 10 03:58:36 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

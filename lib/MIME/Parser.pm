@@ -78,13 +78,16 @@ MIME::Parser - experimental class for parsing MIME streams
 =head2 Examples of parser options
 
     ### Automatically attempt to RFC-1522-decode the MIME headers:
-    $parser->decode_headers(1);
+    $parser->decode_headers(1);              ### default is false
     
     ### Parse contained "message/rfc822" objects as nested MIME streams?
-    $parser->extract_nested_messages('REPLACE');
+    $parser->extract_nested_messages(0);     ### default is true
      
+    ### Look for uuencode in "text" messages, and extract it?
+    $parser->extract_uuencode(1);            ### default is false
+          
     ### Forgive a lot of normally-fatal errors:
-    $parser->ignore_errors;
+    $parser->ignore_errors(0);               ### default is true
 
 
 =head2 Miscellaneous examples
@@ -167,7 +170,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.205 $, 10;
+$VERSION = substr q$Revision: 5.207 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -245,6 +248,7 @@ sub init {
     $self->{MP5_TmpToCore}       = 0;
     $self->{MP5_IgnoreErrors}    = 1;
     $self->{MP5_UseInnerFiles}   = 0;
+    $self->{MP5_UUDecode}        = 0;
 
     $self->interface(ENTITY_CLASS => 'MIME::Entity');
     $self->interface(HEAD_CLASS   => 'MIME::Head');
@@ -385,6 +389,29 @@ sub parse_nested_messages {
 
 #------------------------------
 
+=item extract_uuencode [YESNO]
+
+I<Instance method.>
+If set true, then whenever we are confronted with a message
+whose effective content-type is "text/plain" and whose encoding
+is 7bit/8bit/binary, we scan the encoded body to see if it contains
+uuencoded data (generally given away by a "begin XXX" line). 
+
+If it does, we explode the uuencoded message into a multipart, 
+where the text before the first "begin XXX" becomes the first part,
+and all "begin...end" sections following become the subsequent parts. 
+The filename (if given) is accessible through the normal means.
+
+=cut
+
+sub extract_uuencode {
+    my ($self, $yesno) = @_;
+    $self->{MP5_UUDecode} = $yesno if @_ > 1;
+    $self->{MP5_UUDecode};
+}
+
+#------------------------------
+
 =item ignore_errors [YESNO]
 
 I<Instance method.>
@@ -457,6 +484,7 @@ sub debug {
 #
 # process_preamble IN, ENTITY, INNERBOUND
 #
+# I<Instance method.>
 # Dispose of a multipart message's preamble
 # Note: The boundary is mandatory!
 # Note: We watch out for illegal zero-part messages.
@@ -484,6 +512,7 @@ sub process_preamble {
 #
 # process_epilogue IN, ENTITY, OUTERBOUND
 #
+# I<Instance method.>
 # Dispose of a multipart message's epilogue.
 #
 # The boundary in this case is optional; it is only defined if
@@ -510,6 +539,7 @@ sub process_epilogue {
 #
 # process_to_bound BOUND, IN, OUT 
 #
+# I<Instance method.>
 # Parse up to (and including) the boundary, and dump output.
 # Follows the RFC-1521 specification, that the CRLF immediately preceding 
 # the boundary is part of the boundary, NOT part of the input!
@@ -550,6 +580,7 @@ sub process_to_bound {
 #
 # process_header IN, READER
 #
+# I<Instance method.>
 # Process and return the next header.
 # Fatal exception on failure.
 #
@@ -599,6 +630,7 @@ sub process_header {
 #
 # process_multipart IN, READER, ENTITY
 #
+# I<Instance method.>
 # Process the multipart body, and return the state.
 # Fatal exception on failure.
 # Invoked by process_part().
@@ -609,7 +641,7 @@ sub process_multipart {
     
     $self->debug("process_multipart...");
 
-    ### Get type and subtype:
+    ### Get actual type and subtype from the header:
     my ($type, $subtype) = (split('/', $head->mime_type), "");
     
     ### If this was a type "multipart/digest", then the RFCs say we
@@ -674,6 +706,7 @@ sub process_multipart {
 #
 # process_singlepart IN, ENTITY, OUTERBOUND
 #
+# I<Instance method.>
 # Process the singlepart body.  Returns true.
 # Fatal exception on failure.
 # Invoked by process_part().
@@ -688,7 +721,14 @@ sub process_singlepart {
     ###    We have two different approaches, based on whether or not we 
     ###    have to contend with boundaries.
     my $ENCODED;             ### handle
-    if ($rdr->has_bounds) {     ### boundaries...
+    my $can_shortcut = (!$rdr->has_bounds and !$self->{MP5_UUDecode});
+    if ($can_shortcut) {
+	$self->debug("taking shortcut");
+
+	$ENCODED = $in;
+	$rdr->eos('EOF');   ### be sure to bogus-up the reader state to EOF:
+    }
+    else {
 
 	### Can we read real fast?
 	if ($self->{MP5_UseInnerFiles} && 
@@ -713,13 +753,6 @@ sub process_singlepart {
 	$ENCODED->flush;
 	$ENCODED->seek(0, 0);
     }
-    else {                           ### no boundaries: read fast!
-	$self->debug("no boundaries; taking shortcut");
-	$ENCODED = $in;
-
-	### Be sure to bogus-up the reader state to EOF:
-	$rdr->eos('EOF');
-    }
 
     ### Get a content-decoder to decode this part's encoding:
     my $encoding = $head->mime_encoding;
@@ -731,11 +764,33 @@ sub process_singlepart {
 	$ent->effective_type('application/octet-stream');
 	$decoder = new MIME::Decoder 'binary';
     }
+
+
+    ### If desired, sidetrack to troll for UUENCODE:
+    $self->debug("extract uuencode? ", $self->extract_uuencode);
+    $self->debug("encoding?         ", $encoding);
+    $self->debug("effective type?   ", $ent->effective_type);
+    if ($self->extract_uuencode and
+	($encoding =~ /^(7bit|8bit|binary)\Z/) and
+	($ent->effective_type =~ m{^text/plain\Z})) {
+	
+	### Hunt for it:
+	my $uu_ent = eval { $self->hunt_for_uuencode($ENCODED, $ent) };
+	if ($uu_ent) {   ### snark
+	    %$ent = %$uu_ent;
+	    return 1;
+	}	
+	else {           ### boojum
+	    $self->whine("while hunting for uuencode: $@");
+	    $ENCODED->seek(0,0);
+	}
+    }
+
     
     ### Open a new bodyhandle for outputting the data:
     my $body = $self->new_body_for($head) || die "$ME: no body\n"; # gotta die
-    $body->binmode(1) unless textual_type($head->mime_type);
-    
+    $body->binmode(1) unless textual_type($ent->effective_type);
+
     ### Decode and save the body (using the decoder):
     my $DECODED = $body->open("w") || die "$ME: body not opened: $!\n"; 
     my $bm = benchmark {
@@ -754,8 +809,96 @@ sub process_singlepart {
 
 #------------------------------
 #
+# hunt_for_uuencode ENCODED, ENTITY
+#
+# I<Instance method.>
+# Try to detect and dispatch embedded uuencode as a fake multipart message.
+# Returns new entity or undef.
+#
+sub hunt_for_uuencode {
+    my ($self, $ENCODED, $ent) = @_;
+    my $good;
+    local $_;
+    $self->debug("sniffing around for UUENCODE");
+
+    ### Heuristic:
+    $ENCODED->seek(0,0);
+    while (defined($_ = $ENCODED->getline)) {
+	last if ($good = /^begin [0-7]{3}/);
+    }
+    $good or do { $self->debug("no one made the cut"); return 0 };
+
+    ### New entity:
+    my $top_ent = $ent->dup;      ### no data yet
+    $top_ent->make_multipart; 
+    my @parts;
+
+    ### Made the first cut; on to the real stuff:
+    $ENCODED->seek(0,0);
+    my $decoder = MIME::Decoder->new('x-uuencode');
+    my $pre;
+    while (1) {
+	my @bin_data;
+
+	### Try next part:
+	my $out = IO::ScalarArray->new(\@bin_data);
+	eval { $decoder->decode($ENCODED, $out) }; last if $@;
+	my $preamble = $decoder->last_preamble;
+	my $filename = $decoder->last_filename;
+	my $mode     = $decoder->last_mode;
+
+	### Get probable type:
+	my $type = 'application/octet-stream';
+	my ($ext) = $filename =~ /\.(\w+)\Z/; $ext = lc($ext || '');
+	if ($ext =~ /^(gif|jpe?g|xbm|xpm|png)\Z/) { $type = "image/$1" }
+	
+	### If we got our first preamble, create the text portion:
+	if (@$preamble and 
+	    (grep /\S/, @$preamble) and
+	    !@parts) {
+	    my $txt_ent = $self->interface('ENTITY_CLASS')->new;
+
+	    MIME::Entity->build(Type => "text/plain",
+				Data => "");
+	    $txt_ent->bodyhandle($self->new_body_for($txt_ent->head));
+	    my $io = $txt_ent->bodyhandle->open("w");
+	    $io->print(@$preamble);
+	    $io->close;
+	    push @parts, $txt_ent;
+	}
+	
+	### Create the attachment:
+	### We use the x-unix-mode convention from "dtmail 1.2.1 SunOS 5.6".
+	if (1) {
+	    my $bin_ent = MIME::Entity->build(Type=>$type,
+					      Filename=>$filename, 
+					      Data=>"");
+	    $bin_ent->head->mime_attr('Content-type.x-unix-mode' => "0$mode");
+	    $bin_ent->bodyhandle($self->new_body_for($bin_ent->head));
+	    my $io = $bin_ent->bodyhandle->open("w");
+	    eval { $io->binmode(1) };     ### IO::Wrap problems
+	    $io->print(@bin_data);
+	    $io->close;
+	    push @parts, $bin_ent;
+	}
+    }
+
+    ### Did we get anything?
+    @parts or return undef;
+
+    ### Set the parts and a nice preamble:
+    $top_ent->parts(\@parts);
+    $top_ent->preamble
+	(["The following is a multipart MIME message which was extracted\n",
+	  "from a uuencoded message.\n"]);
+    $top_ent;
+}
+
+#------------------------------
+#
 # process_message IN, ENTITY, OUTERBOUND
 #
+# I<Instance method.>
 # Process the singlepart body, and return true.
 # Fatal exception on failure.
 # Invoked by process_part().
@@ -793,6 +936,7 @@ sub process_message {
 #
 # process_part IN, OUTERBOUND, [OPTSHASH...]
 #
+# I<Instance method.>
 # The real back-end engine.
 # See the documentation up top for the overview of the algorithm.
 # The OPTSHASH can contain:
@@ -1862,7 +2006,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.205 $ $Date: 2000/06/09 03:32:08 $
+$Revision: 5.207 $ $Date: 2000/06/10 07:55:23 $
 
 =cut
 

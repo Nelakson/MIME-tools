@@ -213,10 +213,26 @@ A QUICK TOUR
     automatically inferred from the file's path, but that seems to be asking
     for trouble... or at least, for Mail::Cap...
 
-  Other stuff you can do
+  Configuring this toolkit
 
     If you want to tweak the way this toolkit works (for example, to turn on
-    debugging), use the routines in the MIME::ToolUtils module.
+    debugging), use the routines in the MIME::Tools module.
+
+    debugging
+        Turn debugging on/off. Default is off.
+
+             MIME::Tools->debugging(1);
+
+    quiet
+        Turn warnings on/off. Default is quiet, meaning that warnings are
+        silenced.
+
+             MIME::Tools->quiet(1);
+
+    version
+        Return the toolkit version
+
+             print MIME::Tools->version, "\n";
 
   Good advice
 
@@ -445,6 +461,27 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 CHANGE LOG
+    Version 5.209
+        Autodetection of uuencode. You can now tell the parser to hunt for
+        uuencode inside what should be text parts. See extract_uuencode()
+        for full details. Beware: this is largely untested at the moment.
+        *Special thanks to Michael Mohlere at ADJE Webmail, who was the
+        first -- and most-insistent -- user to request this feature.*
+
+        Faster parsing. Sped up the MIME::Decoder::NBit decoder quite a bit
+        by using a variant of the chunking trick I used for
+        MIME::Decoder::Base64. I suspect that the same trick (reading a big
+        chunk plus the next line to get a big block of lines) would work
+        with MIME::Decoder::QuotedPrint, but I don't have the time or
+        resources to check that right now (tested contributions would be
+        welcome). NBit encoding is more-conveniently done line-by-line for
+        now, because individual line lengths must be checked.
+
+        Better use of core. MIME::Body::InCore is now used when you build()
+        an entity with the Data parameter, instead of MIME::Body::Scalar.
+
+        More documentation on toolkit configuration.
+
     Version 5.207
         Fixed bug in MIME::Parser where the "warning" method whine() was
         called as a static function instead of invoked as an instance
@@ -918,7 +955,7 @@ AUTHOR
     Released as MIME-tools (5.0): Mother's Day 2000.
 
 VERSION
-    $Revision: 5.207 $
+    $Revision: 5.209 $
 
 ACKNOWLEDGMENTS
     This kit would not have been possible but for the direct contributions

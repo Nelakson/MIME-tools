@@ -127,7 +127,9 @@ sub top_head {
 sub msg {
     my $self = shift;
     my $type = shift;
-    push @{$self->{MPI_Msgs}}, ($type.": ".join('', @_)."\n");
+    my @args = map { defined($_) ? $_ : '<<undef>>' } @_;
+
+    push @{$self->{MPI_Msgs}}, ($type.": ".join('', @args)."\n");
 }
 
 #------------------------------
@@ -158,7 +160,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.206 $
+$Revision: 5.207 $
 
 
 

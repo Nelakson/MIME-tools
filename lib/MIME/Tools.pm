@@ -26,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.207 $, 10;
+$VERSION = substr q$Revision: 5.209 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -481,10 +481,38 @@ can be automatically inferred from the file's path, but that seems
 to be asking for trouble... or at least, for Mail::Cap...
 
 
-=head2 Other stuff you can do
+=head2 Configuring this toolkit
 
 If you want to tweak the way this toolkit works (for example, to 
-turn on debugging), use the routines in the B<MIME::ToolUtils> module.
+turn on debugging), use the routines in the B<MIME::Tools> module.
+
+=over
+
+=item debugging
+
+Turn debugging on/off.  Default is off.
+
+     MIME::Tools->debugging(1);
+
+=item quiet
+
+Turn warnings on/off.  Default is quiet, meaning that warnings are silenced.
+
+     MIME::Tools->quiet(1);
+
+=item version
+
+Return the toolkit version
+
+     print MIME::Tools->version, "\n";
+
+=back
+
+
+
+
+
+
 
 
 =head2 Good advice
@@ -805,6 +833,33 @@ bugs I<before> they become problems...
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.209
+
+B<Autodetection of uuencode.>
+You can now tell the parser to hunt for uuencode inside what should
+be text parts.  
+See L<extract_uuencode()|MIME::Parser/extract_uuencode> for full details.
+B<Beware:> this is largely untested at the moment.
+I<Special thanks to Michael Mohlere at ADJE Webmail, who was the 
+  first -- and most-insistent -- user to request this feature.>
+
+B<Faster parsing.>
+Sped up the MIME::Decoder::NBit decoder quite a bit by using a variant
+of the chunking trick I used for MIME::Decoder::Base64.  I suspect
+that the same trick (reading a big chunk plus the next line to get a
+big block of lines) would work with MIME::Decoder::QuotedPrint, but I
+don't have the time or resources to check that right now (tested
+contributions would be welcome).  NBit encoding is more-conveniently
+done line-by-line for now, because individual line lengths must be
+checked.
+
+B<Better use of core.>
+MIME::Body::InCore is now used when you build() an entity with
+the Data parameter, instead of MIME::Body::Scalar.
+
+B<More documentation> on toolkit configuration.
+
 
 =item Version 5.207
 
@@ -1399,7 +1454,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 
 =head1 VERSION
 
-$Revision: 5.207 $ 
+$Revision: 5.209 $ 
 
 
 =head1 ACKNOWLEDGMENTS

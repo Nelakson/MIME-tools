@@ -85,7 +85,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.202 $ $Date: 2000/06/05 13:37:55 $
+$Revision: 5.203 $ $Date: 2000/06/10 06:38:05 $
 
 
 =cut
@@ -97,9 +97,11 @@ use MIME::Tools qw(:msgs);
 
 @ISA = qw(MIME::Decoder);
 
-# The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+### The package version, both in 1.23 style *and* usable by MakeMaker:
+$VERSION = substr q$Revision: 5.203 $, 10;
 
+### How many bytes to decode at a time?
+my $DecodeChunkLength = 8 * 1024;
 
 #------------------------------
 #
@@ -107,8 +109,18 @@ $VERSION = substr q$Revision: 5.202 $, 10;
 #
 sub decode_it {
     my ($self, $in, $out) = @_;
-    while (defined($_ = $in->getline)) {
-	s/\015\012$/\n/;
+    my $and_also;
+
+    ### Allocate a buffer suitable for a chunk and a line:
+    local $_ = (' ' x ($DecodeChunkLength + 1024)); $_ = '';
+
+    ### Get chunks until done:
+    while ($in->read($_, $DecodeChunkLength)) {
+	$and_also = $in->getline;
+	$_ .= $and_also if defined($and_also);
+	
+	### Just got a chunk ending in a line.
+	s/\015\012$/\n/g;
 	$out->print($_);
     }
     1;
@@ -120,28 +132,29 @@ sub decode_it {
 #
 sub encode_it {
     my ($self, $in, $out) = @_;
-    my $saw_8bit = 0;    # warn them ONCE PER ENCODING if 8-bit data exists
-    my $saw_long = 0;    # warn them ONCE PER ENCODING if long lines exist
-    my $seven_bit = ($self->encoding eq '7bit');              # 7bit?
+    my $saw_8bit = 0;    ### warn them ONCE PER ENCODING if 8-bit data exists
+    my $saw_long = 0;    ### warn them ONCE PER ENCODING if long lines exist
+    my $seven_bit = ($self->encoding eq '7bit');      ### 7bit?
 
     my $line;
     while (defined($line = $in->getline)) {
 
-	# Whine if encoding is 7bit and it has 8-bit data:
-	if ($seven_bit && ($line =~ /[\200-\377]/)) {   # oops! saw 8-bit data!
+	### Whine if encoding is 7bit and it has 8-bit data:
+	if ($seven_bit && ($line =~ /[\200-\377]/)) { ### oops! saw 8-bit data!
 	    whine "saw 8-bit data while encoding 7bit" unless $saw_8bit++;
 	}
 
-	# Whine if long lines detected:
+	### Whine if long lines detected:
 	if (length($line) > 998) {
 	    whine "saw long line while encoding 7bit/8bit" unless $saw_long++;
 	}
 
-	# Output!
+	### Output!
 	$out->print($line);
     }
     1;
 }
 
 1;
+
 

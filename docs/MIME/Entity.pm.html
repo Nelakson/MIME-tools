@@ -453,7 +453,7 @@ The character set.
 An alternative to Path (q.v.): the actual data, either as a scalar
 or an array reference (whose elements are joined together to make
 the actual scalar).  The body is opened on the data using 
-MIME::Body::Scalar.
+MIME::Body::InCore.
 
 <P><DT><B><A NAME="item:Description">Description</A></B></DT>
 <DD>
@@ -631,6 +631,10 @@ A purely-for-convenience method.  This simply relays the request to the
 associated MIME::Head object. 
 If there is no head, returns undef in a scalar context and
 the empty array in a list context.
+
+
+<P><B>Before you use this,</B> consider using effective_type() instead,
+especially if you obtained the entity from a MIME::Parser.
 
 <P><DT><B><A NAME="item:open">open READWRITE</A></B></DT>
 <DD>
@@ -1355,11 +1359,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.203 $ $Date: 2000/06/08 07:26:45 $
+<P>$Revision: 5.204 $ $Date: 2000/06/10 06:38:02 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jun  8 23:33:24 2000 by cvu_pod2html
+Generated Sat Jun 10 03:58:15 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

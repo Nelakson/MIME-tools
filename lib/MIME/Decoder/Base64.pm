@@ -46,7 +46,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.202 $ $Date: 2000/06/05 13:37:55 $
+$Revision: 5.203 $ $Date: 2000/06/10 06:38:04 $
 
 =cut
 
@@ -57,14 +57,14 @@ use MIME::Tools qw(debug);
 
 @ISA = qw(MIME::Decoder);
 
-# The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+### The package version, both in 1.23 style *and* usable by MakeMaker:
+$VERSION = substr q$Revision: 5.203 $, 10;
 
-# How many bytes to encode at a time (must be a multiple of 3, and
-# less than (76 * 0.75)!
+### How many bytes to encode at a time (must be a multiple of 3, and
+### less than (76 * 0.75)!
 my $EncodeChunkLength = 45;
 
-# How many bytes to decode at a time?
+### How many bytes to decode at a time?
 my $DecodeChunkLength = 32 * 1024;
 
 #------------------------------
@@ -75,37 +75,37 @@ sub decode_it {
     my ($self, $in, $out) = @_;
     my $len_4xN;
     
-    # Create a suitable buffer:
+    ### Create a suitable buffer:
     my $buffer = ' ' x (120 + $DecodeChunkLength); $buffer = '';
     debug "in = $in; out = $out";
 
-    # Get lines until done:
+    ### Get chunks until done:
     local($_) = ' ' x $DecodeChunkLength;    
     while ($in->read($_, $DecodeChunkLength)) {
-	tr{A-Za-z0-9+/}{}cd;         # get rid of non-base64 chars
+	tr{A-Za-z0-9+/}{}cd;         ### get rid of non-base64 chars
 
-	# Concat any new input onto any leftover from the last round:
+	### Concat any new input onto any leftover from the last round:
 	$buffer .= $_;
 	length($buffer) >= $DecodeChunkLength or next;
 	
-    	# Extract substring with highest multiple of 4 bytes:
-	#   0 means not enough to work with... get more data!
+    	### Extract substring with highest multiple of 4 bytes:
+	###   0 means not enough to work with... get more data!
 	$len_4xN = length($buffer) & ~3; 
 
-	# Partition into largest-multiple-of-4 (which we decode),
-	# and the remainder (which gets handled next time around):
+	### Partition into largest-multiple-of-4 (which we decode),
+	### and the remainder (which gets handled next time around):
 	$out->print(decode_base64(substr($buffer, 0, $len_4xN)));
 	$buffer = substr($buffer, $len_4xN);
     }
     
-    # No more input remains.  Dispose of anything left in buffer:
+    ### No more input remains.  Dispose of anything left in buffer:
     if (length($buffer)) {
 
-	# Pad to 4-byte multiple, and decode:
-	$buffer .= "===";            # need no more than 3 pad chars
+	### Pad to 4-byte multiple, and decode:
+	$buffer .= "===";            ### need no more than 3 pad chars
 	$len_4xN = length($buffer) & ~3; 	
 
-	# Decode it!
+	### Decode it!
 	$out->print(decode_base64(substr($buffer, 0, $len_4xN)));
     }
     1;
@@ -123,7 +123,7 @@ sub encode_it {
     my $buf = '';
     while ($nread = $in->read($buf, $EncodeChunkLength)) {
 	$encoded = encode_base64($buf);
-	$encoded .= "\n" unless ($encoded =~ /\n\Z/);     # ensure newline!
+	$encoded .= "\n" unless ($encoded =~ /\n\Z/);   ### ensure newline!
 	$out->print($encoded);
     }
     1;

@@ -323,7 +323,7 @@ so you <I>could</I> say:
 Invoke the constructor as:
 
 <PRE>
-    $body = new MIME::Body::Scalar \$scalar;
+    $body = new MIME::Body::Scalar \$string;
 </PRE>
 
 <P>A single scalar argument sets the body to that value, exactly as though
@@ -355,8 +355,9 @@ elements of that array together:
 Invoke the constructor as:
 
 <PRE>
-    $body = new MIME::Body::InCore \$scalar;
-    $body = new MIME::Body::InCore \@scalararray
+    $body = new MIME::Body::InCore \$string;
+    $body = new MIME::Body::InCore  $string;
+    $body = new MIME::Body::InCore \@stringarray
 </PRE>
 
 <P>A simple scalar argument sets the body to that value, exactly as though
@@ -473,11 +474,11 @@ to the use of FileHandles.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.202 $ $Date: 2000/06/05 13:37:53 $
+<P>$Revision: 5.203 $ $Date: 2000/06/10 06:38:02 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jun  8 23:32:58 2000 by cvu_pod2html
+Generated Sat Jun 10 03:57:43 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

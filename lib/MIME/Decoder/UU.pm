@@ -10,6 +10,9 @@ MIME::Decoder::UU - decode a "uuencoded" stream
 
 A generic decoder object; see L<MIME::Decoder> for usage.
 
+Also supports a preamble() method to recover text before
+the uuencoded portion of the stream.
+
 
 =head1 DESCRIPTION
 
@@ -33,7 +36,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.202 $ $Date: 2000/06/05 13:37:56 $
+$Revision: 5.203 $ $Date: 2000/06/10 06:38:05 $
 
 =cut
 
@@ -46,7 +49,7 @@ use MIME::Tools qw(whine);
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+$VERSION = substr q$Revision: 5.203 $, 10;
 
 
 #------------------------------
@@ -56,14 +59,26 @@ $VERSION = substr q$Revision: 5.202 $, 10;
 sub decode_it {
     my ($self, $in, $out) = @_;
     my ($mode, $file);
+    my @preamble;
+    local $_;
 
-    # Find beginning...
+    ### Init:
+    $self->{MDU_Preamble} = \@preamble;
+    $self->{MDU_Mode} = undef;
+    $self->{MDU_File} = undef;
+
+    ### Find beginning...
     while (defined($_ = $in->getline)) {
 	last if ($mode, $file) = /^begin\s*(\d*)\s*(\S*)/; 
+	push @preamble, $_;
     }
     die("uu decoding: no begin found\n") if !defined($_);      # hit eof!
-    
-    # Decode:
+
+    ### Store info:
+    $self->{MDU_Mode} = $mode;
+    $self->{MDU_File} = $file;
+
+    ### Decode:
     while (defined($_ = $in->getline)) {
 	last if /^end/;
 	next if /[a-z]/;
@@ -90,6 +105,40 @@ sub encode_it {
     while ($in->read($buf, 45)) { $out->print(pack('u', $buf)) }
     $out->print("end\n");
     1;
+}
+
+#------------------------------
+#
+# last_preamble
+#
+# Return the last preamble as ref to array of lines.
+# Gets reset by decode_it().
+#
+sub last_preamble {
+    my $self = shift;
+    return $self->{MDU_Preamble} || [];
+}
+
+#------------------------------
+#
+# last_mode
+#
+# Return the last mode.
+# Gets reset to undef by decode_it().
+#
+sub last_mode {
+    shift->{MDU_Mode};
+}
+
+#------------------------------
+#
+# last_filename
+#
+# Return the last filename.
+# Gets reset by decode_it().
+#
+sub last_filename {
+    shift->{MDU_File} || [];
 }
 
 #------------------------------

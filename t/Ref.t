@@ -23,7 +23,7 @@ my @refpaths = @ARGV;
 if (!@refpaths) { 
     opendir DIR, "testmsgs" or die "opendir: $!\n";
     @refpaths = map { $T->catfile(".", "testmsgs", $_) 
-		      } grep /\.ref$/, readdir(DIR);
+		      } grep /\w.*\.ref$/, readdir(DIR);
     closedir DIR; 
 }
 
@@ -49,6 +49,7 @@ foreach my $refpath (@refpaths) {
     my $parser = MIME::Parser->new;
     $parser->output_dir($output_dir);
     $parser->extract_nested_messages($ref->{Parser}{ExtractNested});
+    $parser->extract_uuencode($ref->{Parser}{ExtractUuencode});
     $parser->output_to_core(0);
     $parser->ignore_errors(0);
     
@@ -67,6 +68,8 @@ foreach my $refpath (@refpaths) {
 	       Message => $msgpath,
 	       Parser  => ($ref->{Parser}{Name} || 'default'));
     }
+    $T->msg($parser->results->warnings);
+    $T->msg($parser->results->errors);
 
     ### Cleanup:
     rmtree($output_dir);
@@ -133,7 +136,7 @@ sub check_ref {
 	    elsif (/^Filename$/) { $got = $head->recommended_filename }
 	    elsif (/^Size$/)     { 
 		if ($head->mime_type =~ m{^(text|message)}) {
-		    $T->log("Skipping Size evaulation in text message\n\n");
+		    $T->log("Skipping Size evaluation in text message due to variations in local newline conventions\n\n");
 		    next ATTR;
 		}
 		if ($body and $body->path) { $got = (-s $body->path) }

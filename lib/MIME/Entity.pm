@@ -242,7 +242,7 @@ use IO::Wrap;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.203 $, 10;
+$VERSION = substr q$Revision: 5.204 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -477,7 +477,7 @@ I<Single-part entities only. Optional.>
 An alternative to Path (q.v.): the actual data, either as a scalar
 or an array reference (whose elements are joined together to make
 the actual scalar).  The body is opened on the data using 
-MIME::Body::Scalar.
+MIME::Body::InCore.
 
 =item Description
 
@@ -587,10 +587,10 @@ sub build {
 	    $self->bodyhandle(new MIME::Body::File $params{Path});
 	}
 	elsif (defined($params{Data})) {
-	    $self->bodyhandle(new MIME::Body::Scalar $params{Data});
+	    $self->bodyhandle(new MIME::Body::InCore $params{Data});
 	}
 	else { 
-	    die "can't build entity: no body, and not multipart!\n";
+	    die "can't build entity: no body, and not multipart\n";
 	}
 
 	### Check whether we need to binmode():   [Steve Kilbane]
@@ -885,6 +885,9 @@ A purely-for-convenience method.  This simply relays the request to the
 associated MIME::Head object. 
 If there is no head, returns undef in a scalar context and
 the empty array in a list context.
+
+B<Before you use this,> consider using effective_type() instead,
+especially if you obtained the entity from a MIME::Parser.
 
 =cut
 
@@ -2077,7 +2080,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.203 $ $Date: 2000/06/08 07:26:45 $
+$Revision: 5.204 $ $Date: 2000/06/10 06:38:02 $
 
 =cut
 

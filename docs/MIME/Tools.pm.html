@@ -16,7 +16,7 @@
 <LI> <A HREF="#Parsing_in_a_nutshell">Parsing, in a nutshell</A>
 <LI> <A HREF="#Composing_in_a_nutshell">Composing, in a nutshell</A>
 <LI> <A HREF="#Encoding_decoding_in_a_nutshell">Encoding/decoding, in a nutshell</A>
-<LI> <A HREF="#Other_stuff_you_can_do">Other stuff you can do</A>
+<LI> <A HREF="#Configuring_this_toolkit">Configuring this toolkit</A>
 <LI> <A HREF="#Good_advice">Good advice</A>
 </UL>
 <LI> <A HREF="#NOTES">NOTES</A>
@@ -329,11 +329,37 @@ to be asking for trouble... or at least, for Mail::Cap...
 
 
 <P><HR>
-<A NAME="Other_stuff_you_can_do"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Other stuff you can do</H3></A>
+<A NAME="Configuring_this_toolkit"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Configuring this toolkit</H3></A>
 
 
 <P>If you want to tweak the way this toolkit works (for example, to 
-turn on debugging), use the routines in the <B>MIME::ToolUtils</B> module.
+turn on debugging), use the routines in the <B>MIME::Tools</B> module.
+
+
+
+<DL>
+<P><DT><B><A NAME="item:debugging">debugging</A></B></DT>
+<DD>
+Turn debugging on/off.  Default is off.
+
+<PRE>
+     MIME::Tools-&gt;debugging(1);
+</PRE>
+<P><DT><B><A NAME="item:quiet">quiet</A></B></DT>
+<DD>
+Turn warnings on/off.  Default is quiet, meaning that warnings are silenced.
+
+<PRE>
+     MIME::Tools-&gt;quiet(1);
+</PRE>
+<P><DT><B><A NAME="item:version">version</A></B></DT>
+<DD>
+Return the toolkit version
+
+<PRE>
+     print MIME::Tools-&gt;version, &quot;\n&quot;;
+</PRE>
+</DL>
 
 
 
@@ -683,6 +709,35 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.209</A></B></DT>
+<DD>
+<B>Autodetection of uuencode.</B>
+You can now tell the parser to hunt for uuencode inside what should
+be text parts.  
+See <A HREF="../MIME/Parser.pm.html#item:extract_uuencode">extract_uuencode()</A> for full details.
+<B>Beware:</B> this is largely untested at the moment.
+<I>Special thanks to Michael Mohlere at ADJE Webmail, who was the 
+  first -- and most-insistent -- user to request this feature.</I>
+
+
+<P><B>Faster parsing.</B>
+Sped up the MIME::Decoder::NBit decoder quite a bit by using a variant
+of the chunking trick I used for MIME::Decoder::Base64.  I suspect
+that the same trick (reading a big chunk plus the next line to get a
+big block of lines) would work with MIME::Decoder::QuotedPrint, but I
+don't have the time or resources to check that right now (tested
+contributions would be welcome).  NBit encoding is more-conveniently
+done line-by-line for now, because individual line lengths must be
+checked.
+
+
+<P><B>Better use of core.</B>
+MIME::Body::InCore is now used when you build() an entity with
+the Data parameter, instead of MIME::Body::Scalar.
+
+
+<P><B>More documentation</B> on toolkit configuration.
+
 <P><DT><B><A NAME="item:Version">Version 5.207</A></B></DT>
 <DD>
 Fixed bug in MIME::Parser where the &quot;warning&quot; method whine() was 
@@ -1319,7 +1374,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.207 $ 
+<P>$Revision: 5.209 $ 
 
 
 
@@ -1385,7 +1440,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jun  8 23:33:50 2000 by cvu_pod2html
+Generated Sat Jun 10 03:58:55 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

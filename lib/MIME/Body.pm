@@ -135,7 +135,7 @@ use Carp;
 use IO::Scalar;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+$VERSION = substr q$Revision: 5.203 $, 10;
 
 
 #------------------------------
@@ -441,7 +441,7 @@ package MIME::Body::Scalar;
 A body class that stores the data in-core, in a simple scalar.
 Invoke the constructor as:
 
-    $body = new MIME::Body::Scalar \$scalar;
+    $body = new MIME::Body::Scalar \$string;
 
 A single scalar argument sets the body to that value, exactly as though
 you'd opened for the body for writing, written the value, 
@@ -510,8 +510,9 @@ package MIME::Body::InCore;
 A body class that stores the data in-core.
 Invoke the constructor as:
 
-    $body = new MIME::Body::InCore \$scalar;
-    $body = new MIME::Body::InCore \@scalararray
+    $body = new MIME::Body::InCore \$string;
+    $body = new MIME::Body::InCore  $string;
+    $body = new MIME::Body::InCore \@stringarray
 
 A simple scalar argument sets the body to that value, exactly as though
 you'd opened for the body for writing, written the value, 
@@ -662,7 +663,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 5.202 $ $Date: 2000/06/05 13:37:53 $
+$Revision: 5.203 $ $Date: 2000/06/10 06:38:02 $
 
 =cut
 
