@@ -171,7 +171,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.217 $, 10;
+$VERSION = substr q$Revision: 5.218 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -814,8 +814,8 @@ sub hunt_for_uuencode {
 					      Data=>"");
 	    $bin_ent->head->mime_attr('Content-type.x-unix-mode' => "0$mode");
 	    $bin_ent->bodyhandle($self->new_body_for($bin_ent->head));
+	    $bin_ent->bodyhandle->binmode(1);
 	    my $io = $bin_ent->bodyhandle->open("w");
-	    eval { $io->binmode(1) };     ### IO::Wrap problems
 	    $io->print(@bin_data);
 	    $io->close;
 	    push @parts, $bin_ent;
@@ -1126,7 +1126,7 @@ MIME::Parser::Filer object.
 =item filer [FILER]
 
 I<Instance method.>
-Get/set the FILER object used to manage file-oriented output.
+Get/set the FILER object used to manage the output of files to disk.
 This will be some subclass of L<MIME::Parser::Filer|MIME::Parser::Filer>.
 
 =cut
@@ -1145,10 +1145,15 @@ sub filer {
 =item output_dir DIRECTORY
 
 I<Instance method.>
-Causes messages to be filed directly into the 
-given DIRECTORY.  It does this by setting the underlying 
-L<filer()|/filer> to a new instance of MIME::Parser::FileInto,
-and passing the arguments into that class' new() method.
+Causes messages to be filed directly into the given DIRECTORY.  
+It does this by setting the underlying L<filer()|/filer> to 
+a new instance of MIME::Parser::FileInto, and passing the arguments 
+into that class' new() method.
+
+B<Note:> Since this method replaces the underlying
+filer, you must invoke it I<before> doing changing any attributes
+of the filer, like the output prefix; otherwise those changes
+will be lost.
 
 =cut
 
@@ -1172,6 +1177,11 @@ Causes messages to be filed directly into subdirectories of the given
 BASEDIR, one subdirectory per message.  It does this by setting the 
 underlying L<filer()|/filer> to a new instance of MIME::Parser::FileUnder,
 and passing the arguments into that class' new() method.
+
+B<Note:> Since this method replaces the underlying
+filer, you must invoke it I<before> doing changing any attributes
+of the filer, like the output prefix; otherwise those changes
+will be lost.
 
 =cut
 
@@ -1831,7 +1841,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.217 $ $Date: 2000/08/15 13:15:37 $
+$Revision: 5.218 $ $Date: 2000/08/16 04:49:54 $
 
 =cut
 

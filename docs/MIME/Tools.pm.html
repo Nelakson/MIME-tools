@@ -729,7 +729,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.310 $
+<P>$Revision: 5.311 $
 
 
 
@@ -739,6 +739,17 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.311   (2000/08/16)</A></B></DT>
+<DD>
+<B>Blind fix for Win32 uudecoding bug.</B>
+A missing binmode seems to be the culprit here; let's see if this fixes it.
+<I>Thanks to ajos1 for finding the culprit!</I>
+
+<FONT SIZE=3 FACE="courier"><PRE>
+       The carriage return
+          thumbs its nose at me, laughing:
+       DOS I/O *still* sucks
+</PRE></FONT>
 <P><DT><B><A NAME="item:Version">Version 5.310   (2000/08/15)</A></B></DT>
 <DD>
 <B>Fixed a bug in the back-compat output_prefix() method of MIME::Parser.</B>
@@ -746,9 +757,9 @@ Basically, output prefixes were not being set through this mechanism.
 <I>Thanks to ajos1 for the alert.</I>
 
 <FONT SIZE=3 FACE="courier"><PRE>
-	shift at-underscore
-	   leaves at-underscore crippled,	   
-	lacking arg zero
+	shift @_,                               ### &quot;shift at-underscore&quot;
+	   or @_ will have
+	bogus &quot;self&quot; object
 </PRE></FONT>
 
 <P><B>Added some backcompat methods,</B> like parse_FH().
@@ -1640,7 +1651,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Tue Aug 15 09:17:37 2000 by cvu_pod2html
+Generated Wed Aug 16 00:51:06 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

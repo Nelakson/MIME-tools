@@ -26,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.310 $, 10;
+$VERSION = substr q$Revision: 5.311 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -849,12 +849,23 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.310 $
+$Revision: 5.311 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.311   (2000/08/16)
+
+B<Blind fix for Win32 uudecoding bug.>
+A missing binmode seems to be the culprit here; let's see if this fixes it.
+I<Thanks to ajos1 for finding the culprit!>
+
+       The carriage return
+          thumbs its nose at me, laughing:
+       DOS I/O *still* sucks
+
 
 =item Version 5.310   (2000/08/15)
 
@@ -862,9 +873,9 @@ B<Fixed a bug in the back-compat output_prefix() method of MIME::Parser.>
 Basically, output prefixes were not being set through this mechanism.
 I<Thanks to ajos1 for the alert.>
 
-	shift at-underscore
-	   leaves at-underscore crippled,	   
-	lacking arg zero
+	shift @_,                               ### "shift at-underscore"
+	   or @_ will have
+	bogus "self" object
 
 B<Added some backcompat methods,> like parse_FH().
 I<Thanks (and apologies) to Alain Kotoujansky.>

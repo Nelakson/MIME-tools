@@ -478,17 +478,26 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.310 $
+    $Revision: 5.311 $
 
 CHANGE LOG
+    Version 5.311   (2000/08/16)
+        Blind fix for Win32 uudecoding bug. A missing binmode seems to be
+        the culprit here; let's see if this fixes it. *Thanks to ajos1 for
+        finding the culprit!*
+
+               The carriage return
+                  thumbs its nose at me, laughing:
+               DOS I/O *still* sucks
+
     Version 5.310   (2000/08/15)
         Fixed a bug in the back-compat output_prefix() method of
         MIME::Parser. Basically, output prefixes were not being set through
         this mechanism. *Thanks to ajos1 for the alert.*
 
-                shift at-underscore
-                   leaves at-underscore crippled,          
-                lacking arg zero
+                shift @_,                               ### "shift at-underscore"
+                   or @_ will have
+                bogus "self" object
 
         Added some backcompat methods, like parse_FH(). *Thanks (and
         apologies) to Alain Kotoujansky.*
