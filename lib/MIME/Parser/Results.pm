@@ -22,6 +22,11 @@ MIME::Parser::Results - results of the last entity parsed
    $top_head  = $results->top_head;
 
 
+=head1 DESCRIPTION
+
+Results from the last MIME::Parser parse.
+
+
 =head1 PUBLIC INTERFACE
 
 =over 4
@@ -160,7 +165,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.207 $
+$Revision: 5.208 $
 
 
 

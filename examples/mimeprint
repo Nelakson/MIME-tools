@@ -32,7 +32,7 @@ use lib "./lib";
 use strict;
 use Getopt::Std;
 
-use vars qw($opt_e $opt_h $opt_n $opt_v $opt_s $opt_u);
+use vars qw($opt_d $opt_e $opt_h $opt_n $opt_v $opt_s $opt_u);
 use MIME::Parser;
 
 # Usage?
@@ -41,6 +41,7 @@ $ARGV[0] or die <<EOF;
 Usage:
     mimeprint [-options] infile
        Parse a MIME stream from infile, and print entity to stdout:
+          -d DIR       Output parts to disk under this directory.
           -v           Verbose output (debugging)
           -e ENCODING  Re-encode top-level entity (if not multipart)
           -s           Just print the skeleton
@@ -52,12 +53,18 @@ Usage:
 EOF
 
 # Args:
-getopts("hsve:n:u");
+getopts("d:hsve:n:u");
 MIME::Tools->debugging($opt_v);
 
 # Set up parser:
 my $parser = new MIME::Parser;
-$parser->output_to_core('ALL');
+if ($opt_d) {
+    $parser->output_to_core(0);
+    $parser->output_under($opt_d);
+}
+else {
+    $parser->output_to_core('ALL');
+}
 $parser->extract_nested_messages($opt_n) if defined($opt_n);
 $parser->extract_uuencode($opt_u);
 $parser->decode_headers($opt_h);

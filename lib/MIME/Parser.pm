@@ -77,17 +77,17 @@ MIME::Parser - experimental class for parsing MIME streams
 
 =head2 Examples of parser options
 
-    ### Automatically attempt to RFC-1522-decode the MIME headers:
-    $parser->decode_headers(1);              ### default is false
+    ### Automatically attempt to RFC-1522-decode the MIME headers?
+    $parser->decode_headers(1);              ### default is false [no decoding]
     
     ### Parse contained "message/rfc822" objects as nested MIME streams?
-    $parser->extract_nested_messages(0);     ### default is true
+    $parser->extract_nested_messages(0);     ### default is true [extract them]
      
     ### Look for uuencode in "text" messages, and extract it?
-    $parser->extract_uuencode(1);            ### default is false
+    $parser->extract_uuencode(1);            ### default is false [no uudecode]
           
-    ### Forgive a lot of normally-fatal errors:
-    $parser->ignore_errors(0);               ### default is true
+    ### Should we forgive normally-fatal errors?
+    $parser->ignore_errors(0);               ### default is true [forgive errs]
 
 
 =head2 Miscellaneous examples
@@ -170,7 +170,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.208 $, 10;
+$VERSION = substr q$Revision: 5.209 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -449,7 +449,11 @@ sub ignore_errors {
 sub error {
     my $self = shift;
     $self->results->msg('error', @_);     ### record it
-    $self->{MP5_IgnoreErrors} ? return undef : die @_;
+    if ($self->{MP5_IgnoreErrors}) {
+	&MIME::Tools::whine("error: ", @_);   ### say it
+	return undef;
+    }
+    die @_;
 }
 
 #------------------------------
@@ -459,7 +463,7 @@ sub error {
 sub whine {
     my $self = shift;
     $self->results->msg('warning', @_);   ### record it
-    MIME::Tools::whine(@_);               ### say it
+    &MIME::Tools::whine(@_);              ### say it
 }
 
 #------------------------------
@@ -482,18 +486,10 @@ sub debug {
 
 #------------------------------
 #
-# process_preamble IN, ENTITY, INNERBOUND
+# process_preamble IN, READER, ENTITY
 #
 # I<Instance method.>
-# Dispose of a multipart message's preamble
-# Note: The boundary is mandatory!
-# Note: We watch out for illegal zero-part messages.
-#
-# Returns DELIM if we ended on a normal delimiter for this multipart,
-#   where a part is expected to follow.
-# Returns CLOSE if this looks like a degenerate multipart, where the
-#   epilogue is expected to follow.
-# Exception on error.
+# Dispose of a multipart message's preamble.
 #
 sub process_preamble {
     my ($self, $in, $rdr, $ent) = @_;
@@ -510,19 +506,10 @@ sub process_preamble {
 
 #------------------------------
 #
-# process_epilogue IN, ENTITY, OUTERBOUND
+# process_epilogue IN, READER, ENTITY
 #
 # I<Instance method.>
 # Dispose of a multipart message's epilogue.
-#
-# The boundary in this case is optional; it is only defined if
-# the multipart message we are parsing is itself part of 
-# an outer multipart message.
-#
-# Returns DELIM if we ended on a normal delimiter for this multipart,
-#   where a part is expected to follow.
-# Returns CLOSE if it looks like the epilogue is expected to follow.
-# Exception on error.
 #
 sub process_epilogue {
     my ($self, $in, $rdr, $ent) = @_;
@@ -537,30 +524,11 @@ sub process_epilogue {
 
 #------------------------------
 #
-# process_to_bound BOUND, IN, OUT 
+# process_to_bound IN, READER, OUT
 #
 # I<Instance method.>
-# Parse up to (and including) the boundary, and dump output.
-# Follows the RFC-1521 specification, that the CRLF immediately preceding 
-# the boundary is part of the boundary, NOT part of the input!
-#
-# Returns 'DELIM' or 'CLOSE' on success (to indicate the type of boundary
-# encountered, and exception on failure.
-#
-# NOTE: while parsing, we take care to remember the EXACT end-of-line
-# sequence.  This is because we *may* be handling 'binary' encoded data, and 
-# in that case we can't just massage \r\n into \n!  Don't worry... if the
-# data is styled as '7bit' or '8bit', the "decoder" will massage the CRLF
-# for us.  For now, we're just trying to chop up the data stream.
-#
-
-# NBK - Oct 12, 1999
-# The CRLF at the end of the current line is considered part
-# of the boundary.  I buffer the current line and output the
-# last.  I strip the last CRLF when I hit the boundary.
-
-#------------------------------
-
+# Dispose of the next chunk into the given output stream OUT.
+# 
 sub process_to_bound {
     my ($self, $in, $rdr, $out) = @_;        
 
@@ -569,10 +537,6 @@ sub process_to_bound {
 	$rdr->read_chunk($in, $out);
     };
     $self->debug("t bound: $bm");
-    
-    ### How did we do?
-    ($rdr->eos_type =~ /^(DELIM|CLOSE)$/) or
-	$self->error("unexpected end of part before proper boundary\n");
     1;
 }
 
@@ -704,7 +668,7 @@ sub process_multipart {
 
 #------------------------------
 #
-# process_singlepart IN, ENTITY, OUTERBOUND
+# process_singlepart IN, READER, ENTITY
 #
 # I<Instance method.>
 # Process the singlepart body.  Returns true.
@@ -742,12 +706,16 @@ sub process_singlepart {
 	    $self->{Tmp} = $ENCODED if $self->{TmpRecycle};
 	}
 
-	### Read encoded body until boundary...
+	### Read encoded body until boundary (or EOF)...
 	$self->process_to_bound($in, $rdr, $ENCODED);
 
-	### ...and look at how we finished up:
-	($rdr->eos_type =~ /^(DELIM|CLOSE)$/) or
-	    $self->whine("part did not end with expected boundary\n");
+	### ...and look at how we finished up.
+	###     If we have bounds, we want DELIM or CLOSE.
+	###     Otherwise, we want EOF (and that's all we'd get, anyway!).
+	if ($rdr->has_bounds) {
+	    ($rdr->eos_type =~ /^(DELIM|CLOSE)$/) or
+		$self->error("part did not end with expected boundary\n");
+	}
 
 	### Flush and rewind encoded buffer, so we can read it:
 	$ENCODED->flush;
@@ -896,7 +864,7 @@ sub hunt_for_uuencode {
 
 #------------------------------
 #
-# process_message IN, ENTITY, OUTERBOUND
+# process_message IN, READER, ENTITY
 #
 # I<Instance method.>
 # Process the singlepart body, and return true.
@@ -934,7 +902,7 @@ sub process_message {
 
 #------------------------------
 #
-# process_part IN, OUTERBOUND, [OPTSHASH...]
+# process_part IN, READER, [OPTSHASH...]
 #
 # I<Instance method.>
 # The real back-end engine.
@@ -2010,7 +1978,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.208 $ $Date: 2000/06/20 04:16:06 $
+$Revision: 5.209 $ $Date: 2000/06/24 06:32:39 $
 
 =cut
 

@@ -4,6 +4,22 @@ package MIME::Parser::Reader;
 
 MIME::Parser::Reader - a line-oriented reader for a MIME::Parser
 
+
+=head1 SYNOPSIS
+
+    ### Create a top-level reader, where chunks end at EOF:
+    $rdr = MIME::Parser::Reader->new();
+      
+    ### Spawn a child reader, where chunks also end at a boundary:
+    $subrdr = $rdr->spawn->add_boundary($bound);
+     
+    ### Spawn a child reader, where chunks also end at a given string:
+    $subrdr = $rdr->spawn->add_terminator($string);
+     
+    ### Read until boundary or terminator:
+    $subrdr->read_chunk($in, $out);
+
+
 =head1 DESCRIPTION
 
 A line-oriented reader which can deal with virtual end-of-stream
@@ -29,6 +45,7 @@ my $LONGLINE = ' ' x 1000;
 #
 # new
 #
+# I<Class method.>
 # Construct an empty (top-level) reader.
 #
 sub new {
@@ -46,6 +63,7 @@ sub new {
 #
 # spawn
 #
+# I<Instance method.>
 # Return a reader which is mostly a duplicate, except that the EOS 
 # accumulator is shared.
 #
@@ -63,6 +81,7 @@ sub spawn {
 #
 # add_boundary BOUND
 #
+# I<Instance method.>
 # Let BOUND be the new innermost boundary.  Returns self.
 #
 sub add_boundary {
@@ -77,6 +96,7 @@ sub add_boundary {
 #
 # add_terminator LINE
 #
+# I<Instance method.>
 # Let LINE be another terminator.  Returns self.
 #
 sub add_terminator {
@@ -91,6 +111,7 @@ sub add_terminator {
 #
 # has_bounds
 #
+# I<Instance method.>
 # Are there boundaries to contend with?
 #
 sub has_bounds {
@@ -101,6 +122,7 @@ sub has_bounds {
 #
 # depth
 #
+# I<Instance method.>
 # How many levels are there? 
 #
 sub depth {
@@ -111,6 +133,7 @@ sub depth {
 #
 # eos [EOS]
 #
+# I<Instance method.>
 # Return the last end-of-stream token seen.
 # See read_chunk() for what these might be.
 #
@@ -124,6 +147,7 @@ sub eos {
 #
 # eos_type [EOSTOKEN]
 #
+# I<Instance method.>
 # Return the high-level type of the given token (defaults to our token).
 #
 #    DELIM       saw an innermost boundary like --xyz
@@ -151,6 +175,7 @@ sub eos_type {
 #
 # native_handle HANDLE
 #
+# I<Function.>
 # Can we do native i/o on HANDLE?  If true, returns the handle
 # that will respond to native I/O calls; else, returns undef.
 #
@@ -165,6 +190,7 @@ sub native_handle {
 #
 # read_chunk INHANDLE, OUTHANDLE
 #
+# I<Instance method.>
 # Get lines until end-of-stream.
 # Returns the terminating-condition token:
 #
@@ -172,7 +198,22 @@ sub native_handle {
 #    CLOSE xyz   saw boundary line "--xyz--"
 #    DONE xyz    saw terminator line "xyz"
 #    EOF         end of file
+
+# Parse up to (and including) the boundary, and dump output.
+# Follows the RFC-1521 specification, that the CRLF immediately preceding 
+# the boundary is part of the boundary, NOT part of the input!
 #
+# NOTE: while parsing, we take care to remember the EXACT end-of-line
+# sequence.  This is because we *may* be handling 'binary' encoded data, and 
+# in that case we can't just massage \r\n into \n!  Don't worry... if the
+# data is styled as '7bit' or '8bit', the "decoder" will massage the CRLF
+# for us.  For now, we're just trying to chop up the data stream.
+
+# NBK - Oct 12, 1999
+# The CRLF at the end of the current line is considered part
+# of the boundary.  I buffer the current line and output the
+# last.  I strip the last CRLF when I hit the boundary.
+
 sub read_chunk {
     my ($self, $in, $out) = @_;
     
@@ -247,6 +288,7 @@ sub read_chunk {
 #
 # read_lines INHANDLE, \@OUTLINES
 #
+# I<Instance method.>
 # Read lines into the given array.
 # 
 sub read_lines {
@@ -258,5 +300,4 @@ sub read_lines {
 
 1;
 __END__
-
 

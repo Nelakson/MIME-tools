@@ -8,6 +8,7 @@
 </A>
 <P><B>This module is <FONT COLOR="#990000">ALPHA</FONT> code, which means that public interfaces are largely untested, and may change in future releases. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
 <LI> <A HREF="#NAME">NAME</A>
+<LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
 </UL>
 </A>
@@ -18,6 +19,24 @@
 
 <P>MIME::Parser::Reader - a line-oriented reader for a MIME::Parser
 
+
+
+<P><HR>
+<A NAME="SYNOPSIS"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SYNOPSIS</H2></A>
+
+<PRE>
+    ### Create a top-level reader, where chunks end at EOF:
+    $rdr = MIME::Parser::Reader-&gt;new();
+      
+    ### Spawn a child reader, where chunks also end at a boundary:
+    $subrdr = $rdr-&gt;spawn-&gt;add_boundary($bound);
+     
+    ### Spawn a child reader, where chunks also end at a given string:
+    $subrdr = $rdr-&gt;spawn-&gt;add_terminator($string);
+     
+    ### Read until boundary or terminator:
+    $subrdr-&gt;read_chunk($in, $out);
+</PRE>
 
 
 <P><HR>
@@ -33,7 +52,7 @@ This class has no official public interface
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Tue Jun 20 00:17:17 2000 by cvu_pod2html
+Generated Sat Jun 24 02:37:22 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

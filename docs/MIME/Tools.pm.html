@@ -707,7 +707,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.210 $ 
+<P>$Revision: 5.211 $ 
 
 
 
@@ -717,8 +717,33 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.211   (2000/06/24)</A></B></DT>
+<DD>
+<B>Fixed auto-uudecode bug.</B>
+Parser was failing with &quot;part did not end with expected boundary&quot; error
+when uuencoded entity was in a <I>singlepart</I> message.
+
+<PRE>
+       The hurrying bee
+          Flies far for nectar, missing
+       The nearest flowers
+</PRE>
+
+<P><B>Parse errors now generate warnings.</B>
+Parser errors now cause warn()s to be generated if they are 
+not turned into fatal exceptions.  This might be a little redundant,
+seeing as they are available in the &quot;results&quot;, but parser-warnings
+already cause warn()s.  I can always put in a &quot;quiet&quot; switch if 
+people complain.
+
+
+<P><B>Misc. cleanup.</B>
+Documentation of MIME::Parser improved slightly, and a redundant
+warning was removed.
+
 <P><DT><B><A NAME="item:Version">Version 5.210   (2000/06/20)</A></B></DT>
 <DD>
+<B>Change in &quot;evil&quot; filename.</B>
 Made MIME::Parser's evil_filename stricter by having it reject
 &quot;path&quot; characters: any of '/' '\' ':' '[' ']'.
 
@@ -728,7 +753,8 @@ Made MIME::Parser's evil_filename stricter by having it reject
        Is where &quot;evil&quot; lives. 
 </PRE>
 
-<P>Corrected a number of docs in MIME::Entity which were obsoleted
+<P><B>Documentation fixes.</B>
+Corrected a number of docs in MIME::Entity which were obsoleted
 in the transition from 4.x to 5.x. 
 <I>Thanks to Michael Fischer for pointing these out.</I>
 For this one, a special 5-5-5-5 Haiku of anagrams:
@@ -738,11 +764,13 @@ For this one, a special 5-5-5-5 Haiku of anagrams:
 	  in mutant code, O!
        Edit -- no, CUT! [moan]
 	  I meant to un-doc...
-		
+</PRE>
+
+<P><B>IO::Lines usage bug fixed.</B>
 MIME::Entity was missing a &quot;use IO::Lines&quot;, which caused an 
 exception when you tried to use the body() method of MIME::Entity.
-I&lt;Thanks to Hideyo Imazu and Michael Fischer for pointing this out.&gt;
-</PRE>
+<I>Thanks to Hideyo Imazu and Michael Fischer for pointing this out.</I>
+
 <PRE>
        Bareword looks fine, but
           Perl cries: &quot;Whoa there... IO::Lines?
@@ -1471,7 +1499,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Tue Jun 20 00:17:25 2000 by cvu_pod2html
+Generated Sat Jun 24 02:37:31 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

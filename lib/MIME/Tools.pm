@@ -26,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.210 $, 10;
+$VERSION = substr q$Revision: 5.211 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -831,15 +831,38 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.210 $ 
+$Revision: 5.211 $ 
 
 
 =head1 CHANGE LOG
 
 =over 4
 
+=item Version 5.211   (2000/06/24)
+
+B<Fixed auto-uudecode bug.>
+Parser was failing with "part did not end with expected boundary" error
+when uuencoded entity was in a I<singlepart> message.
+
+       The hurrying bee
+          Flies far for nectar, missing
+       The nearest flowers
+
+B<Parse errors now generate warnings.>
+Parser errors now cause warn()s to be generated if they are 
+not turned into fatal exceptions.  This might be a little redundant,
+seeing as they are available in the "results", but parser-warnings
+already cause warn()s.  I can always put in a "quiet" switch if 
+people complain.
+
+B<Misc. cleanup.>
+Documentation of MIME::Parser improved slightly, and a redundant
+warning was removed.
+
+
 =item Version 5.210   (2000/06/20)
 
+B<Change in "evil" filename.>
 Made MIME::Parser's evil_filename stricter by having it reject
 "path" characters: any of '/' '\' ':' '[' ']'.
 
@@ -847,6 +870,7 @@ Made MIME::Parser's evil_filename stricter by having it reject
 	  The eye of the beholder
        Is where "evil" lives. 
 
+B<Documentation fixes.>
 Corrected a number of docs in MIME::Entity which were obsoleted
 in the transition from 4.x to 5.x. 
 I<Thanks to Michael Fischer for pointing these out.>
@@ -856,7 +880,8 @@ For this one, a special 5-5-5-5 Haiku of anagrams:
 	  in mutant code, O!
        Edit -- no, CUT! [moan]
 	  I meant to un-doc...
-		
+
+B<IO::Lines usage bug fixed.>
 MIME::Entity was missing a "use IO::Lines", which caused an 
 exception when you tried to use the body() method of MIME::Entity.
 I<Thanks to Hideyo Imazu and Michael Fischer for pointing this out.>

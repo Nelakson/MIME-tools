@@ -136,17 +136,17 @@
 <A NAME="Examples_of_parser_options"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Examples of parser options</H3></A>
 
 <PRE>
-    ### Automatically attempt to RFC-1522-decode the MIME headers:
-    $parser-&gt;decode_headers(1);              ### default is false
+    ### Automatically attempt to RFC-1522-decode the MIME headers?
+    $parser-&gt;decode_headers(1);              ### default is false [no decoding]
     
     ### Parse contained &quot;message/rfc822&quot; objects as nested MIME streams?
-    $parser-&gt;extract_nested_messages(0);     ### default is true
+    $parser-&gt;extract_nested_messages(0);     ### default is true [extract them]
      
     ### Look for uuencode in &quot;text&quot; messages, and extract it?
-    $parser-&gt;extract_uuencode(1);            ### default is false
+    $parser-&gt;extract_uuencode(1);            ### default is false [no uudecode]
           
-    ### Forgive a lot of normally-fatal errors:
-    $parser-&gt;ignore_errors(0);               ### default is true
+    ### Should we forgive normally-fatal errors?
+    $parser-&gt;ignore_errors(0);               ### default is true [forgive errs]
 </PRE>
 
 
@@ -1073,11 +1073,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.208 $ $Date: 2000/06/20 04:16:06 $
+<P>$Revision: 5.209 $ $Date: 2000/06/24 06:32:39 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Tue Jun 20 00:17:14 2000 by cvu_pod2html
+Generated Sat Jun 24 02:37:19 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>
