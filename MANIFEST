@@ -105,7 +105,7 @@ t/Head.t
 t/Misc.t
 t/Parser.t
 t/Ref.t
-t/Tmpfile.t
+t/Tmpfile.topt
 t/Words.t
 testin/ak-0696.msg
 testin/andreas-1296.txt

@@ -23,7 +23,7 @@ use Carp;
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.115 $, 10;
+$VERSION = substr q$Revision: 5.116 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -798,6 +798,13 @@ bugs I<before> they become problems...
 
 =over 4
 
+=item Version 5.116
+
+Removed Tmpfile.t test, which was causing a bogus failure in 
+"make test".  Now we require 5.004 for MIME::Parser anyway,
+so we don't need it.  I<Thanks to Jonathan Cohn for reporting this.>
+
+
 =item Version 5.115
 
 Fixed Ref.t bug, and documented how to remove parts from a MIME::Entity.
@@ -1328,7 +1335,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 
 =head1 VERSION
 
-$Revision: 5.115 $ 
+$Revision: 5.116 $ 
 
 
 =head1 ACKNOWLEDGMENTS

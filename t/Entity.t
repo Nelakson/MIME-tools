@@ -6,8 +6,6 @@ use ExtUtils::TBone;
 use Globby;
 use strict;
 
-# MIME::ToolUtils->emulate_tmpfile("NO");
-
 my $line;
 my $LINE;
 

@@ -1,5 +1,5 @@
 use lib "./t";
-use MIME::ToolUtils qw(tmpopen);
+use MIME::Tools qw(tmpopen);
 use ExtUtils::TBone;
 use FileHandle;
 

@@ -683,6 +683,12 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.116</A></B></DT>
+<DD>
+Removed Tmpfile.t test, which was causing a bogus failure in 
+&quot;make test&quot;.  Now we require 5.004 for MIME::Parser anyway,
+so we don't need it.  <I>Thanks to Jonathan Cohn for reporting this.</I>
+
 <P><DT><B><A NAME="item:Version">Version 5.115</A></B></DT>
 <DD>
 Fixed Ref.t bug, and documented how to remove parts from a MIME::Entity.
@@ -1253,7 +1259,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.115 $ 
+<P>$Revision: 5.116 $ 
 
 
 
@@ -1319,7 +1325,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Wed May 24 01:13:54 2000 by cvu_pod2html
+Generated Fri May 26 00:32:06 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>
