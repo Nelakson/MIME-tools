@@ -170,7 +170,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.207 $, 10;
+$VERSION = substr q$Revision: 5.208 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -1169,8 +1169,11 @@ sub parse_two {
 =item evil_filename FILENAME
 
 I<Instance method.>
-Is this an evil filename?  It is if it contains any C<"/"> characters,
-or if it's C<".">, C<"..">, or empty.
+Is this an evil filename?  It is if any of these are true:
+
+    * it is empty
+    * it is a string of dots: ".", "..", etc.
+    * it contains a known "path" character: '/' '\' ':' '[' ']'
 
 Override this method in a subclass if you just want to change which 
 externally-provided filenames are allowed, and which are not.  Like this:
@@ -1197,7 +1200,8 @@ eye of the beholder.>
 sub evil_filename {
     my ($self, $name) = @_;
     return 1 if (!defined($name) or ($name eq ''));   ### empty
-    return 1 if ($name =~ m{/|^(\.+)\Z});             ### path
+    return 1 if ($name =~ m{^\.+\Z});         ### dots
+    return 1 if ($name =~ tr{\\/:[]}{});      ### path characters
     0;
 }
 
@@ -2006,7 +2010,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.207 $ $Date: 2000/06/10 07:55:23 $
+$Revision: 5.208 $ $Date: 2000/06/20 04:16:06 $
 
 =cut
 

@@ -1063,25 +1063,33 @@ the OUTSTREAM.
 <P><DT><B><A NAME="item:stringify">stringify</A></B></DT>
 <DD>
 <I>Instance method.</I>
-Return the entity as a string, exactly as <CODE>print</CODE> would print it: 
-the body will be encoded as necessary, and will contain any subparts.  
-You can also use <CODE>as_string</CODE>.
+Return the entity as a string, exactly as <CODE>print</CODE> would print it. 
+The body will be encoded as necessary, and will contain any subparts.  
+You can also use <CODE>as_string()</CODE>.
 
 <P><DT><B><A NAME="item:stringify_body">stringify_body</A></B></DT>
 <DD>
 <I>Instance method.</I>
-Return the body as a string, exactly as <CODE>print_body</CODE> would print it: 
-the body will be encoded as necessary, and will <I>not</I> contain any subparts.  
-You can also use <CODE>body_as_string</CODE>.
+Return the <I>encoded</I> message body as a string, exactly as <CODE>print_body</CODE> 
+would print it.  You can also use <CODE>body_as_string()</CODE>.
 
 
-<P>If you want the <I>unencoded</I> body, use <CODE>$ent-</CODE>body-&gt;as_string&gt;.
+<P>If you want the <I>unencoded</I> body, and you are dealing with a
+singlepart message (like a &quot;text/plain&quot;), use <CODE>bodyhandle()</CODE> instead:
 
+<PRE>
+    if ($ent-&gt;bodyhandle) {
+	$unencoded_data = $ent-&gt;bodyhandle-&gt;as_string;
+    }
+    else {
+	### this message has no body data (but it might have parts!)
+    }
+</PRE>
 <P><DT><B><A NAME="item:stringify_header">stringify_header</A></B></DT>
 <DD>
 <I>Instance method.</I>
 Return the header as a string, exactly as <CODE>print_header</CODE> would print it.
-You can also use <CODE>header_as_string</CODE>.
+You can also use <CODE>header_as_string()</CODE>.
 
 </DL>
 
@@ -1106,21 +1114,26 @@ You can also use <CODE>header_as_string</CODE>.
 containing the header information.
 
 <P><LI>
-<P>A <I>bodyhandle</I>, which is a reference a MIME::Body object
-containing the decoded body data.
-(In pre-2.0 releases, this was accessed via <I>body</I>, 
-which was a path to a file containing the decoded body.
-Integration with Mail::Internet has forced this to change.)
+<P>A <I>bodyhandle</I>, which is a reference to a MIME::Body object
+containing the decoded body data.  This is only defined if 
+the message is a &quot;singlepart&quot; type:
 
+<PRE>
+    application/*
+    audio/*
+    image/*
+    text/*
+    video/*
+</PRE>
 <P><LI>
-<P>A list of zero or more <I>parts</I>, each of which is a MIME::Entity 
-object.  The number of parts will only be nonzero if the content-type 
-is some subtype of <CODE>&quot;multipart&quot;</CODE>.
+<P>An array of <I>parts</I>, where each part is a MIME::Entity object.  
+The number of parts will only be nonzero if the content-type 
+is <I>not</I> one of the &quot;singlepart&quot; types:
 
-
-<P>Note that a multipart entity does <I>not</I> have a body.
-Of course, any/all of its component parts can have bodies.
-
+<PRE>
+    message/*        (should have exactly one part)
+    multipart/*      (should have one or more parts)
+</PRE>
 </UL>
 
 
@@ -1137,27 +1150,68 @@ out there.  But let's open up the floor for a few questions...
 
 
 <DL>
-<P><DT><B><A NAME="item:How_are_message_bodies_stored">How are message bodies stored?</A></B></DT>
+<P><DT><B><A NAME="item:What_is_the_difference_between_a_message_and_an_entity">What is the difference between a &quot;message&quot; and an &quot;entity&quot;?</A></B></DT>
+<DD>
+A <B>message</B> is the actual data being sent or received; usually
+this means a stream of newline-terminated lines.
+An <B>entity</B> is the representation of a message as an object.
+
+
+<P>This means that you get a &quot;message&quot; when you print an &quot;entity&quot; 
+<I>to</I> a filehandle, and you get an &quot;entity&quot; when you parse a message
+<I>from</I> a filehandle.
+
+<P><DT><B><A NAME="item:What_is_a_message_body">What is a message body?</A></B></DT>
+<DD>
+<B>Mail::Internet:</B> 
+The portion of the printed message after the header.
+
+
+<P><B>MIME::Entity:</B>
+The portion of the printed message after the header.
+
+<P><DT><B><A NAME="item:How_is_a_message_body_stored_in_an_entity">How is a message body stored in an entity?</A></B></DT>
 <DD>
 <B>Mail::Internet:</B> 
 As an array of lines.
 
 
 <P><B>MIME::Entity:</B> 
-As a MIME::Body object, where the data may reside on disk or 
-in-core, may be large, and may be binary (not line-oriented).
+It depends on the content-type of the message.
+For &quot;container&quot; types (<CODE>multipart/*</CODE>, <CODE>message/*</CODE>), we store the
+contained entities as an array of &quot;parts&quot;, accessed via the <CODE>parts()</CODE>
+method, where each part is a complete MIME::Entity.
+For &quot;singlepart&quot; types (<CODE>text/*</CODE>, <CODE>image/*</CODE>, etc.), the unencoded
+body data is referenced via a MIME::Body object, accessed via 
+the <CODE>bodyhandle()</CODE> method:
 
-<P><DT><B><A NAME="item:Do_messages_generally_have_bodies">Do messages generally have bodies?</A></B></DT>
+<PRE>
+                      bodyhandle()   parts()
+    Content-type:     returns:       returns:
+    ------------------------------------------------------------
+    application/*     MIME::Body     empty
+    audio/*           MIME::Body     empty     
+    image/*           MIME::Body     empty      
+    message/*         undef          MIME::Entity list (usually 1)
+    multipart/*       undef          MIME::Entity list (usually &gt;0)
+    text/*            MIME::Body     empty     
+    video/*           MIME::Body     empty     
+    x-*/*             MIME::Body     empty 
+</PRE>
+
+<P>As a special case, <CODE>message/*</CODE> is currently ambiguous: depending 
+on the parser, a <CODE>message/*</CODE> might be treated as a singlepart,
+with a MIME::Body and no parts.  Use bodyhandle() as the final 
+arbiter.
+
+<P><DT><B><A NAME="item:What_does_the_body_method_return">What does the body() method return?</A></B></DT>
 <DD>
 <B>Mail::Internet:</B> 
-Almost certainly yes.
+As an array of lines, ready for sending.
 
 
-<P><B>MIME::Entity:</B>   
-Yes if this is a <I>singlepart</I> message, and NO if it's a 
-<I>multipart</I> message... since for multiparts the message &quot;body&quot; is 
-stored as the parsed collection of &quot;parts&quot; (each of which
-is also a MIME::Entity).
+<P><B>MIME::Entity:</B> 
+As an array of lines, ready for sending.
 
 <P><DT><B><A NAME="item:If_an_entity_has_a_body_does_it_have_a_soul_as_well">If an entity has a body, does it have a soul as well?</A></B></DT>
 <DD>
@@ -1173,24 +1227,68 @@ Use the body() method.
 
 
 <P><B>MIME::Entity:</B> 
-Use the bodyhandle() method, or the brand-new open()
-method.  The open() method returns a filehandle-like object to
-you, which gives you methods like getline() and read().  
-<I>Use methods only</I> for portability; don't make any assumptions
-about what you've been handed.
+Depends on what you want... the <I>encoded</I> data (as it is 
+transported), or the <I>unencoded</I> data?  Keep reading...
 
+<P><DT><B><A NAME="item:How_do_I_get_the_encoded_body_data">How do I get the &quot;encoded&quot; body data?</A></B></DT>
+<DD>
+<B>Mail::Internet:</B> 
+Use the body() method.
+
+
+<P><B>MIME::Entity:</B> 
+Use the body() method.  You can also use:
+
+<PRE>
+    $entity-&gt;print_body()
+    $entity-&gt;stringify_body()   ### a.k.a. $entity-&gt;body_as_string()
+</PRE>
+<P><DT><B><A NAME="item:How_do_I_get_the_unencoded_body_data">How do I get the &quot;unencoded&quot; body data?</A></B></DT>
+<DD>
+<B>Mail::Internet:</B> 
+Use the body() method.
+
+
+<P><B>MIME::Entity:</B> 
+Use the <I>bodyhandle()</I> method!
+If bodyhandle() method returns true, then that value is a 
+<A HREF="../MIME/Body.pm.html">MIME::Body</A> which can be used to access the data via 
+its open() method.  If bodyhandle() method returns an undefined value, 
+then the entity is probably a &quot;container&quot; that has no real body data of
+its own (e.g., a &quot;multipart&quot; message): in this case, you should access
+the components via the parts() method.  Like this:
+
+<PRE>
+    if ($bh = $entity-&gt;bodyhandle) {
+	$io = $bh-&gt;open;
+	...access unencoded data via $io-&gt;getline or $io-&gt;read...
+	$io-&gt;close;
+    }
+    else {
+	foreach my $part (@parts) {
+	    ...do something with the part...
+	}
+    }
+</PRE>
+
+<P>You can also use:
+
+<PRE>
+    if ($bh = $entity-&gt;bodyhandle) {
+	$unencoded_data = $bh-&gt;as_string;
+    }
+    else {
+	...do stuff with the parts...
+    }
+</PRE>
 <P><DT><B><A NAME="item:What_does_the_body_method_return">What does the body() method return?</A></B></DT>
 <DD>
 <B>Mail::Internet:</B> 
-The body, as an array of lines.
+The transport-encoded message body, as an array of lines.
 
 
 <P><B>MIME::Entity:</B>   
-The body, as an array of lines...
-but <I>only</I> for a singlepart messages.  It returns <I>nothing</I> for 
-a multipart message, since multiparts by definition do not have bodies
-of their own.  It's also somewhat inappropriate for non-textual 
-bodies, like GIFs.
+The transport-encoded message body, as an array of lines.
 
 <P><DT><B><A NAME="item:What_does_print_body_print">What does print_body() print?</A></B></DT>
 <DD>
@@ -1199,41 +1297,7 @@ Exactly what body() would return to you.
 
 
 <P><B>MIME::Entity:</B> 
-The <I>encoded representation</I> of &quot;all the stuff following the header&quot;,
-using the Content-transfer-encoding in the MIME header. This includes
-the encoded representation of any <I>parts</I> as well.
-Put simply, print_body() doesn't just &quot;print the body&quot;: it
-prints a flattened representation of the <I>entire entity,</I>
-including subparts.  This is generally what people seem to expect.
-
-
-<P>=item Assuming I have a singlepart, isn't the data 
-      from body() identical to the stuff printed by print_body()?
-
-
-<P><B>Mail::Internet:</B> 
-Yes.
-
-
-<P><B>MIME::Entity:</B>   
-Not likely.  If the original message held a base64-encoded GIF file, 
-the body() data will be the <I>actual, decoded, binary GIF data</I>... 
-which is <I>not</I> the same as that base64-encoded
-stream of ASCII output by print_body().
-
-
-<P>=item Conceptually, what's the difference between what's returned
-      by body() and what's printed by print_body()?
-
-
-<P><B>Mail::Internet:</B> 
-None.
-
-
-<P><B>MIME::Entity:</B> 
-Method body() refers to the <I>actual body data</I> of the entity in question.
-Method print_body() (and stringify_body()) refers to the 
-<I>complete printed representation</I> of that entity.
+Exactly what body() would return to you.
 
 
 <P>=item Say I have an entity which might be either singlepart or multipart.
@@ -1272,21 +1336,6 @@ Mail::Internet is a simple, efficient way of dealing with a &quot;black box&quot
 mail message... one whose internal data you don't care much about.  
 MIME::Entity, in contrast, cares <I>very much</I> about the message contents: 
 that's its job!
-
-
-<P>Here's an example:
-
-
-<P>Suppose you wanted me to rewrite MIME::Entity so that you could properly
-set any body -- even a multipart body -- by giving its lines to body().  
-After all, I can just parse the lines you give me, right?
-
-
-<P>Not quite.  In order to parse that data, I <I>need</I> to have a header
-which tells me whether it's singlepart or multipart.  I <I>need</I>
-to know the encoding, too.  So MIME::Entity will enforces a sequence 
-of events on how you set things up, unlike Mail::Internet -- which 
-doesn't care about message contents.
 
 </DL>
 
@@ -1359,11 +1408,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.204 $ $Date: 2000/06/10 06:38:02 $
+<P>$Revision: 5.205 $ $Date: 2000/06/20 04:16:05 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sat Jun 10 03:58:15 2000 by cvu_pod2html
+Generated Tue Jun 20 00:16:57 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

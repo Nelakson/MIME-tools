@@ -460,8 +460,37 @@ SUPPORT
     If your project is using MIME-tools, it might not be a bad idea to find
     out about those bugs *before* they become problems...
 
+VERSION
+    $Revision: 5.210 $
+
 CHANGE LOG
-    Version 5.209
+    Version 5.210   (2000/06/20)
+        Made MIME::Parser's evil_filename stricter by having it reject
+        "path" characters: any of '/' '\' ':' '[' ']'.
+
+               Just as with beauty
+                  The eye of the beholder
+               Is where "evil" lives. 
+
+        Corrected a number of docs in MIME::Entity which were obsoleted in
+        the transition from 4.x to 5.x. *Thanks to Michael Fischer for
+        pointing these out.* For this one, a special 5-5-5-5 Haiku of
+        anagrams:
+
+               Documentation
+                  in mutant code, O!
+               Edit -- no, CUT! [moan]
+                  I meant to un-doc...
+                        
+        MIME::Entity was missing a "use IO::Lines", which caused an 
+        exception when you tried to use the body() method of MIME::Entity.
+        I<Thanks to Hideyo Imazu and Michael Fischer for pointing this out.>
+
+               Bareword looks fine, but
+                  Perl cries: "Whoa there... IO::Lines?
+               Never heard of it."
+
+    Version 5.209   (2000/06/10)
         Autodetection of uuencode. You can now tell the parser to hunt for
         uuencode inside what should be text parts. See extract_uuencode()
         for full details. Beware: this is largely untested at the moment.
@@ -482,7 +511,7 @@ CHANGE LOG
 
         More documentation on toolkit configuration.
 
-    Version 5.207
+    Version 5.207   (2000/06/09)
         Fixed bug in MIME::Parser where the "warning" method whine() was
         called as a static function instead of invoked as an instance
         method. *Thanks to Todd A. Bradfute for reporting this.*
@@ -491,7 +520,7 @@ CHANGE LOG
                   Invokes method as function:
                "Warning" makes us die
 
-    Version 5.206
+    Version 5.206   (2000/06/08)
         Ahem. Cough cough:
 
                Way too many bugs
@@ -517,12 +546,12 @@ CHANGE LOG
 
         Started using Benchmark for benchmarking.
 
-    Version 5.205
+    Version 5.205   (2000/06/06)
         Added terminating newline to all parser messages, and fixed small
         parser bug that was dropping parts when errors occurred in certain
         places.
 
-    Version 5.203
+    Version 5.203   (2000/06/05)
         Brand new parser based on new (private) MIME::Parser::Reader and
         (public) MIME::Parser::Results. Fast and yet simple and very
         tolerant of bad MIME when desired. Message reporting needs some
@@ -530,23 +559,23 @@ CHANGE LOG
 
         MIME::Parser now has ignore_errors() set true by default.
 
-    Version 5.116
+    Version 5.116   (2000/05/26)
         Removed Tmpfile.t test, which was causing a bogus failure in "make
         test". Now we require 5.004 for MIME::Parser anyway, so we don't
         need it. *Thanks to Jonathan Cohn for reporting this.*
 
-    Version 5.115
+    Version 5.115   (2000/05/24)
         Fixed Ref.t bug, and documented how to remove parts from a
         MIME::Entity.
 
-    Version 5.114
+    Version 5.114   (2000/05/23)
         Entity now uses MIME::Lite-style default suggested encoding.
 
         More regression test have been added, and the "Size" tests in Ref.t
         are skipped for text document (due to CRLF differences between
         platforms).
 
-    Version 5.113 (Initial 5.x Beta release)
+    Version 5.113   (2000/05/21)
         Major speed and structural improvements to the parser. *Major, MAJOR
         thanks to Noel Burton-Krahn, Jeremy Gilbert, and Doru Petrescu for
         all the patches, benchmarking, and Beta-testing!*
@@ -581,19 +610,19 @@ CHANGE LOG
         helpful input.* *Thanks to Klaus Seidenfaden for good feedback on
         5.x Alpha!*
 
-    Version 4.123
+    Version 4.123   (1999/05/12)
         Cleaned up some of the tests for non-Unix OS'es. Will require a few
         iterations, no doubt.
 
-    Version 4.122
+    Version 4.122   (1999/02/09)
         Resolved CORE::open warnings for 5.005. *Thanks to several folks for
         this bug report.*
 
-    Version 4.121
+    Version 4.121   (1998/06/03)
         Fixed MIME::Words infinite recursion. *Thanks to several folks for
         this bug report.*
 
-    Version 4.117
+    Version 4.117   (1998/05/01)
         Nicer MIME::Entity::build. No longer outputs warnings with undefined
         Filename, and now accepts Charset as well. *Thanks to Jason Tibbits
         III for the inspirational patch.*
@@ -603,37 +632,37 @@ CHANGE LOG
 
         Better test logging. Now uses ExtUtils::TBone.
 
-    Version 4.116
+    Version 4.116   (1998/02/14)
         Bug fix: MIME::Head and MIME::Entity were not downcasing the
         content-type as they claimed. This has now been fixed. *Thanks to
         Rodrigo de Almeida Siqueira for finding this.*
 
-    Version 4.114
+    Version 4.114   (1998/02/12)
         Gzip64-encoding has been improved, and turned off as a default,
         since it depends on having gzip installed. See MIME::Decoder::Gzip64
         if you want to activate it in your app. You can now set up the
         gzip/gunzip commands to use, as well. *Thanks to Paul J. Schinder
         for finding this bug.*
 
-    Version 4.113
+    Version 4.113   (1998/01/20)
         Bug fix: MIME::ParserBase was accidentally folding newlines in
         header fields. *Thanks to Jason L. Tibbitts III for spotting this.*
 
-    Version 4.112
+    Version 4.112   (1998/01/17)
         MIME::Entity::print_body now recurses when printing multipart
         entities, and prints "everything following the header." This is more
         likely what people expect to happen. PLEASE read the "two body
         problem" section of MIME::Entity's docs.
 
-    Version 4.111
+    Version 4.111   (1998/01/14)
         Clean build/test on Win95 using 5.004. Whew.
 
-    Version 4.110
+    Version 4.110   (1998/01/11)
         Added make_multipart() and make_singlepart() in MIME::Entity.
 
         Improved handling/saving of preamble/epilogue.
 
-    Version 4.109
+    Version 4.109   (1998/01/10)
     Overall Major version shift to 4.x accompanies numerous structural changes,
             and the deletion of some long-deprecated code. Many apologies to
             those who are inconvenienced by the upgrade.
@@ -937,7 +966,7 @@ CHANGE LOG
     Version 1.9
         No changes: 1.8 failed CPAN registration
 
-    Version 1.8.
+    Version 1.8
         Fixed incompatibility with 5.001 and FileHandle::new_tmpfile Added
         COPYING file, and improved README.
 
@@ -953,9 +982,6 @@ AUTHOR
     Released as MIME-parser (1.0): 28 April 1996. Released as MIME-tools
     (2.0): Halloween 1996. Released as MIME-tools (4.0): Christmas 1997.
     Released as MIME-tools (5.0): Mother's Day 2000.
-
-VERSION
-    $Revision: 5.209 $
 
 ACKNOWLEDGMENTS
     This kit would not have been possible but for the direct contributions

@@ -32,9 +32,9 @@
 </UL>
 <LI> <A HREF="#TERMS_AND_CONDITIONS">TERMS AND CONDITIONS</A>
 <LI> <A HREF="#SUPPORT">SUPPORT</A>
+<LI> <A HREF="#VERSION">VERSION</A>
 <LI> <A HREF="#CHANGE_LOG">CHANGE LOG</A>
 <LI> <A HREF="#AUTHOR">AUTHOR</A>
-<LI> <A HREF="#VERSION">VERSION</A>
 <LI> <A HREF="#ACKNOWLEDGMENTS">ACKNOWLEDGMENTS</A>
 <LI> <A HREF="#SEE_ALSO">SEE ALSO</A>
 </UL>
@@ -704,12 +704,51 @@ bugs <I>before</I> they become problems...
 
 
 <P><HR>
+<A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
+
+
+<P>$Revision: 5.210 $ 
+
+
+
+<P><HR>
 <A NAME="CHANGE_LOG"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> CHANGE LOG</H2></A>
 
 
 
 <DL>
-<P><DT><B><A NAME="item:Version">Version 5.209</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.210   (2000/06/20)</A></B></DT>
+<DD>
+Made MIME::Parser's evil_filename stricter by having it reject
+&quot;path&quot; characters: any of '/' '\' ':' '[' ']'.
+
+<PRE>
+       Just as with beauty
+	  The eye of the beholder
+       Is where &quot;evil&quot; lives. 
+</PRE>
+
+<P>Corrected a number of docs in MIME::Entity which were obsoleted
+in the transition from 4.x to 5.x. 
+<I>Thanks to Michael Fischer for pointing these out.</I>
+For this one, a special 5-5-5-5 Haiku of anagrams:
+
+<PRE>
+       Documentation
+	  in mutant code, O!
+       Edit -- no, CUT! [moan]
+	  I meant to un-doc...
+		
+MIME::Entity was missing a &quot;use IO::Lines&quot;, which caused an 
+exception when you tried to use the body() method of MIME::Entity.
+I&lt;Thanks to Hideyo Imazu and Michael Fischer for pointing this out.&gt;
+</PRE>
+<PRE>
+       Bareword looks fine, but
+          Perl cries: &quot;Whoa there... IO::Lines?
+       Never heard of it.&quot;
+</PRE>
+<P><DT><B><A NAME="item:Version">Version 5.209   (2000/06/10)</A></B></DT>
 <DD>
 <B>Autodetection of uuencode.</B>
 You can now tell the parser to hunt for uuencode inside what should
@@ -738,7 +777,7 @@ the Data parameter, instead of MIME::Body::Scalar.
 
 <P><B>More documentation</B> on toolkit configuration.
 
-<P><DT><B><A NAME="item:Version">Version 5.207</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.207   (2000/06/09)</A></B></DT>
 <DD>
 Fixed bug in MIME::Parser where the &quot;warning&quot; method whine() was 
 called as a static function instead of invoked as an instance method.  
@@ -749,7 +788,7 @@ called as a static function instead of invoked as an instance method.
           Invokes method as function:
        &quot;Warning&quot; makes us die
 </PRE>
-<P><DT><B><A NAME="item:Version">Version 5.206</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.206   (2000/06/08)</A></B></DT>
 <DD>
 Ahem.  Cough cough:
 
@@ -783,13 +822,13 @@ and the initial boundary.
 
 <P>Started using Benchmark for benchmarking.
 
-<P><DT><B><A NAME="item:Version">Version 5.205</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.205   (2000/06/06)</A></B></DT>
 <DD>
 Added terminating newline to all parser messages, and fixed
 small parser bug that was dropping parts when errors occurred
 in certain places.
 
-<P><DT><B><A NAME="item:Version">Version 5.203</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.203   (2000/06/05)</A></B></DT>
 <DD>
 Brand new parser based on new (private) MIME::Parser::Reader and 
 (public) MIME::Parser::Results.  Fast and yet simple and very tolerant
@@ -798,17 +837,17 @@ of bad MIME when desired.  Message reporting needs some muzzling.
 
 <P>MIME::Parser now has ignore_errors() set true by default.
 
-<P><DT><B><A NAME="item:Version">Version 5.116</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.116   (2000/05/26)</A></B></DT>
 <DD>
 Removed Tmpfile.t test, which was causing a bogus failure in 
 &quot;make test&quot;.  Now we require 5.004 for MIME::Parser anyway,
 so we don't need it.  <I>Thanks to Jonathan Cohn for reporting this.</I>
 
-<P><DT><B><A NAME="item:Version">Version 5.115</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.115   (2000/05/24)</A></B></DT>
 <DD>
 Fixed Ref.t bug, and documented how to remove parts from a MIME::Entity.
 
-<P><DT><B><A NAME="item:Version">Version 5.114</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.114   (2000/05/23)</A></B></DT>
 <DD>
 Entity now uses MIME::Lite-style default suggested encoding.
 
@@ -817,7 +856,7 @@ Entity now uses MIME::Lite-style default suggested encoding.
 Ref.t are skipped for text document (due to CRLF differences
 between platforms).
 
-<P><DT><B><A NAME="item:Version">Version 5.113 (Initial 5.x Beta release)</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 5.113   (2000/05/21)</A></B></DT>
 <DD>
 <B>Major speed and structural improvements to the parser.</B>
     <I>Major, MAJOR thanks to Noel Burton-Krahn, Jeremy Gilbert,
@@ -865,22 +904,22 @@ between platforms).
     <I>Thanks to Marcus Brinkmann for additional helpful input.</I>
     <I>Thanks to Klaus Seidenfaden for good feedback on 5.x Alpha!</I>
 
-<P><DT><B><A NAME="item:Version">Version 4.123</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.123   (1999/05/12)</A></B></DT>
 <DD>
 Cleaned up some of the tests for non-Unix OS'es.
 Will require a few iterations, no doubt.
 
-<P><DT><B><A NAME="item:Version">Version 4.122</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.122   (1999/02/09)</A></B></DT>
 <DD>
 <B>Resolved CORE::open warnings for 5.005.</B>
         <I>Thanks to several folks for this bug report.</I>
 
-<P><DT><B><A NAME="item:Version">Version 4.121</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.121   (1998/06/03)</A></B></DT>
 <DD>
 <B>Fixed MIME::Words infinite recursion.</B>
         <I>Thanks to several folks for this bug report.</I>
 
-<P><DT><B><A NAME="item:Version">Version 4.117</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.117   (1998/05/01)</A></B></DT>
 <DD>
 <B>Nicer MIME::Entity::build.</B> 
         No longer outputs warnings with undefined Filename, and now
@@ -895,14 +934,14 @@ Will require a few iterations, no doubt.
 <P><B>Better test logging.</B>  
         Now uses ExtUtils::TBone.
 
-<P><DT><B><A NAME="item:Version">Version 4.116</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.116   (1998/02/14)</A></B></DT>
 <DD>
 <B>Bug fix:</B> 
         MIME::Head and MIME::Entity were not downcasing the
         content-type as they claimed.  This has now been fixed.
 	<I>Thanks to Rodrigo de Almeida Siqueira for finding this.</I>
 
-<P><DT><B><A NAME="item:Version">Version 4.114</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.114   (1998/02/12)</A></B></DT>
 <DD>
 <B>Gzip64-encoding has been improved, and turned off as a default,</B>
 	since it depends on having gzip installed.  
@@ -910,31 +949,31 @@ Will require a few iterations, no doubt.
 	You can	now set up the gzip/gunzip commands to use, as well.
 	<I>Thanks to Paul J. Schinder for finding this bug.</I>
 
-<P><DT><B><A NAME="item:Version">Version 4.113</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.113   (1998/01/20)</A></B></DT>
 <DD>
 <B>Bug fix:</B>
         MIME::ParserBase was accidentally folding newlines in header fields.
 	<I>Thanks to Jason L. Tibbitts III for spotting this.</I>
 
-<P><DT><B><A NAME="item:Version">Version 4.112</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.112   (1998/01/17)</A></B></DT>
 <DD>
 <B>MIME::Entity::print_body now recurses</B> when printing multipart
 	entities, and prints &quot;everything following the header.&quot;  This is more
 	likely what people expect to happen.  PLEASE read the
         &quot;two body problem&quot; section of MIME::Entity's docs.
 
-<P><DT><B><A NAME="item:Version">Version 4.111</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.111   (1998/01/14)</A></B></DT>
 <DD>
 Clean build/test on Win95 using 5.004.  Whew.
 
-<P><DT><B><A NAME="item:Version">Version 4.110</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.110   (1998/01/11)</A></B></DT>
 <DD>
 <B>Added</B> make_multipart() and make_singlepart() in MIME::Entity.
 
 
 <P><B>Improved</B> handling/saving of preamble/epilogue.
 
-<P><DT><B><A NAME="item:Version">Version 4.109</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 4.109   (1998/01/10)</A></B></DT>
 <DD>
 
 
@@ -1340,7 +1379,7 @@ some solutions.</I>
 <DD>
 No changes: 1.8 failed CPAN registration
 
-<P><DT><B><A NAME="item:Version">Version 1.8.</A></B></DT>
+<P><DT><B><A NAME="item:Version">Version 1.8</A></B></DT>
 <DD>
 Fixed incompatibility with 5.001 and FileHandle::new_tmpfile
 Added COPYING file, and improved README.
@@ -1367,14 +1406,6 @@ Added COPYING file, and improved README.
 Released as MIME-tools (2.0): Halloween 1996.
 Released as MIME-tools (4.0): Christmas 1997. 
 Released as MIME-tools (5.0): Mother's Day 2000.
-
-
-
-<P><HR>
-<A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
-
-
-<P>$Revision: 5.209 $ 
 
 
 
@@ -1440,7 +1471,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sat Jun 10 03:58:55 2000 by cvu_pod2html
+Generated Tue Jun 20 00:17:25 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

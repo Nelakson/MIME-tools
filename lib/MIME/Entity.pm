@@ -231,6 +231,7 @@ use MIME::Body;
 use MIME::Decoder;
 use IO::Scalar;
 use IO::Wrap;
+use IO::Lines;
 
 @ISA = qw(Mail::Internet);
 
@@ -242,7 +243,7 @@ use IO::Wrap;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.204 $, 10;
+$VERSION = substr q$Revision: 5.205 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -1769,9 +1770,9 @@ the OUTSTREAM.
 =item stringify
 
 I<Instance method.>
-Return the entity as a string, exactly as C<print> would print it: 
-the body will be encoded as necessary, and will contain any subparts.  
-You can also use C<as_string>.
+Return the entity as a string, exactly as C<print> would print it. 
+The body will be encoded as necessary, and will contain any subparts.  
+You can also use C<as_string()>.
 
 =cut
 
@@ -1787,11 +1788,18 @@ sub as_string { shift->stringify };      ### silent BC
 =item stringify_body
 
 I<Instance method.>
-Return the body as a string, exactly as C<print_body> would print it: 
-the body will be encoded as necessary, and will I<not> contain any subparts.  
-You can also use C<body_as_string>.
+Return the I<encoded> message body as a string, exactly as C<print_body> 
+would print it.  You can also use C<body_as_string()>.
 
-If you want the I<unencoded> body, use C<$ent->body->as_string>.
+If you want the I<unencoded> body, and you are dealing with a
+singlepart message (like a "text/plain"), use C<bodyhandle()> instead:
+
+    if ($ent->bodyhandle) {
+	$unencoded_data = $ent->bodyhandle->as_string;
+    }
+    else {
+	### this message has no body data (but it might have parts!)
+    }
 
 =cut
 
@@ -1821,7 +1829,7 @@ sub bodyhandle_as_string { shift->stringify_bodyhandle }
 
 I<Instance method.>
 Return the header as a string, exactly as C<print_header> would print it.
-You can also use C<header_as_string>.
+You can also use C<header_as_string()>.
 
 =cut
 
@@ -1854,20 +1862,25 @@ containing the header information.
 
 =item *
 
-A I<bodyhandle>, which is a reference a MIME::Body object
-containing the decoded body data.
-(In pre-2.0 releases, this was accessed via I<body>, 
-which was a path to a file containing the decoded body.
-Integration with Mail::Internet has forced this to change.)
+A I<bodyhandle>, which is a reference to a MIME::Body object
+containing the decoded body data.  This is only defined if 
+the message is a "singlepart" type:
+
+    application/*
+    audio/*
+    image/*
+    text/*
+    video/*
 
 =item *
 
-A list of zero or more I<parts>, each of which is a MIME::Entity 
-object.  The number of parts will only be nonzero if the content-type 
-is some subtype of C<"multipart">.
+An array of I<parts>, where each part is a MIME::Entity object.  
+The number of parts will only be nonzero if the content-type 
+is I<not> one of the "singlepart" types:
 
-Note that a multipart entity does I<not> have a body.
-Of course, any/all of its component parts can have bodies.
+    message/*        (should have exactly one part)
+    multipart/*      (should have one or more parts)
+
 
 =back
 
@@ -1882,27 +1895,65 @@ out there.  But let's open up the floor for a few questions...
 
 =over 4
 
+=item What is the difference between a "message" and an "entity"?
 
-=item How are message bodies stored?
+A B<message> is the actual data being sent or received; usually
+this means a stream of newline-terminated lines.
+An B<entity> is the representation of a message as an object.
+
+This means that you get a "message" when you print an "entity" 
+I<to> a filehandle, and you get an "entity" when you parse a message
+I<from> a filehandle.
+
+
+=item What is a message body?
+
+B<Mail::Internet:> 
+The portion of the printed message after the header.
+
+B<MIME::Entity:>
+The portion of the printed message after the header.
+
+
+=item How is a message body stored in an entity?
 
 B<Mail::Internet:> 
 As an array of lines.
 
 B<MIME::Entity:> 
-As a MIME::Body object, where the data may reside on disk or 
-in-core, may be large, and may be binary (not line-oriented).
+It depends on the content-type of the message.
+For "container" types (C<multipart/*>, C<message/*>), we store the
+contained entities as an array of "parts", accessed via the C<parts()>
+method, where each part is a complete MIME::Entity.
+For "singlepart" types (C<text/*>, C<image/*>, etc.), the unencoded
+body data is referenced via a MIME::Body object, accessed via 
+the C<bodyhandle()> method:
+
+                      bodyhandle()   parts()
+    Content-type:     returns:       returns:
+    ------------------------------------------------------------
+    application/*     MIME::Body     empty
+    audio/*           MIME::Body     empty     
+    image/*           MIME::Body     empty      
+    message/*         undef          MIME::Entity list (usually 1)
+    multipart/*       undef          MIME::Entity list (usually >0)
+    text/*            MIME::Body     empty     
+    video/*           MIME::Body     empty     
+    x-*/*             MIME::Body     empty 
+
+As a special case, C<message/*> is currently ambiguous: depending 
+on the parser, a C<message/*> might be treated as a singlepart,
+with a MIME::Body and no parts.  Use bodyhandle() as the final 
+arbiter.
 
 
-=item Do messages generally have bodies?
+=item What does the body() method return?
 
 B<Mail::Internet:> 
-Almost certainly yes.
+As an array of lines, ready for sending.
 
-B<MIME::Entity:>   
-Yes if this is a I<singlepart> message, and NO if it's a 
-I<multipart> message... since for multiparts the message "body" is 
-stored as the parsed collection of "parts" (each of which
-is also a MIME::Entity).
+B<MIME::Entity:> 
+As an array of lines, ready for sending.
 
 
 =item If an entity has a body, does it have a soul as well?
@@ -1919,24 +1970,64 @@ B<Mail::Internet:>
 Use the body() method.
 
 B<MIME::Entity:> 
-Use the bodyhandle() method, or the brand-new open()
-method.  The open() method returns a filehandle-like object to
-you, which gives you methods like getline() and read().  
-I<Use methods only> for portability; don't make any assumptions
-about what you've been handed.
+Depends on what you want... the I<encoded> data (as it is 
+transported), or the I<unencoded> data?  Keep reading...
+
+
+=item How do I get the "encoded" body data?
+
+B<Mail::Internet:> 
+Use the body() method.
+
+B<MIME::Entity:> 
+Use the body() method.  You can also use:
+
+    $entity->print_body()
+    $entity->stringify_body()   ### a.k.a. $entity->body_as_string()
+
+
+=item How do I get the "unencoded" body data?
+
+B<Mail::Internet:> 
+Use the body() method.
+
+B<MIME::Entity:> 
+Use the I<bodyhandle()> method!
+If bodyhandle() method returns true, then that value is a 
+L<MIME::Body|MIME::Body> which can be used to access the data via 
+its open() method.  If bodyhandle() method returns an undefined value, 
+then the entity is probably a "container" that has no real body data of
+its own (e.g., a "multipart" message): in this case, you should access
+the components via the parts() method.  Like this:
+
+    if ($bh = $entity->bodyhandle) {
+	$io = $bh->open;
+	...access unencoded data via $io->getline or $io->read...
+	$io->close;
+    }
+    else {
+	foreach my $part (@parts) {
+	    ...do something with the part...
+	}
+    }
+
+You can also use:
+
+    if ($bh = $entity->bodyhandle) {
+	$unencoded_data = $bh->as_string;
+    }
+    else {
+	...do stuff with the parts...
+    }
 
 
 =item What does the body() method return?
 
 B<Mail::Internet:> 
-The body, as an array of lines.
+The transport-encoded message body, as an array of lines.
 
 B<MIME::Entity:>   
-The body, as an array of lines...
-but I<only> for a singlepart messages.  It returns I<nothing> for 
-a multipart message, since multiparts by definition do not have bodies
-of their own.  It's also somewhat inappropriate for non-textual 
-bodies, like GIFs.
+The transport-encoded message body, as an array of lines.
 
 
 =item What does print_body() print?
@@ -1945,37 +2036,7 @@ B<Mail::Internet:>
 Exactly what body() would return to you.
 
 B<MIME::Entity:> 
-The I<encoded representation> of "all the stuff following the header",
-using the Content-transfer-encoding in the MIME header. This includes
-the encoded representation of any I<parts> as well.
-Put simply, print_body() doesn't just "print the body": it
-prints a flattened representation of the I<entire entity,>
-including subparts.  This is generally what people seem to expect.
-
-
-=item Assuming I have a singlepart, isn't the data 
-      from body() identical to the stuff printed by print_body()?
-
-B<Mail::Internet:> 
-Yes.
-
-B<MIME::Entity:>   
-Not likely.  If the original message held a base64-encoded GIF file, 
-the body() data will be the I<actual, decoded, binary GIF data>... 
-which is I<not> the same as that base64-encoded
-stream of ASCII output by print_body().
-
-
-=item Conceptually, what's the difference between what's returned
-      by body() and what's printed by print_body()?
-
-B<Mail::Internet:> 
-None.
-
-B<MIME::Entity:> 
-Method body() refers to the I<actual body data> of the entity in question.
-Method print_body() (and stringify_body()) refers to the 
-I<complete printed representation> of that entity.
+Exactly what body() would return to you.
 
 
 =item Say I have an entity which might be either singlepart or multipart.
@@ -2011,18 +2072,6 @@ Mail::Internet is a simple, efficient way of dealing with a "black box"
 mail message... one whose internal data you don't care much about.  
 MIME::Entity, in contrast, cares I<very much> about the message contents: 
 that's its job!
-
-Here's an example:
-
-Suppose you wanted me to rewrite MIME::Entity so that you could properly
-set any body -- even a multipart body -- by giving its lines to body().  
-After all, I can just parse the lines you give me, right?
-
-Not quite.  In order to parse that data, I I<need> to have a header
-which tells me whether it's singlepart or multipart.  I I<need>
-to know the encoding, too.  So MIME::Entity will enforces a sequence 
-of events on how you set things up, unlike Mail::Internet -- which 
-doesn't care about message contents.
 
 =back
 
@@ -2080,7 +2129,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.204 $ $Date: 2000/06/10 06:38:02 $
+$Revision: 5.205 $ $Date: 2000/06/20 04:16:05 $
 
 =cut
 

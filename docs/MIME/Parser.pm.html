@@ -399,9 +399,13 @@ Throws exception on failure.
 <P><DT><B><A NAME="item:evil_filename">evil_filename FILENAME</A></B></DT>
 <DD>
 <I>Instance method.</I>
-Is this an evil filename?  It is if it contains any <CODE>&quot;/&quot;</CODE> characters,
-or if it's <CODE>&quot;.&quot;</CODE>, <CODE>&quot;..&quot;</CODE>, or empty.
+Is this an evil filename?  It is if any of these are true:
 
+<PRE>
+    * it is empty
+    * it is a string of dots: &quot;.&quot;, &quot;..&quot;, etc.
+    * it contains a known &quot;path&quot; character: '/' '\' ':' '[' ']'
+</PRE>
 
 <P>Override this method in a subclass if you just want to change which 
 externally-provided filenames are allowed, and which are not.  Like this:
@@ -1069,11 +1073,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.207 $ $Date: 2000/06/10 07:55:23 $
+<P>$Revision: 5.208 $ $Date: 2000/06/20 04:16:06 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sat Jun 10 03:58:36 2000 by cvu_pod2html
+Generated Tue Jun 20 00:17:14 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

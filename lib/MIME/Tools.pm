@@ -26,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.209 $, 10;
+$VERSION = substr q$Revision: 5.210 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -829,12 +829,44 @@ is using MIME-tools, it might not be a bad idea to find out about those
 bugs I<before> they become problems...
 
 
+=head1 VERSION
+
+$Revision: 5.210 $ 
+
 
 =head1 CHANGE LOG
 
 =over 4
 
-=item Version 5.209
+=item Version 5.210   (2000/06/20)
+
+Made MIME::Parser's evil_filename stricter by having it reject
+"path" characters: any of '/' '\' ':' '[' ']'.
+
+       Just as with beauty
+	  The eye of the beholder
+       Is where "evil" lives. 
+
+Corrected a number of docs in MIME::Entity which were obsoleted
+in the transition from 4.x to 5.x. 
+I<Thanks to Michael Fischer for pointing these out.>
+For this one, a special 5-5-5-5 Haiku of anagrams:
+
+       Documentation
+	  in mutant code, O!
+       Edit -- no, CUT! [moan]
+	  I meant to un-doc...
+		
+MIME::Entity was missing a "use IO::Lines", which caused an 
+exception when you tried to use the body() method of MIME::Entity.
+I<Thanks to Hideyo Imazu and Michael Fischer for pointing this out.>
+
+       Bareword looks fine, but
+          Perl cries: "Whoa there... IO::Lines?
+       Never heard of it."
+
+
+=item Version 5.209   (2000/06/10) 
 
 B<Autodetection of uuencode.>
 You can now tell the parser to hunt for uuencode inside what should
@@ -861,7 +893,7 @@ the Data parameter, instead of MIME::Body::Scalar.
 B<More documentation> on toolkit configuration.
 
 
-=item Version 5.207
+=item Version 5.207   (2000/06/09) 
 
 Fixed bug in MIME::Parser where the "warning" method whine() was 
 called as a static function instead of invoked as an instance method.  
@@ -872,7 +904,7 @@ I<Thanks to Todd A. Bradfute for reporting this.>
        "Warning" makes us die
 
 
-=item Version 5.206
+=item Version 5.206   (2000/06/08) 
 
 Ahem.  Cough cough:
 
@@ -901,14 +933,14 @@ I<Thanks to "sen_ml" for suggesting this.>
 Started using Benchmark for benchmarking.
 
 
-=item Version 5.205
+=item Version 5.205   (2000/06/06) 
 
 Added terminating newline to all parser messages, and fixed
 small parser bug that was dropping parts when errors occurred
 in certain places.
 
 
-=item Version 5.203
+=item Version 5.203   (2000/06/05) 
 
 Brand new parser based on new (private) MIME::Parser::Reader and 
 (public) MIME::Parser::Results.  Fast and yet simple and very tolerant
@@ -917,19 +949,19 @@ of bad MIME when desired.  Message reporting needs some muzzling.
 MIME::Parser now has ignore_errors() set true by default.
 
 
-=item Version 5.116
+=item Version 5.116   (2000/05/26) 
 
 Removed Tmpfile.t test, which was causing a bogus failure in 
 "make test".  Now we require 5.004 for MIME::Parser anyway,
 so we don't need it.  I<Thanks to Jonathan Cohn for reporting this.>
 
 
-=item Version 5.115
+=item Version 5.115   (2000/05/24) 
 
 Fixed Ref.t bug, and documented how to remove parts from a MIME::Entity.
 
 
-=item Version 5.114 
+=item Version 5.114   (2000/05/23) 
 
 Entity now uses MIME::Lite-style default suggested encoding.
 
@@ -938,7 +970,7 @@ Ref.t are skipped for text document (due to CRLF differences
 between platforms).
 
 
-=item Version 5.113 (Initial 5.x Beta release)
+=item Version 5.113   (2000/05/21) 
 
 B<Major speed and structural improvements to the parser.>
     I<Major, MAJOR thanks to Noel Burton-Krahn, Jeremy Gilbert,
@@ -981,25 +1013,25 @@ B<Miscellaneous cleanup.>
 
 
 
-=item Version 4.123
+=item Version 4.123   (1999/05/12) 
 
 Cleaned up some of the tests for non-Unix OS'es.
 Will require a few iterations, no doubt.
 
 
-=item Version 4.122
+=item Version 4.122   (1999/02/09) 
 
 B<Resolved CORE::open warnings for 5.005.>
         I<Thanks to several folks for this bug report.>
 
 
-=item Version 4.121
+=item Version 4.121   (1998/06/03) 
 
 B<Fixed MIME::Words infinite recursion.>
         I<Thanks to several folks for this bug report.>
 
 
-=item Version 4.117
+=item Version 4.117   (1998/05/01) 
 
 B<Nicer MIME::Entity::build.> 
         No longer outputs warnings with undefined Filename, and now
@@ -1013,7 +1045,7 @@ B<Better test logging.>
         Now uses ExtUtils::TBone.
 
 
-=item Version 4.116
+=item Version 4.116   (1998/02/14) 
 
 B<Bug fix:> 
         MIME::Head and MIME::Entity were not downcasing the
@@ -1021,7 +1053,7 @@ B<Bug fix:>
 	I<Thanks to Rodrigo de Almeida Siqueira for finding this.>
 
 
-=item Version 4.114
+=item Version 4.114   (1998/02/12) 
 
 B<Gzip64-encoding has been improved, and turned off as a default,>
 	since it depends on having gzip installed.  
@@ -1030,14 +1062,14 @@ B<Gzip64-encoding has been improved, and turned off as a default,>
 	I<Thanks to Paul J. Schinder for finding this bug.>
 
 
-=item Version 4.113
+=item Version 4.113   (1998/01/20) 
 
 B<Bug fix:>
         MIME::ParserBase was accidentally folding newlines in header fields.
 	I<Thanks to Jason L. Tibbitts III for spotting this.>
 
 
-=item Version 4.112
+=item Version 4.112   (1998/01/17) 
 
 B<MIME::Entity::print_body now recurses> when printing multipart
 	entities, and prints "everything following the header."  This is more
@@ -1045,19 +1077,19 @@ B<MIME::Entity::print_body now recurses> when printing multipart
         "two body problem" section of MIME::Entity's docs.
 
 
-=item Version 4.111
+=item Version 4.111   (1998/01/14) 
 
 Clean build/test on Win95 using 5.004.  Whew.
 
 
-=item Version 4.110
+=item Version 4.110   (1998/01/11) 
 
 B<Added> make_multipart() and make_singlepart() in MIME::Entity.
 
 B<Improved> handling/saving of preamble/epilogue.
 
 
-=item Version 4.109
+=item Version 4.109   (1998/01/10) 
 
 =over 4
 
@@ -1148,7 +1180,7 @@ B<MIME::Head::add()> now no longer downcases its argument.
 
 
 
-=item Version 3.204
+=item Version 3.204   
 
 B<Bug in MIME::Head::original_text fixed.>
 	Well, it took a while, but another bug surfaced from my transition 
@@ -1187,7 +1219,7 @@ B<The "make test" is far less chatty.>
 I<Thanks to Andreas Koenig for suggesting this.>
 
 
-=item Version 3.203
+=item Version 3.203   
 
 B<No, there haven't been any major changes between 2.x and 3.x.>
 	The major-version increase was from a few more tweaks to get $VERSION
@@ -1234,14 +1266,14 @@ B<Fixed broken parse_two() in MIME::ParserBase.>
 	I<Thanks again to Tim Pierce for bringing this to my attention.>
 
 
-=item Version 2.14
+=item Version 2.14   
 
 Just a few bug fixes to improve compatibility with Mail-Tools 1.08,
 and with the upcoming Perl 5.004 release.
 I<Thanks to Jason L. Tibbitts III for reporting the problems so quickly.>
 
 
-=item Version 2.13
+=item Version 2.13   
 
 =over 4
 
@@ -1306,7 +1338,7 @@ I<Thanks to Larry W. Virden for pointing out the problems of bare =over's>
 =back
 
 
-=item Version 2.04
+=item Version 2.04   
 
 B<A bug in MIME::Entity's output method was corrected.>
 MIME::Entity::print now outputs everything to the desired filehandle
@@ -1315,7 +1347,7 @@ I<Thanks to Jake Morrison for pointing out the incompatibility
 with Mail::Header.>
 
 
-=item Version 2.03
+=item Version 2.03   
 
 B<Fixed bug in autogenerated filenames> resulting from transposed "if" 
 statement in MIME::Parser, removing spurious printing of header as well.
@@ -1334,13 +1366,13 @@ Fixed undefined-variable warnings when dumping skeleton
 I<Thanks to Joel Noble for bringing this to my attention.>
 
 
-=item Version 2.02
+=item Version 2.02   
 
 B<Stupid, stupid bugs in both BASE64 encoding and decoding were fixed.>
 I<Thanks to Phil Abercrombie for locating them.>
 
 
-=item Version 2.01
+=item Version 2.01   
 
 B<Modules now inherit from the new Mail:: modules!>
 This means big changes in behavior.
@@ -1358,14 +1390,14 @@ I<Thanks to Andreas Koenig for suggesting this.>
 
 
 
-=item Version 1.13 	
+=item Version 1.13   
 
 MIME::Head now no longer requires space after ":", although
 either a space or a tab after the ":" will be swallowed
 if there.  
 I<Thanks to Igor Starovoitov for pointing out this shortcoming.>
 
-=item Version 1.12	
+=item Version 1.12   
 
 Fixed bugs in parser where CRLF-terminated lines were 
 blowing out the handling of preambles/epilogues.
@@ -1387,7 +1419,7 @@ Hey, 5.001'ers: let me know if this breaks stuff, okay?
 
 Added unsupported ./examples directory.
 
-=item Version 1.11	
+=item Version 1.11   
 
 Converted over to using Makefile.PL.  
 I<Thanks to Andreas Koenig for the much-needed kick in the pants...>
@@ -1402,7 +1434,7 @@ Fixed redefined parts() method in Entity.
 
 Fixed bugs in Head where field name wasn't being case folded.
 
-=item Version 1.10	
+=item Version 1.10   
 
 A typo was causing the epilogue of an inner multipart
 message to be swallowed to the end of the OUTER multipart
@@ -1422,11 +1454,11 @@ some solutions.>
 
 Fixed illegal "simple" multipart test file.  D'OH!
 
-=item Version 1.9	
+=item Version 1.9   
 
 No changes: 1.8 failed CPAN registration
 
-=item Version 1.8.	
+=item Version 1.8   
 
 Fixed incompatibility with 5.001 and FileHandle::new_tmpfile
 Added COPYING file, and improved README.
@@ -1451,10 +1483,6 @@ Released as MIME-tools (2.0): Halloween 1996.
 Released as MIME-tools (4.0): Christmas 1997. 
 Released as MIME-tools (5.0): Mother's Day 2000.
 
-
-=head1 VERSION
-
-$Revision: 5.209 $ 
 
 
 =head1 ACKNOWLEDGMENTS
