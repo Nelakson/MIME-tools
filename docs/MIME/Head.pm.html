@@ -101,22 +101,22 @@ You can <B>create</B> a MIME::Head object in a number of ways:
 
 <P>
 <PRE>    # Create a new, empty header, and populate it manually:    
-    &#36;head = MIME::Head-&gt;new;
-    &#36;head-&gt;replace('content-type', 'text/plain; charset=US-ASCII');
-    &#36;head-&gt;replace('content-length', &#36;len);</PRE>
+    $head = MIME::Head-&gt;new;
+    $head-&gt;replace('content-type', 'text/plain; charset=US-ASCII');
+    $head-&gt;replace('content-length', $len);</PRE>
 
 
 
 <P>
 <PRE>    # Parse a new header from a filehandle:
-    &#36;head = MIME::Head-&gt;read(\*STDIN);</PRE>
+    $head = MIME::Head-&gt;read(\*STDIN);</PRE>
 
 
 
 <P>
 <PRE>    # Parse a new header from a file, or a readable pipe:
-    &#36;testhead = MIME::Head-&gt;from_file(&quot;/tmp/test.hdr&quot;);
-    &#36;a_b_head = MIME::Head-&gt;from_file(&quot;cat a.hdr b.hdr |&quot;);</PRE>
+    $testhead = MIME::Head-&gt;from_file(&quot;/tmp/test.hdr&quot;);
+    $a_b_head = MIME::Head-&gt;from_file(&quot;cat a.hdr b.hdr |&quot;);</PRE>
 
 
 
@@ -125,13 +125,13 @@ To <B>output</B> a MIME::Head object, use either of these:
 
 
 <P>
-<PRE>    &#36;head-&gt;print(\*STDOUT);             # output to filehandle</PRE>
+<PRE>    $head-&gt;print(\*STDOUT);             # output to filehandle</PRE>
 
 
 
 <P>
-<PRE>    print STDOUT &#36;head-&gt;as_string;      # output as string
-    print STDOUT &#36;head-&gt;stringify;      # ditto</PRE>
+<PRE>    print STDOUT $head-&gt;as_string;      # output as string
+    print STDOUT $head-&gt;stringify;      # ditto</PRE>
 
 
 
@@ -140,7 +140,7 @@ To get rid of all internal newlines in all fields (called <B>unfolding</B>):
 
 
 <P>
-<PRE>    &#36;head-&gt;unfold;</PRE>
+<PRE>    $head-&gt;unfold;</PRE>
 
 
 
@@ -149,7 +149,7 @@ To RFC-1522-decode any Q- or B-encoded-text in the header fields:
 
 
 <P>
-<PRE>    &#36;head-&gt;decode;</PRE>
+<PRE>    $head-&gt;decode;</PRE>
 
 
 
@@ -158,7 +158,7 @@ To test whether a given field <B>exists,</B> count the occurences:
 
 
 <P>
-<PRE>    warn &quot;missing subject!&quot; if (! &#36;head-&gt;count('subject'));</PRE>
+<PRE>    warn &quot;missing subject!&quot; if (! $head-&gt;count('subject'));</PRE>
 
 
 
@@ -170,14 +170,14 @@ to the first occurence in a scalar context) or <I>all</I> occurences
 
 <P>
 <PRE>    # Is this a reply?
-    &#36;is_reply = 1 if (&#36;head-&gt;get('Subject') =~ /^Re: /);</PRE>
+    $is_reply = 1 if ($head-&gt;get('Subject') =~ /^Re: /);</PRE>
 
 
 
 <P>
 <PRE>    # Get receipt information:
-    print &quot;Last received from: &quot;, &#36;head-&gt;get('Received', 0), &quot;\n&quot;;
-    @all_received = &#36;head-&gt;get('Received');</PRE>
+    print &quot;Last received from: &quot;, $head-&gt;get('Received', 0), &quot;\n&quot;;
+    @all_received = $head-&gt;get('Received');</PRE>
 
 
 
@@ -187,7 +187,7 @@ To <B>get the first occurence</B> of a field as a string, regardless of context:
 
 <P>
 <PRE>    # Print the subject, or the empty string if none:
-    print &quot;Subject: &quot;, &#36;head-&gt;get('Subject',0), &quot;\n&quot;;</PRE>
+    print &quot;Subject: &quot;, $head-&gt;get('Subject',0), &quot;\n&quot;;</PRE>
 
 
 
@@ -197,7 +197,7 @@ To <B>get all occurences</B> of a field as an array, regardless of context:
 
 <P>
 <PRE>    # Too many hops?  Count 'em and see!
-    if (&#36;head-&gt;get_all('Received') &gt; 5) { ...</PRE>
+    if ($head-&gt;get_all('Received') &gt; 5) { ...</PRE>
 
 
 
@@ -207,7 +207,7 @@ To <B>set a field</B> to a given string:
 
 <P>
 <PRE>    # Declare this to be an HTML header:
-    &#36;head-&gt;replace('Content-type', 'text/html');</PRE>
+    $head-&gt;replace('Content-type', 'text/html');</PRE>
 
 
 
@@ -217,33 +217,33 @@ To get certain commonly-used <B>MIME information</B>:
 
 <P>
 <PRE>    # Get/set a given MIME attribute:
-    unless (&#36;charset = &#36;head-&gt;mime_attr('content-type.charset')) {
-        &#36;head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; &quot;US-ASCII&quot;);
+    unless ($charset = $head-&gt;mime_attr('content-type.charset')) {
+        $head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; &quot;US-ASCII&quot;);
     }</PRE>
 
 
 
 <P>
 <PRE>    # The content type (e.g., &quot;text/html&quot;):
-    &#36;mime_type     = &#36;head-&gt;mime_type;</PRE>
+    $mime_type     = $head-&gt;mime_type;</PRE>
 
 
 
 <P>
 <PRE>    # The content transfer encoding (e.g., &quot;quoted-printable&quot;):
-    &#36;mime_encoding = &#36;head-&gt;mime_encoding;</PRE>
+    $mime_encoding = $head-&gt;mime_encoding;</PRE>
 
 
 
 <P>
 <PRE>    # The recommended name when extracted (e.g., &quot;choosy-moms-choose.gif&quot;):
-    &#36;file_name     = &#36;head-&gt;recommended_filename;</PRE>
+    $file_name     = $head-&gt;recommended_filename;</PRE>
 
 
 
 <P>
 <PRE>    # The boundary text, for multipart messages:
-    &#36;boundary      = &#36;head-&gt;multipart_boundary;</PRE>
+    $boundary      = $head-&gt;multipart_boundary;</PRE>
 
 
 
@@ -295,7 +295,7 @@ closed:
 
 <P>
 <PRE>    # Create a new header by parsing in a file:
-    my &#36;head = MIME::Head-&gt;from_file(&quot;/tmp/test.hdr&quot;);</PRE>
+    my $head = MIME::Head-&gt;from_file(&quot;/tmp/test.hdr&quot;);</PRE>
 
 
 
@@ -306,7 +306,7 @@ an instance initializer, the above is exactly equivalent to:
 
 <P>
 <PRE>    # Create a new header by parsing in a file:
-    my &#36;head = MIME::Head-&gt;new-&gt;from_file(&quot;/tmp/test.hdr&quot;);</PRE>
+    my $head = MIME::Head-&gt;new-&gt;from_file(&quot;/tmp/test.hdr&quot;);</PRE>
 
 
 
@@ -338,7 +338,7 @@ Supply this routine with a reference to a filehandle glob; e.g., <CODE>\*STDIN</
 
 <P>
 <PRE>    # Create a new header by parsing in STDIN:
-    &#36;head-&gt;read(\*STDIN);</PRE>
+    $head-&gt;read(\*STDIN);</PRE>
 
 
 
@@ -383,7 +383,7 @@ Add a new occurence of the field named TAG, given by TEXT:
 
 <P>
 <PRE>    # Add the trace information:    
-    &#36;head-&gt;add('Received', 'from eryq.pr.mcs.net by gonzo.net with smtp');</PRE>
+    $head-&gt;add('Received', 'from eryq.pr.mcs.net by gonzo.net with smtp');</PRE>
 
 
 
@@ -410,7 +410,7 @@ tells you whether a given field exists:
 
 <P>
 <PRE>    # Was a &quot;Subject:&quot; field given?
-    &#36;subject_was_given = &#36;head-&gt;count('subject');</PRE>
+    $subject_was_given = $head-&gt;count('subject');</PRE>
 
 
 
@@ -489,8 +489,8 @@ Delete all occurences of the field named TAG.
 
 <P>
 <PRE>    # Remove some MIME information:
-    &#36;head-&gt;delete('MIME-Version');
-    &#36;head-&gt;delete('Content-type');</PRE>
+    $head-&gt;delete('MIME-Version');
+    $head-&gt;delete('Content-type');</PRE>
 
 
 
@@ -507,8 +507,8 @@ or undef if not present:
 
 <P>
 <PRE>    # Print the first and last 'Received:' entries (explicitly):
-    print &quot;First, or most recent: &quot;, &#36;head-&gt;get('received', 0), &quot;\n&quot;;
-    print &quot;Last, or least recent: &quot;, &#36;head-&gt;get('received',-1), &quot;\n&quot;; </PRE>
+    print &quot;First, or most recent: &quot;, $head-&gt;get('received', 0), &quot;\n&quot;;
+    print &quot;Last, or least recent: &quot;, $head-&gt;get('received',-1), &quot;\n&quot;; </PRE>
 
 
 
@@ -519,7 +519,7 @@ INDEX simply defaults to 0:
 
 <P>
 <PRE>    # Get the first 'Received:' entry (implicitly):
-    my &#36;most_recent = &#36;head-&gt;get('received');</PRE>
+    my $most_recent = $head-&gt;get('received');</PRE>
 
 
 
@@ -530,7 +530,7 @@ If <B>no INDEX</B> is given, and invoked in an <B>array</B> context, then
 
 <P>
 <PRE>    # Get all 'Received:' entries:
-    my @all_received = &#36;head-&gt;get('received');</PRE>
+    my @all_received = $head-&gt;get('received');</PRE>
 
 
 
@@ -543,7 +543,7 @@ empty list if the field is not present:
 
 <P>
 <PRE>    # How did it get here?
-    @history = &#36;head-&gt;get_all('Received');</PRE>
+    @history = $head-&gt;get_all('Received');</PRE>
 
 
 
@@ -554,7 +554,7 @@ accidents when you get careless and do stuff like this:
 
 
 <P>
-<PRE>    print &quot;\u&#36;field: &quot;, &#36;head-&gt;get(&#36;field), &quot;\n&quot;;</PRE>
+<PRE>    print &quot;\u$field: &quot;, $head-&gt;get($field), &quot;\n&quot;;</PRE>
 
 
 
@@ -640,9 +640,9 @@ MIME fields:
 
 
 <P>
-<PRE>    &#36;head-&gt;mime_attr(&quot;content-type&quot;         =&gt; &quot;text/html&quot;);
-    &#36;head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; &quot;US-ASCII&quot;);
-    &#36;head-&gt;mime_attr(&quot;content-type.name&quot;    =&gt; &quot;homepage.html&quot;);</PRE>
+<PRE>    $head-&gt;mime_attr(&quot;content-type&quot;         =&gt; &quot;text/html&quot;);
+    $head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; &quot;US-ASCII&quot;);
+    $head-&gt;mime_attr(&quot;content-type.name&quot;    =&gt; &quot;homepage.html&quot;);</PRE>
 
 
 
@@ -666,7 +666,7 @@ to be deleted:
 
 
 <P>
-<PRE>    &#36;head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; undef);</PRE>
+<PRE>    $head-&gt;mime_attr(&quot;content-type.charset&quot; =&gt; undef);</PRE>
 
 
 
@@ -676,8 +676,8 @@ or undefined if it isn't there:
 
 
 <P>
-<PRE>    &#36;type = &#36;head-&gt;mime_attr(&quot;content-type&quot;);      # returns &quot;text/html&quot;
-    &#36;name = &#36;head-&gt;mime_attr(&quot;content-type.name&quot;); # returns &quot;homepage.html&quot;</PRE>
+<PRE>    $type = $head-&gt;mime_attr(&quot;content-type&quot;);      # returns &quot;text/html&quot;
+    $name = $head-&gt;mime_attr(&quot;content-type.name&quot;); # returns &quot;homepage.html&quot;</PRE>
 
 
 
@@ -815,7 +815,7 @@ what Achim suggests... so you could say:
 
 
 <P>
-<PRE>     my &#36;attrs = new MIME::Attrs type =&gt; &quot;text/plain&quot;,
+<PRE>     my $attrs = new MIME::Attrs type =&gt; &quot;text/plain&quot;,
 				 charset =&gt; ...,
                                  disposition =&gt; ..., ... ;</PRE>
 
@@ -915,12 +915,12 @@ VERSION</FONT></H1>
 
 
 <P>
-&#36;Revision: 4.103 &#36; &#36;Date: 1997/12/14 03:03:49 &#36;
+$Revision: 4.103 $ $Date: 1997/12/14 03:03:49 $
 
 
 <P><HR>
 <SMALL>
-		Last updated: Wed Jan 14 10:21:55 1998 <BR>
+		Last updated: Sat Jan 17 23:01:50 1998 <BR>
 		Generated by pod2coolhtml 1.101.  Want a copy?  Just email
 		<A HREF="mailto:eryq@enteract.com">eryq@enteract.com</A>.
 		(Yes, it's free.)

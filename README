@@ -50,9 +50,9 @@ CONTENTS
 
 REQUIREMENTS
     You'll need Perl5.002 or better, but you *should* get 5.004 as soon as
-    possible... sorry, but it's the first release I know of with a non-broken
-    FileHandle->new_tmpfile method. It's extremely worth upgrading to if you're
-    using MIME-tools.
+    possible... sorry, but it's the first release I know of with a non-
+    broken FileHandle->new_tmpfile method. It's extremely worth upgrading to
+    if you're using MIME-tools.
 
     You'll also need to obtain and install the following kits from the CPAN:
 
@@ -61,13 +61,13 @@ REQUIREMENTS
         ability to "wrap" foreign filehandles.
 
     MIME-Base64 (2.04 or higher)
-        This kit contains MIME::Base64 and MIME::QuotedPrint, which perform the
-        low-level MIME decoding. Get these from Gisle Aas' author directory.
-        They are also reported to be in the LWP distribution.
+        This kit contains MIME::Base64 and MIME::QuotedPrint, which perform
+        the low-level MIME decoding. Get these from Gisle Aas' author
+        directory. They are also reported to be in the LWP distribution.
 
     MailTools (1.09 or higher)
-        This is Graham Barr's revamped set of Mail:: modules. Many of them are
-        now superclasses of the MIME:: modules, and perform the core
+        This is Graham Barr's revamped set of Mail:: modules. Many of them
+        are now superclasses of the MIME:: modules, and perform the core
         functionality of manipulating headers and fields.
 
     For your convenience, possibly-old copies of the MIME:: modules are
@@ -86,9 +86,89 @@ AUTHOR
     For full credits, see the MIME::Tools module.
 
 CHANGES
+  Version 4.112
+
+    MIME::Entity::print_body now recurses when printing multipart entities,
+    and prints "everything following the header." This is more likely what
+    people expect to happen. PLEASE read the "two body problem" section of
+    MIME::Entity's docs.
+
+  Version 4.111
+
+    Clean build/test on Win95 using 5.004. Whew.
+
   Version 4.110
 
     Added make_multipart() and make_singlepart() in MIME::Entity.
 
     Improved handling/saving of preamble/epilogue.
+
+  Version 4.109
+
+    Overall
+        Major version shift to 4.x accompanies numerous structural changes,
+        and the deletion of some long-deprecated code. Many apologies to
+        those who are inconvenienced by the upgrade.
+
+        MIME::IO deprecated. You'll see IO::Scalar, IO::ScalarArray, and
+        IO::Wrap to make this toolkit work.
+
+        MIME::Entity deep code. You can now deep-copy MIME entities (except
+        for on-disk data files).
+
+    Encoding/decoding
+        MIME::Latin1 deprecated, and 8-to-7 mapping removed. Really,
+        MIME::Latin1 was one of my more dumber ideas. It's still there, but
+        if you want to map 8-bit characters to Latin1 ASCII approximations
+        when 7bit encoding, you'll have to request it explicitly. *But use
+        quoted-printable for your 8-bit documents; that's what it's there
+        for!*
+
+        7bit and 8bit "encoders" no longer encode. As per RFC-2045, these
+        just do a pass-through of the data, but they'll warn you if you send
+        bad data through.
+
+        MIME::Entity suggests encoding. Now you can ask MIME::Entity's
+        build() method to "suggest" a legal encoding based on the body and
+        the content-type. No more guesswork! See the "mimesend" example.
+
+        New module structure for MIME::Decoder classes. It should be easier
+        for you to see what's happening.
+
+        New MIME decoders! Support added for decoding `x-uuencode', and for
+        decoding/encoding `x-gzip64'. You'll need "gzip" to make the latter
+        work.
+
+        Quoted-printable back on track... and then some. The 'quoted-
+        printable' decoder now uses the newest MIME::QuotedPrint, and amends
+        its output with guideline #8 from RFC2049 (From/.). *Thanks to Denis
+        N. Antonioli for suggesting this.*
+
+    Parsing
+        Preamble and epilogue are now saved. These are saved in the parsed
+        entities as simple string-arrays, and are output by print() if
+        there. *Thanks to Jason L. Tibbitts for suggesting this.*
+
+        The "multipart/digest" semantics are now preserved. Parts of digest
+        messages have their mime_type() defaulted to "message/rfc822"
+        instead of "text/plain", as per the RFC. *Thanks to Carsten Heyl for
+        suggesting this.*
+
+    Output
+        Well-defined, more-complete print() output. When printing an entity,
+        the output is now well-defined if the entity came from a
+        MIME::Parser, even if using parse_nested_messages. See MIME::Entity
+        for details.
+
+        You can prevent recommended filenames from being output. This
+        possible security hole has been plugged; when building MIME
+        entities, you can specify a body path but suppress the filename in
+        the header. *Thanks to Jason L. Tibbitts for suggesting this.*
+
+    Bug fixes
+        Win32 installations should work. The binmode() calls should work
+        fine on Win32 now. *Thanks to numerous folks for their patches.*
+
+        MIME::Head::add() now no longer downcases its argument. *Thanks to
+        Brandon Browning & Jason L. Tibbitts for finding this bug.*
 

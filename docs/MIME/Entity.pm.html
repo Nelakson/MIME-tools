@@ -79,6 +79,7 @@ MIME::Entity</SMALL></B></TD>
 <LI><A HREF="#notes">NOTES</A>
 </LI><UL>
 <LI><A HREF="#under_the_hood">Under the hood</A>
+</LI><LI><A HREF="#the_twobody_problem">The &quot;two-body problem&quot;</A>
 </LI><LI><A HREF="#design_issues">Design issues</A>
 </LI></UL>
 <LI><A HREF="#author">AUTHOR</A>
@@ -109,7 +110,7 @@ SYNOPSIS</FONT></H1>
 
 <P>
 <PRE>    # Create an entity:
-    &#36;top = build MIME::Entity From     =&gt; 'me@myhost.com',
+    $top = build MIME::Entity From     =&gt; 'me@myhost.com',
                               To       =&gt; 'you@yourhost.com',
                               Subject  =&gt; &quot;Hello, nurse!&quot;,
 			      Data     =&gt; \@my_message;</PRE>
@@ -118,7 +119,7 @@ SYNOPSIS</FONT></H1>
 
 <P>
 <PRE>    # Attach stuff to it:
-    &#36;top-&gt;attach(Path        =&gt; &#36;gif_path,
+    $top-&gt;attach(Path        =&gt; $gif_path,
 		 Type        =&gt; &quot;image/gif&quot;,
 		 Encoding    =&gt; &quot;base64&quot;);</PRE>
 
@@ -126,13 +127,13 @@ SYNOPSIS</FONT></H1>
 
 <P>
 <PRE>    # Sign it:
-    &#36;top-&gt;sign;</PRE>
+    $top-&gt;sign;</PRE>
 
 
 
 <P>
 <PRE>    # Output it:
-    &#36;top-&gt;print(\*STDOUT);</PRE>
+    $top-&gt;print(\*STDOUT);</PRE>
 
 
 
@@ -175,7 +176,7 @@ stuff is defaulted for us):
 
 
 <P>
-<PRE>    &#36;ent = build MIME::Entity Path=&gt;&quot;english-msg.txt&quot;;</PRE>
+<PRE>    $ent = build MIME::Entity Path=&gt;&quot;english-msg.txt&quot;;</PRE>
 
 
 
@@ -184,7 +185,7 @@ Create a document for a text file with 8-bit (Latin-1) characters:
 
 
 <P>
-<PRE>    &#36;ent = build MIME::Entity Path     =&gt;&quot;french-msg.txt&quot;,
+<PRE>    $ent = build MIME::Entity Path     =&gt;&quot;french-msg.txt&quot;,
                               Encoding =&gt;&quot;quoted-printable&quot;,
                               From     =&gt;'jean.luc@inria.fr',
                               Subject  =&gt;&quot;C'est bon!&quot;;</PRE>
@@ -198,7 +199,7 @@ not the default values):
 
 
 <P>
-<PRE>    &#36;ent = build MIME::Entity Description =&gt; &quot;A pretty picture&quot;,
+<PRE>    $ent = build MIME::Entity Description =&gt; &quot;A pretty picture&quot;,
                               Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
                               Type        =&gt; &quot;image/gif&quot;,
                               Encoding    =&gt; &quot;base64&quot;;</PRE>
@@ -210,7 +211,7 @@ Create a document that you already have the text for, using &quot;Data&quot;:
 
 
 <P>
-<PRE>    &#36;ent = build MIME::Entity Type        =&gt; &quot;text/plain&quot;,
+<PRE>    $ent = build MIME::Entity Type        =&gt; &quot;text/plain&quot;,
                               Encoding    =&gt; &quot;quoted-printable&quot;,
                               Data        =&gt; [&quot;First line.\n&quot;,
                                               &quot;Second line.\n&quot;,
@@ -225,7 +226,7 @@ explicitly:
 
 <P>
 <PRE>    # Create the top-level, and set up the mail headers:
-    &#36;top = MIME::Entity-&gt;build(Type     =&gt; &quot;multipart/mixed&quot;,
+    $top = MIME::Entity-&gt;build(Type     =&gt; &quot;multipart/mixed&quot;,
                                From     =&gt; 'me@myhost.com',
                                To       =&gt; 'you@yourhost.com',
                                Subject  =&gt; &quot;Hello, nurse!&quot;);</PRE>
@@ -234,13 +235,13 @@ explicitly:
 
 <P>
 <PRE>    # Attachment #1: a simple text document: 
-    &#36;top-&gt;attach(Path=&gt;&quot;./testin/short.txt&quot;);</PRE>
+    $top-&gt;attach(Path=&gt;&quot;./testin/short.txt&quot;);</PRE>
 
 
 
 <P>
 <PRE>    # Attachment #2: a GIF file:
-    &#36;top-&gt;attach(Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
+    $top-&gt;attach(Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
                  Type        =&gt; &quot;image/gif&quot;,
                  Encoding    =&gt; &quot;base64&quot;);</PRE>
 
@@ -248,7 +249,7 @@ explicitly:
 
 <P>
 <PRE>    # Attachment #3: text we'll create with text we have on-hand:
-    &#36;top-&gt;attach(Data =&gt; &#36;contents);</PRE>
+    $top-&gt;attach(Data =&gt; $contents);</PRE>
 
 
 
@@ -258,12 +259,12 @@ No problem: you can &quot;attach&quot; to singleparts as well:
 
 
 <P>
-<PRE>    &#36;top = MIME::Entity-&gt;build(From     =&gt; 'me@myhost.com',
+<PRE>    $top = MIME::Entity-&gt;build(From     =&gt; 'me@myhost.com',
 			       To       =&gt; 'you@yourhost.com',
 			       Subject  =&gt; &quot;Hello, nurse!&quot;,
 			       Data     =&gt; \@my_message);
-    if (&#36;GIF_path) { 
-	&#36;top-&gt;attach(Path        =&gt; &#36;GIF_path,
+    if ($GIF_path) { 
+	$top-&gt;attach(Path        =&gt; $GIF_path,
 	             Type        =&gt; 'image/gif',
                      Encoding    =&gt; '-SUGGEST');
     }</PRE>
@@ -275,7 +276,7 @@ Copy an entity (headers, parts... everything but external body data):
 
 
 <P>
-<PRE>    my &#36;deepcopy = &#36;top-&gt;dup;				  </PRE>
+<PRE>    my $deepcopy = $top-&gt;dup;				  </PRE>
 
 
 
@@ -289,34 +290,34 @@ Access examples</FONT></H2>
 
 <P>
 <PRE>    # Get the head, a MIME::Head:
-    &#36;head = &#36;ent-&gt;head;</PRE>
+    $head = $ent-&gt;head;</PRE>
 
 
 
 <P>
 <PRE>    # Get the body, as a MIME::Body;
-    &#36;bodyh = &#36;ent-&gt;bodyhandle;</PRE>
+    $bodyh = $ent-&gt;bodyhandle;</PRE>
 
 
 
 <P>
 <PRE>    # Get the actual MIME type, in the header:
-    &#36;type = &#36;ent-&gt;mime_type;</PRE>
+    $type = $ent-&gt;mime_type;</PRE>
 
 
 
 <P>
 <PRE>    # Get the effective MIME type (for dealing with nonstandard encodings):
-    &#36;eff_type = &#36;ent-&gt;effective_type;</PRE>
+    $eff_type = $ent-&gt;effective_type;</PRE>
 
 
 
 <P>
 <PRE>    # Get preamble, parts, and epilogue:
-    &#36;preamble   = &#36;ent-&gt;preamble;          # ref to array of lines
-    &#36;num_parts  = &#36;ent-&gt;parts;
-    &#36;first_part = &#36;ent-&gt;parts(0);          # an entity
-    &#36;epilogue   = &#36;ent-&gt;epilogue;          # ref to array of lines</PRE>
+    $preamble   = $ent-&gt;preamble;          # ref to array of lines
+    $num_parts  = $ent-&gt;parts;
+    $first_part = $ent-&gt;parts(0);          # an entity
+    $epilogue   = $ent-&gt;epilogue;          # ref to array of lines</PRE>
 
 
 
@@ -334,25 +335,25 @@ Muck about with the body data:
 
 <P>
 <PRE>    # Read the (unencoded) body data:
-    if (&#36;io = &#36;ent-&gt;open(&quot;r&quot;)) {
-	while (defined(&#36;_ = &#36;io-&gt;getline)) { print &#36;_ }
-	&#36;io-&gt;close;
+    if ($io = $ent-&gt;open(&quot;r&quot;)) {
+	while (defined($_ = $io-&gt;getline)) { print $_ }
+	$io-&gt;close;
     }</PRE>
 
 
 
 <P>
 <PRE>    # Write the (unencoded) body data:
-    if (&#36;io = &#36;ent-&gt;open(&quot;w&quot;)) {
-	foreach (@lines) { &#36;io-&gt;print(&#36;_) }
-	&#36;io-&gt;close;
+    if ($io = $ent-&gt;open(&quot;w&quot;)) {
+	foreach (@lines) { $io-&gt;print($_) }
+	$io-&gt;close;
     }</PRE>
 
 
 
 <P>
 <PRE>    # Delete the files for any external (on-disk) data:
-    &#36;ent-&gt;purge;</PRE>
+    $ent-&gt;purge;</PRE>
 
 
 
@@ -362,13 +363,13 @@ Muck about with the signature:
 
 <P>
 <PRE>    # Sign it (automatically removes any existing signature):
-    &#36;top-&gt;sign(File=&gt;&quot;&#36;ENV{HOME}/.signature&quot;);</PRE>
+    $top-&gt;sign(File=&gt;&quot;$ENV{HOME}/.signature&quot;);</PRE>
 
 
 
 <P>
 <PRE>    # Remove any signature within 15 lines of the end:
-    &#36;top-&gt;remove_sig(15);</PRE>
+    $top-&gt;remove_sig(15);</PRE>
 
 
 
@@ -379,7 +380,7 @@ Muck about with the headers:
 <P>
 <PRE>    # Compute content-lengths for singleparts based on bodies:
     #   (Do this right before you print!)
-    &#36;entity-&gt;sync_headers(Length=&gt;'COMPUTE');</PRE>
+    $entity-&gt;sync_headers(Length=&gt;'COMPUTE');</PRE>
 
 
 
@@ -389,13 +390,13 @@ Muck about with the structure:
 
 <P>
 <PRE>    # If a 0- or 1-part multipart, collapse to a singlepart:
-    &#36;top-&gt;make_singlepart;</PRE>
+    $top-&gt;make_singlepart;</PRE>
 
 
 
 <P>
 <PRE>    # If a singlepart, inflate to a multipart with 1 part:
-    &#36;top-&gt;make_multipart;</PRE>
+    $top-&gt;make_multipart;</PRE>
 
 
 
@@ -413,46 +414,42 @@ Print to filehandles:
 
 <P>
 <PRE>    # Print the entire message:
-    &#36;top-&gt;print(\*STDOUT);</PRE>
-
-
-
-<P>
-<PRE>    # Print just the (encoded) body:
-    &#36;top-&gt;print_body(\*STDOUT);</PRE>
+    $top-&gt;print(\*STDOUT);</PRE>
 
 
 
 <P>
 <PRE>    # Print just the header:
-    &#36;top-&gt;print_header(\*STDOUT);   
-    &#36;top-&gt;head-&gt;print(\*STDOUT);       # this works too</PRE>
+    $top-&gt;print_header(\*STDOUT);   </PRE>
 
 
 
 <P>
-Stringify:
+<PRE>    # Print just the (encoded) body... includes parts as well!
+    $top-&gt;print_body(\*STDOUT);</PRE>
+
+
+
+<P>
+Stringify... note that <CODE>stringify_xx</CODE> can also be written <CODE>xx_as_string</CODE>;
+the methods are synonymous, and neither form will be deprecated:
 
 
 <P>
 <PRE>    # Stringify the entire message:
-    print &#36;top-&gt;stringify; 
-    print &#36;top-&gt;as_string;            # synonym</PRE>
+    print $top-&gt;stringify;                   # or $top-&gt;as_string</PRE>
 
 
 
 <P>
 <PRE>    # Stringify just the header:
-    print &#36;top-&gt;stringify_header;
-    print &#36;top-&gt;header_as_string;     # synonym
-    &#36;top-&gt;head-&gt;stringify;            # this works too</PRE>
+    print $top-&gt;stringify_header;            # or $top-&gt;header_as_string</PRE>
 
 
 
 <P>
-<PRE>    # Stringify just the (encoded) body:
-    print &#36;top-&gt;stringify_body;
-    print &#36;top-&gt;body_as_string;       # synonym</PRE>
+<PRE>    # Stringify just the (encoded) body... includes parts as well!
+    print $top-&gt;stringify_body;              # or $top-&gt;body_as_string</PRE>
 
 
 
@@ -462,7 +459,7 @@ Debug:
 
 <P>
 <PRE>    # Output debugging info:
-    &#36;entity-&gt;dump_skeleton(\*STDERR);</PRE>
+    $entity-&gt;dump_skeleton(\*STDERR);</PRE>
 
 
 
@@ -537,7 +534,7 @@ basically equivalent to:
 
 
 <P>
-<PRE>    &#36;entity-&gt;add_part(ref(&#36;entity)-&gt;build(PARAMHASH, Top=&gt;0));</PRE>
+<PRE>    $entity-&gt;add_part(ref($entity)-&gt;build(PARAMHASH, Top=&gt;0));</PRE>
 
 
 
@@ -555,7 +552,7 @@ to build a &quot;normal&quot; single-part entity:
 
 
 <P>
-<PRE>   &#36;ent = build MIME::Entity Type     =&gt; &quot;image/gif&quot;,
+<PRE>   $ent = build MIME::Entity Type     =&gt; &quot;image/gif&quot;,
 		             Encoding =&gt; &quot;base64&quot;,
                              Path     =&gt; &quot;/path/to/xyz12345.gif&quot;,
                              Filename =&gt; &quot;saveme.gif&quot;,
@@ -568,7 +565,7 @@ And like this to build a &quot;multipart&quot; entity:
 
 
 <P>
-<PRE>   &#36;ent = build MIME::Entity Type     =&gt; &quot;multipart/mixed&quot;,
+<PRE>   $ent = build MIME::Entity Type     =&gt; &quot;multipart/mixed&quot;,
                              Boundary =&gt; &quot;---1234567&quot;;</PRE>
 
 
@@ -580,8 +577,8 @@ head object... but hey, there's now a prettier syntax!
 
 
 <P>
-<PRE>   &#36;ent = build MIME::Entity Type           =&gt;&quot;multipart/mixed&quot;,
-                             From           =&gt; &#36;myaddr,
+<PRE>   $ent = build MIME::Entity Type           =&gt;&quot;multipart/mixed&quot;,
+                             From           =&gt; $myaddr,
                              Subject        =&gt; &quot;Hi!&quot;,
                              'X-Certified'  =&gt; ['SINED','SEELED','DELIVERED'];</PRE>
 
@@ -595,7 +592,7 @@ You can of course overwrite that header with your own:
 
 
 <P>
-<PRE>   &#36;ent = build MIME::Entity  Type        =&gt; &quot;multipart/mixed&quot;,
+<PRE>   $ent = build MIME::Entity  Type        =&gt; &quot;multipart/mixed&quot;,
                               'X-Mailer'  =&gt; &quot;myprog 1.1&quot;;</PRE>
 
 
@@ -605,7 +602,7 @@ Or remove it entirely:
 
 
 <P>
-<PRE>   &#36;ent = build MIME::Entity Type       =&gt; &quot;multipart/mixed&quot;,
+<PRE>   $ent = build MIME::Entity Type       =&gt; &quot;multipart/mixed&quot;,
                              'X-Mailer' =&gt; undef;</PRE>
 
 
@@ -992,7 +989,7 @@ Attempts to remove a user's signature from the body of a message.
 
 
 <P>
-It does this by looking for a line matching <CODE>/^-- &#36;/</CODE> within the last 
+It does this by looking for a line matching <CODE>/^-- $/</CODE> within the last 
 <CODE>NLINES</CODE> of the message.  If found then that line and all lines after 
 it will be removed. If <CODE>NLINES</CODE> is not given, a default value of 10 
 will be used.  This would be of most use in auto-reply scripts.
@@ -1330,8 +1327,8 @@ that the body data will be encoded if the header says that it should be.
 
 
 <P>
-<B>Note:</B> by &quot;body&quot;, we mean &quot;the stuff stored in the bodyhandle&quot;, <I>not</I>
-&quot;all the stuff following the header&quot;.
+<B>Note:</B> by &quot;body&quot;, we mean &quot;the stuff following the header&quot;.
+A printed multipart body includes the printed representations of its subparts.
 
 
 <P>
@@ -1344,7 +1341,7 @@ the bodyhandle yourself, or use:
 
 
 <P>
-<PRE>    &#36;ent-&gt;bodyhandle-&gt;print(&#36;outstream);</PRE>
+<PRE>    $ent-&gt;bodyhandle-&gt;print($outstream);</PRE>
 
 
 
@@ -1377,13 +1374,13 @@ You can also use <CODE>as_string</CODE>.
 <P><DT><B><A NAME="stringify_body">stringify_body</A></B><DD>
 
 <I>Instance method.</I>
-Return the body as a string, exactly as <CODE>print_body</CODE> would print 
-it: the body will be encoded as necessary, and will contain any subparts.  
+Return the body as a string, exactly as <CODE>print_body</CODE> would print it: 
+the body will be encoded as necessary, and will <I>not</I> contain any subparts.  
 You can also use <CODE>body_as_string</CODE>.
 
 
 <P>
-If you want the <I>unencoded</I> body, use <CODE>&#36;ent-</CODE>body-&gt;as_string&gt;.
+If you want the <I>unencoded</I> body, use <CODE>$ent-</CODE>body-&gt;as_string&gt;.
 
 
 <P><DT><B><A NAME="stringify_header">stringify_header</A></B><DD>
@@ -1437,6 +1434,198 @@ Note that a multipart entity does <I>not</I> have a body.
 Of course, any/all of its component parts can have bodies.
 
 </UL>
+
+
+<P><HR>
+<A NAME="the_twobody_problem">
+<H2><FONT COLOR=#600020>
+<A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="" BORDER="0"></A>
+The &quot;two-body problem&quot;</FONT></H2>
+</A>
+
+
+<P>
+MIME::Entity and Mail::Internet see message bodies differently,
+and this can cause confusion and some inconvenience.  Sadly, I can't 
+change the behavior of MIME::Entity without breaking lots of code already
+out there.  But let's open up the floor for a few questions...
+
+<DL>
+<P><DT><B><A NAME="how">How are message bodies stored?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	As an array of lines.
+
+
+<P>
+<I>MIME::Entity:</I> 
+	As a MIME::Body object, where the data may reside on disk or 
+	in-core, may be large, and may be binary (not line-oriented).
+
+
+<P><DT><B><A NAME="do">Do messages generally have bodies?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	Almost certainly yes.
+
+
+<P>
+<I>MIME::Entity:</I>   
+	Yes if this is a <I>singlepart</I> message, and NO if it's a 
+	<I>multipart</I> message... since for multiparts the message &quot;body&quot; is 
+	stored as the parsed collection of &quot;parts&quot; (each of which
+        is also a MIME::Entity).
+
+
+<P><DT><B><A NAME="if">If an entity has a body, does it have a soul as well?</A></B><DD>
+
+The soul does not exist in a corporeal sense, the way the body does; 
+it is not a solid [Perl] object.  Rather, it is a virtual object
+which is only visible when you print() an entity to a file... in other
+words, the &quot;soul&quot; it is all that is left after the body is DESTROY'ed.
+
+
+<P><DT><B><A NAME="what">What's the best way to get at the body data?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	Use the body() method.
+
+
+<P>
+<I>MIME::Entity:</I> 
+	Use the bodyhandle() method, or the brand-new open()
+	method.  The open() method returns a filehandle-like object to
+	you, which gives you methods like getline() and read().  
+	<I>Use methods only</I> for portability; don't make any assumptions
+	about what you've been handed.
+
+
+<P><DT><B><A NAME="what">What does the body() method return?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	The body, as an array of lines.
+
+
+<P>
+<I>MIME::Entity:</I>   
+	The body, as an array of lines...
+	but <I>only</I> for a singlepart messages.  It returns <I>nothing</I> for 
+	a multipart message, since multiparts by definition do not have bodies
+	of their own.  It's also somewhat inappropriate for non-textual 
+        bodies, like GIFs.
+
+
+<P><DT><B><A NAME="what">What does print_body() print?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	Exactly what body() would return to you.
+
+
+<P>
+<I>MIME::Entity:</I> 
+	The <I>encoded representation</I> of &quot;all the stuff following the header&quot;,
+        using the Content-transfer-encoding in the MIME header. This includes
+        the encoded representation of any <I>parts</I> as well.
+        Put simply, print_body() doesn't just &quot;print the body&quot;: it
+        prints a flattened representation of the <I>entire entity,</I>
+        including subparts.  This is generally what people seem to expect.
+
+
+<P><DT><B><A NAME="assuming">Assuming I have a singlepart, isn't the data 
+      from body() identical to the stuff printed by print_body()?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	Yes.
+
+
+<P>
+<I>MIME::Entity:</I>   
+	Not likely.  If the original message held a base64-encoded
+        GIF file, the body() data will be the <I>actual, decoded, binary
+        GIF data</I>... which is <I>not</I> the same as that base64-encoded
+        stream of ASCII output by print_body().
+
+
+<P><DT><B><A NAME="conceptually">Conceptually, what's the difference between what's returned
+      by body() and what's printed by print_body()?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	None.
+
+
+<P>
+<I>MIME::Entity:</I> 
+	Method body() refers to the <I>actual body data</I> of the entity 
+        in question.
+
+
+<P>
+<PRE>        Method print_body() (and stringify_body()) refers to the 
+        I&lt;complete printed representation&gt; of that entity.</PRE>
+
+
+
+<P><DT><B><A NAME="say">Say I have an entity which might be either singlepart or multipart.
+      How do I print out just &quot;the stuff after the header&quot;?</A></B><DD>
+
+<I>Mail::Internet:</I> 
+	Use print_body().
+
+
+<P>
+<I>MIME::Entity:</I> 
+	Use print_body().
+
+
+<P><DT><B><A NAME="why">Why is MIME::Entity so different from Mail::Internet?</A></B><DD>
+
+Because MIME streams are expected to have non-textual data...
+possibly, quite a lot of it, such as a tar file.
+
+
+<P>
+Because MIME messages can consist of multiple parts, which are most-easily 
+manipulated as MIME::Entity objects themselves.
+
+
+<P>
+Because in the simpler world of Mail::Internet, the data of a message
+and its printed representation are <I>identical</I>... and in the MIME
+world, they're not.
+
+
+<P>
+Because parsing multipart bodies on-the-fly, or formatting multipart 
+bodies for output, is a non-trivial task.
+
+
+<P><DT><B><A NAME="this">This is confusing.  Can the two classes be made more compatible?</A></B><DD>
+
+Not easily; their implementations are necessarily quite different.
+Mail::Internet is a simple, efficient way of dealing with a &quot;black box&quot;
+mail message... one whose internal data you don't care much about.  
+MIME::Entity, in contrast, cares <I>very much</I> about the message contents: 
+that's its job!
+
+
+<P>
+Here's an example:
+
+
+<P>
+Suppose you wanted me to rewrite MIME::Entity so that you could properly
+set any body -- even a multipart body -- by giving its lines to body().  
+After all, I can just parse the lines you give me, right?
+
+
+<P>
+Not quite.  In order to parse that data, I <I>need</I> to have a header
+which tells me whether it's singlepart or multipart.  I <I>need</I>
+to know the encoding, too.  So MIME::Entity will enforces a sequence 
+of events on how you set things up, unlike Mail::Internet -- which 
+doesn't care about message contents.
+
+</DL>
 
 
 <P><HR>
@@ -1523,12 +1712,12 @@ VERSION</FONT></H1>
 
 
 <P>
-&#36;Revision: 4.111 &#36; &#36;Date: 1998/01/14 09:15:40 &#36;
+$Revision: 4.113 $ $Date: 1998/01/17 21:54:10 $
 
 
 <P><HR>
 <SMALL>
-		Last updated: Wed Jan 14 10:21:52 1998 <BR>
+		Last updated: Sat Jan 17 23:01:45 1998 <BR>
 		Generated by pod2coolhtml 1.101.  Want a copy?  Just email
 		<A HREF="mailto:eryq@enteract.com">eryq@enteract.com</A>.
 		(Yes, it's free.)

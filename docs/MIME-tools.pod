@@ -166,6 +166,15 @@ Make it even easier to compose and send MIME messages.
 
 =over 4
 
+
+=item Version 4.112 *
+
+B<MIME::Entity::print_body now recurses> when printing multipart
+	entities, and prints "everything following the header."  This is more
+	likely what people expect to happen.  PLEASE read the
+        "two body problem" section of MIME::Entity's docs.
+
+
 =item Version 4.111 *
 
 Clean build/test on Win95 using 5.004.  Whew.

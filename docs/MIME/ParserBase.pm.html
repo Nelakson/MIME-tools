@@ -104,19 +104,19 @@ This is an <I>abstract</I> class; however, here's how one of its
 
 <P>
 <PRE>    # Create a new parser object:
-    my &#36;parser = new MIME::Parser;</PRE>
+    my $parser = new MIME::Parser;</PRE>
 
 
 
 <P>
 <PRE>    # Parse an input stream:
-    &#36;entity = &#36;parser-&gt;read(\*STDIN) or die &quot;couldn't parse MIME stream&quot;;</PRE>
+    $entity = $parser-&gt;read(\*STDIN) or die &quot;couldn't parse MIME stream&quot;;</PRE>
 
 
 
 <P>
 <PRE>    # Congratulations: you now have a (possibly multipart) MIME entity!
-    &#36;entity-&gt;dump_skeleton;          # for debugging </PRE>
+    $entity-&gt;dump_skeleton;          # for debugging </PRE>
 
 
 
@@ -126,25 +126,25 @@ There are also some convenience methods:
 
 <P>
 <PRE>    # Parse an in-core MIME message:
-    &#36;entity = &#36;parser-&gt;parse_data(&#36;message)                 or die &quot;parse&quot;;</PRE>
+    $entity = $parser-&gt;parse_data($message)                 or die &quot;parse&quot;;</PRE>
 
 
 
 <P>
 <PRE>    # Parse an MIME message in a file:
-    &#36;entity = &#36;parser-&gt;parse_in(&quot;/some/file.msg&quot;)           or die &quot;parse&quot;;</PRE>
+    $entity = $parser-&gt;parse_in(&quot;/some/file.msg&quot;)           or die &quot;parse&quot;;</PRE>
 
 
 
 <P>
 <PRE>    # Parse an MIME message out of a pipeline:
-    &#36;entity = &#36;parser-&gt;parse_in(&quot;gunzip - &lt; file.msg.gz |&quot;) or die &quot;parse&quot;;</PRE>
+    $entity = $parser-&gt;parse_in(&quot;gunzip - &lt; file.msg.gz |&quot;) or die &quot;parse&quot;;</PRE>
 
 
 
 <P>
 <PRE>    # Parse already-split input (as &quot;deliver&quot; would give it to you):
-    &#36;entity = &#36;parser-&gt;parse_two(&quot;msg.head&quot;, &quot;msg.body&quot;)    or die &quot;parse&quot;;</PRE>
+    $entity = $parser-&gt;parse_two(&quot;msg.head&quot;, &quot;msg.body&quot;)    or die &quot;parse&quot;;</PRE>
 
 
 
@@ -154,8 +154,8 @@ In case a parse fails, it's nice to know who sent it to us.  So...
 
 <P>
 <PRE>    # Parse an input stream:
-    if (!(&#36;entity = &#36;parser-&gt;read(\*STDIN))) {   # oops!
-	&#36;decapitated = &#36;parser-&gt;last_head;          # get last top-level head
+    if (!($entity = $parser-&gt;read(\*STDIN))) {   # oops!
+	$decapitated = $parser-&gt;last_head;          # get last top-level head
     }</PRE>
 
 
@@ -166,13 +166,24 @@ You can also alter the behavior of the parser:
 
 <P>
 <PRE>    # Parse contained &quot;message/rfc822&quot; objects as nested MIME streams:
-    &#36;parser-&gt;parse_nested_messages('REPLACE');</PRE>
+    $parser-&gt;parse_nested_messages('REPLACE');</PRE>
 
 
 
 <P>
 <PRE>    # Automatically attempt to RFC-1522-decode the MIME headers:
-    &#36;parser-&gt;decode_headers(1);</PRE>
+    $parser-&gt;decode_headers(1);</PRE>
+
+
+
+<P>
+Cute stuff...
+
+
+<P>
+<PRE>    # Convert a Mail::Internet object to a MIME::Entity:
+    @lines = (@{$mail-&gt;header}, &quot;\n&quot;, @{$mail-&gt;body});
+    $entity = $parser-&gt;parse_data(\@lines);</PRE>
 
 
 
@@ -232,10 +243,10 @@ concrete subclasses:
 
 
 <P>
-<PRE>    my &#36;parser = new MIME::Parser;
-    &#36;parser-&gt;output_dir(&quot;/tmp&quot;);
-    &#36;parser-&gt;output_prefix(&quot;msg1&quot;);
-    my &#36;entity = &#36;parser-&gt;read(\*STDIN);</PRE>
+<PRE>    my $parser = new MIME::Parser;
+    $parser-&gt;output_dir(&quot;/tmp&quot;);
+    $parser-&gt;output_prefix(&quot;msg1&quot;);
+    my $entity = $parser-&gt;read(\*STDIN);</PRE>
 
 
 
@@ -284,11 +295,11 @@ init.  Use it like this:
     @ISA = qw(MIME::Parser);
     ...
     sub init {
-	my &#36;self = shift;
-	&#36;self-&gt;SUPER::init(@_);        # do my parent's init
-        &#36;self-&gt;interface(ENTITY_CLASS =&gt; 'MIME::MyEntity');
-	&#36;self-&gt;interface(HEAD_CLASS   =&gt; 'MIME::MyHead');
-	&#36;self;                         # return
+	my $self = shift;
+	$self-&gt;SUPER::init(@_);        # do my parent's init
+        $self-&gt;interface(ENTITY_CLASS =&gt; 'MIME::MyEntity');
+	$self-&gt;interface(HEAD_CLASS   =&gt; 'MIME::MyHead');
+	$self;                         # return
     }</PRE>
 
 
@@ -306,9 +317,9 @@ This is useful for replying to people who sent us bad MIME messages.
 
 <P>
 <PRE>    # Parse an input stream:
-    &#36;entity = &#36;parser-&gt;read(\*STDIN);
-    if (!&#36;entity) {           # oops!
-	my &#36;decapitated = &#36;parser-&gt;last_head;    # last top-level head
+    $entity = $parser-&gt;read(\*STDIN);
+    if (!$entity) {           # oops!
+	my $decapitated = $parser-&gt;last_head;    # last top-level head
     }</PRE>
 
 
@@ -423,7 +434,7 @@ program, using MIME::Parser:
 
 
 <P>
-<PRE>        my &#36;msg = &lt;&lt;EOF;
+<PRE>        my $msg = &lt;&lt;EOF;
     Content-type: text/html
     Content-transfer-encoding: 7bit</PRE>
 
@@ -436,10 +447,10 @@ program, using MIME::Parser:
 
 <P>
 <PRE>    EOF
-        &#36;parser = new MIME::Parser;
-        &#36;parser-&gt;output_to_core('ALL');
-        &#36;entity = &#36;parser-&gt;parse_data(&#36;msg);
-        &#36;entity-&gt;print(\*STDOUT);</PRE>
+        $parser = new MIME::Parser;
+        $parser-&gt;output_to_core('ALL');
+        $entity = $parser-&gt;parse_data($msg);
+        $entity-&gt;print(\*STDOUT);</PRE>
 
 
 
@@ -530,8 +541,8 @@ method to init your parents!
     @ISA = qw(MIME::ParserBase);
     ...
     sub init {
-	my &#36;self = shift;
-	&#36;self-&gt;SUPER::init(@_);        # do my parent's init</PRE>
+	my $self = shift;
+	$self-&gt;SUPER::init(@_);        # do my parent's init</PRE>
 
 
 
@@ -541,7 +552,7 @@ method to init your parents!
 
 
 <P>
-<PRE>	&#36;self;                         # return
+<PRE>	$self;                         # return
     }</PRE>
 
 
@@ -967,12 +978,12 @@ VERSION</FONT></H1>
 
 
 <P>
-&#36;Revision: 4.106 &#36; &#36;Date: 1998/01/14 09:13:57 &#36;
+$Revision: 4.107 $ $Date: 1998/01/17 06:31:12 $
 
 
 <P><HR>
 <SMALL>
-		Last updated: Wed Jan 14 10:22:03 1998 <BR>
+		Last updated: Sat Jan 17 23:01:59 1998 <BR>
 		Generated by pod2coolhtml 1.101.  Want a copy?  Just email
 		<A HREF="mailto:eryq@enteract.com">eryq@enteract.com</A>.
 		(Yes, it's free.)

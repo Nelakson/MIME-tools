@@ -36,6 +36,9 @@ MAJOR CHANGES FROM 3.0 TO 4.0:
         if you use parse_nested_messages() or have singlepart entities
         with parts attached.  
 	See MIME::Entity::print for details.
+        
+        As of 4.112, MIME::Entity::print_body recurses for multipart
+        entities: this is more convenient and less surprising.
 
    Debugging
         All toolkit warnings may be turned off with config 'QUIET'.

@@ -102,24 +102,24 @@ Here's how a typical body object is obtained and used:
 
 <P>
 <PRE>   # Get the bodyhandle of a MIME::Entity object:
-   &#36;body = &#36;entity-&gt;bodyhandle;</PRE>
+   $body = $entity-&gt;bodyhandle;</PRE>
 
 
 
 <P>
 <PRE>   # Where's the data?
-   if (defined(&#36;body-&gt;path)) {   # data is on disk:
-       print &quot;data is stored externally, in &quot;, &#36;body-&gt;path;
+   if (defined($body-&gt;path)) {   # data is on disk:
+       print &quot;data is stored externally, in &quot;, $body-&gt;path;
    }
    else {                        # data is in core:
-       print &quot;data is already in core, and is...\n&quot;, &#36;body-&gt;as_string;
+       print &quot;data is already in core, and is...\n&quot;, $body-&gt;as_string;
    }</PRE>
 
 
 
 <P>
 <PRE>   # Get rid of anything on disk:
-   &#36;body-&gt;purge;</PRE>
+   $body-&gt;purge;</PRE>
 
 
 
@@ -130,37 +130,37 @@ kept, you can use the generic access methods:
 
 <P>
 <PRE>   # Write data to the body:
-   &#36;IO = &#36;body-&gt;open(&quot;w&quot;)      || die &quot;open body: &#36;!&quot;;
-   &#36;IO-&gt;print(&#36;message);
-   &#36;IO-&gt;close                  || die &quot;close I/O handle: &#36;!&quot;;</PRE>
+   $IO = $body-&gt;open(&quot;w&quot;)      || die &quot;open body: $!&quot;;
+   $IO-&gt;print($message);
+   $IO-&gt;close                  || die &quot;close I/O handle: $!&quot;;</PRE>
 
 
 
 <P>
 <PRE>   # Read data from the body (in this case, line by line):
-   &#36;IO = &#36;body-&gt;open(&quot;r&quot;)      || die &quot;open body: &#36;!&quot;;
-   while (defined(&#36;_ = &#36;IO-&gt;getline)) {
+   $IO = $body-&gt;open(&quot;r&quot;)      || die &quot;open body: $!&quot;;
+   while (defined($_ = $IO-&gt;getline)) {
        # do stuff
    }
-   &#36;IO-&gt;close                  || die &quot;close I/O handle: &#36;!&quot;;</PRE>
+   $IO-&gt;close                  || die &quot;close I/O handle: $!&quot;;</PRE>
 
 
 
 <P>
 <PRE>   # Dump the ENCODED body data to a filehandle:
-   &#36;body-&gt;print(\*STDOUT);</PRE>
+   $body-&gt;print(\*STDOUT);</PRE>
 
 
 
 <P>
 <PRE>   # Slurp all the UNENCODED data in, and put it in a scalar:
-   &#36;string = &#36;body-&gt;as_string;</PRE>
+   $string = $body-&gt;as_string;</PRE>
 
 
 
 <P>
 <PRE>   # Slurp all the UNENCODED data in, and put it in an array of lines:
-   @lines = &#36;body-&gt;as_lines;</PRE>
+   @lines = $body-&gt;as_lines;</PRE>
 
 
 
@@ -170,7 +170,7 @@ is only opened when needed:
 
 
 <P>
-<PRE>   &#36;body = new MIME::Body::File &quot;/path/to/file&quot;;</PRE>
+<PRE>   $body = new MIME::Body::File &quot;/path/to/file&quot;;</PRE>
 
 
 
@@ -179,7 +179,7 @@ While <I>this</I> subclass stores the data in an in-core scalar:
 
 
 <P>
-<PRE>   &#36;body = new MIME::Body::Scalar \&#36;scalar;</PRE>
+<PRE>   $body = new MIME::Body::Scalar \$scalar;</PRE>
 
 
 
@@ -403,7 +403,7 @@ The I/O handle is a wrapped filehandle.  Invoke the constructor as:
 
 
 <P>
-<PRE>    &#36;body = new MIME::Body::File &quot;/path/to/file&quot;;</PRE>
+<PRE>    $body = new MIME::Body::File &quot;/path/to/file&quot;;</PRE>
 
 
 
@@ -413,8 +413,8 @@ so you <I>could</I> say:
 
 
 <P>
-<PRE>    if (defined(&#36;body-&gt;path)) {
-	open BODY, &#36;body-&gt;path or die &quot;open: &#36;!&quot;;
+<PRE>    if (defined($body-&gt;path)) {
+	open BODY, $body-&gt;path or die &quot;open: $!&quot;;
 	while (&lt;BODY&gt;) {
 	    # do stuff
         }
@@ -441,7 +441,7 @@ Invoke the constructor as:
 
 
 <P>
-<PRE>    &#36;body = new MIME::Body::Scalar \&#36;scalar;</PRE>
+<PRE>    $body = new MIME::Body::Scalar \$scalar;</PRE>
 
 
 
@@ -452,7 +452,7 @@ and closed the body again:
 
 
 <P>
-<PRE>    &#36;body = new MIME::Body::Scalar &quot;Line 1\nLine 2\nLine 3&quot;;</PRE>
+<PRE>    $body = new MIME::Body::Scalar &quot;Line 1\nLine 2\nLine 3&quot;;</PRE>
 
 
 
@@ -462,7 +462,7 @@ elements of that array together:
 
 
 <P>
-<PRE>    &#36;body = new MIME::Body::Scalar [&quot;Line 1\n&quot;,
+<PRE>    $body = new MIME::Body::Scalar [&quot;Line 1\n&quot;,
                                     &quot;Line 2\n&quot;,
                                     &quot;Line 3&quot;];</PRE>
 
@@ -545,18 +545,18 @@ to be able to write code like this...
 
 <P>
 <PRE>   # Get body handle from this MIME message, and read its data:
-   &#36;body = &#36;entity-&gt;bodyhandle;
-   &#36;IO = &#36;body-&gt;open(&quot;r&quot;);
-   while (defined(&#36;_ = &#36;IO-&gt;getline)) {
-       print STDOUT &#36;_;
+   $body = $entity-&gt;bodyhandle;
+   $IO = $body-&gt;open(&quot;r&quot;);
+   while (defined($_ = $IO-&gt;getline)) {
+       print STDOUT $_;
    }
-   &#36;IO-&gt;close;</PRE>
+   $IO-&gt;close;</PRE>
 
 
 
 <P>
 ...without requiring that they know anything more about how the
-&#36;body object is actually storing its data (disk file, scalar variable,
+$body object is actually storing its data (disk file, scalar variable,
 array variable, or whatever).
 
 
@@ -599,12 +599,12 @@ VERSION</FONT></H1>
 
 
 <P>
-&#36;Revision: 4.107 &#36; &#36;Date: 1998/01/10 07:27:24 &#36;
+$Revision: 4.107 $ $Date: 1998/01/10 07:27:24 $
 
 
 <P><HR>
 <SMALL>
-		Last updated: Wed Jan 14 10:21:43 1998 <BR>
+		Last updated: Sat Jan 17 23:01:31 1998 <BR>
 		Generated by pod2coolhtml 1.101.  Want a copy?  Just email
 		<A HREF="mailto:eryq@enteract.com">eryq@enteract.com</A>.
 		(Yes, it's free.)

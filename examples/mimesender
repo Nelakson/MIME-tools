@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+#
+# An example of integrating MIME-tools with Mail::Send.
+#
+use Mail::Send;
+use MIME::Entity 4.113;
+
+# Create MIME entity, with attachment:
+my $ent = build MIME::Entity 
+    From    => "secret\@admirer.net",
+    To      => "$ENV{USER}\@localhost",
+    Subject => 'Hello there!', 
+    Data    => "Here's my signature file.  Call me sometime!\n";
+attach $ent
+    Type => 'text/plain',
+    Path => "$ENV{HOME}/.signature";
+
+
+# Send it:
+$sender = new Mail::Send;
+foreach ($ent->head->tags) {       # give the sender our headers
+    $sender->set($_, map {chomp $_; $_} $ent->head->get($_));
+}
+$fh = $sender->open('sendmail');
+$ent->print_body($fh);
+$fh->close; 

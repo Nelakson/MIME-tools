@@ -1,7 +1,6 @@
 COPYING
 MANIFEST
 Makefile.PL
-NOTES
 README
 README-OR-DIE
 docs/MIME-tools.pod
@@ -29,6 +28,7 @@ examples/mimeencode
 examples/mimeexplode
 examples/mimeprint
 examples/mimesend
+examples/mimesender
 examples/mimetour
 lib/MIME/Body.pm
 lib/MIME/Decoder.pm

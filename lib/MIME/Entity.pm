@@ -176,27 +176,23 @@ Print to filehandles:
     # Print the entire message:
     $top->print(\*STDOUT);
      
-    # Print just the (encoded) body:
-    $top->print_body(\*STDOUT);
-    
     # Print just the header:
     $top->print_header(\*STDOUT);   
-    $top->head->print(\*STDOUT);       # this works too
-   
-Stringify:
+    
+    # Print just the (encoded) body... includes parts as well!
+    $top->print_body(\*STDOUT);
+
+Stringify... note that C<stringify_xx> can also be written C<xx_as_string>;
+the methods are synonymous, and neither form will be deprecated:
 
     # Stringify the entire message:
-    print $top->stringify; 
-    print $top->as_string;            # synonym
+    print $top->stringify;                   # or $top->as_string
     
     # Stringify just the header:
-    print $top->stringify_header;
-    print $top->header_as_string;     # synonym
-    $top->head->stringify;            # this works too
+    print $top->stringify_header;            # or $top->header_as_string
     
-    # Stringify just the (encoded) body:
-    print $top->stringify_body;
-    print $top->body_as_string;       # synonym
+    # Stringify just the (encoded) body... includes parts as well!
+    print $top->stringify_body;              # or $top->body_as_string
 
 Debug:
 
@@ -241,7 +237,7 @@ use IO::Wrap;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.111 $, 10;
+$VERSION = substr q$Revision: 4.113 $, 10;
 
 # Boundary counter:
 my $BCount = 0;
@@ -1604,16 +1600,50 @@ some sort of email handler, it's up to you to save this information.
 
 sub print {
     my ($self, $out) = @_;
-
-    # Get output filehandle, and ensure that it's a printable object:
-    $out = wraphandle($out || select);
+    $out = wraphandle($out || select);             # get a printable output
     
-    # Output the head and its terminating blank line:
-    $self->head->print($out);
+    $self->print_header($out);   # the header
     $out->print("\n");
+    $self->print_body($out);     # the "stuff after the header"
+}
 
-    # Output the body and subparts appropriately:
-    my ($type) = split '/', lc($self->mime_type);
+#------------------------------
+
+=item print_body [OUTSTREAM]
+
+I<Instance method, override.>
+Print the body of the entity to the given OUTSTREAM, or to the 
+currently-selected filehandle if none given.  OUTSTREAM can be a 
+filehandle, or any object that reponds to a print() message. 
+
+The body is output for inclusion in a valid MIME stream; this means 
+that the body data will be encoded if the header says that it should be.
+
+B<Note:> by "body", we mean "the stuff following the header".
+A printed multipart body includes the printed representations of its subparts.
+
+B<Note:> The body is I<stored> in an un-encoded form; however, the idea is that
+the transfer encoding is used to determine how it should be I<output.>
+This means that the C<print()> method is always guaranteed to get you
+a sendmail-ready stream whose body is consistent with its head.
+If you want the I<raw body data> to be output, you can either read it from
+the bodyhandle yourself, or use:
+
+    $ent->bodyhandle->print($outstream);
+
+which uses read() calls to extract the information, and thus will 
+work with both text and binary bodies.
+
+B<Warning:> Please supply an OUTSTREAM.  This override method differs
+from Mail::Internet's behavior, which outputs to the STDOUT if no 
+filehandle is given: this may lead to confusion.
+
+=cut
+
+sub print_body {
+    my ($self, $out) = @_;
+    $out = wraphandle($out || select);             # get a printable output
+    my ($type) = split '/', lc($self->mime_type);  # handle by MIME type
 
     # Multipart...
     if ($type eq 'multipart') {
@@ -1648,51 +1678,24 @@ sub print {
 
     # Singlepart type, or no parts: output body...
     else {                     
-	$self->bodyhandle 
-	    ? $self->print_body($out)
-	    : whine "missing body; treated as empty";
+	$self->bodyhandle ? $self->print_bodyhandle($out)
+	                  : whine "missing body; treated as empty";
     }
     1;
 }
 
 #------------------------------
-
-=item print_body [OUTSTREAM]
-
-I<Instance method, override.>
-Print the body of the entity to the given OUTSTREAM, or to the 
-currently-selected filehandle if none given.  OUTSTREAM can be a 
-filehandle, or any object that reponds to a print() message. 
-
-The body is output for inclusion in a valid MIME stream; this means 
-that the body data will be encoded if the header says that it should be.
-
-B<Note:> by "body", we mean "the stuff stored in the bodyhandle", I<not>
-"all the stuff following the header".
-
-B<Note:> The body is I<stored> in an un-encoded form; however, the idea is that
-the transfer encoding is used to determine how it should be I<output.>
-This means that the C<print()> method is always guaranteed to get you
-a sendmail-ready stream whose body is consistent with its head.
-If you want the I<raw body data> to be output, you can either read it from
-the bodyhandle yourself, or use:
-
-    $ent->bodyhandle->print($outstream);
-
-which uses read() calls to extract the information, and thus will 
-work with both text and binary bodies.
-
-B<Warning:> Please supply an OUTSTREAM.  This override method differs
-from Mail::Internet's behavior, which outputs to the STDOUT if no 
-filehandle is given: this may lead to confusion.
-
-=cut
-
-sub print_body {
+#
+# print_bodyhandle
+#
+# Instance method, unpublicized.  Print just the bodyhandle, *encoded*.
+#
+# WARNING: $self->print_bodyhandle() != $self->bodyhandle->print()!
+# The former encodes, and the latter does not! 
+#
+sub print_bodyhandle {
     my ($self, $out) = @_;
-
-    # Get output filehandle, and ensure that it's a printable object:
-    $out = wraphandle($out || select);
+    $out = wraphandle($out || select);             # get a printable output
 
     # Get the encoding, defaulting to "binary" if unsupported:
     my $encoding = ($self->head->mime_encoding || 'binary');
@@ -1700,8 +1703,7 @@ sub print_body {
     $decoder->head($self->head);      # associate with head, if any
 
     # Output the body:
-    my $body = $self->bodyhandle  || return error "no body to output!";
-    my $IO = $body->open("r")     || die "open body: $!";
+    my $IO = $self->open("r")     || die "open body: $!";
     $decoder->encode($IO, $out)   || return error "encoding failed";
     $IO->close;
     1;
@@ -1719,7 +1721,6 @@ the OUTSTREAM.
 
 ### Inherited.
 
-
 #------------------------------
 
 =item stringify
@@ -1732,9 +1733,8 @@ You can also use C<as_string>.
 =cut
 
 sub stringify {
-    my $self = shift;
     my $str = '';
-    $self->print(new IO::Scalar \$str);
+    shift->print(new IO::Scalar \$str);
     $str;    
 }
 sub as_string { shift->stringify };      # silent BC
@@ -1744,8 +1744,8 @@ sub as_string { shift->stringify };      # silent BC
 =item stringify_body
 
 I<Instance method.>
-Return the body as a string, exactly as C<print_body> would print 
-it: the body will be encoded as necessary, and will contain any subparts.  
+Return the body as a string, exactly as C<print_body> would print it: 
+the body will be encoded as necessary, and will I<not> contain any subparts.  
 You can also use C<body_as_string>.
 
 If you want the I<unencoded> body, use C<$ent->body->as_string>.
@@ -1753,12 +1753,24 @@ If you want the I<unencoded> body, use C<$ent->body->as_string>.
 =cut
 
 sub stringify_body {
-    my $self = shift;
     my $str = '';
-    $self->print_body(new IO::Scalar \$str);
+    shift->print_body(new IO::Scalar \$str);
     $str;    
 }
 sub body_as_string { shift->stringify_body }
+
+#------------------------------
+#
+# stringify_bodyhandle
+#
+# Instance method, unpublicized.  Stringify just the bodyhandle.
+
+sub stringify_bodyhandle {
+    my $str = '';
+    shift->print_bodyhandle(new IO::Scalar \$str);
+    $str;    
+}
+sub bodyhandle_as_string { shift->stringify_bodyhandle }
 
 #------------------------------
 
@@ -1774,6 +1786,8 @@ sub stringify_header {
     shift->head->stringify;
 }
 sub header_as_string { shift->stringify_header }
+
+
 
 __END__
 1;
@@ -1813,6 +1827,164 @@ Note that a multipart entity does I<not> have a body.
 Of course, any/all of its component parts can have bodies.
 
 =back
+
+
+
+=head2 The "two-body problem"
+
+MIME::Entity and Mail::Internet see message bodies differently,
+and this can cause confusion and some inconvenience.  Sadly, I can't 
+change the behavior of MIME::Entity without breaking lots of code already
+out there.  But let's open up the floor for a few questions...
+
+=over 4
+
+
+=item How are message bodies stored?
+
+I<Mail::Internet:> 
+	As an array of lines.
+
+I<MIME::Entity:> 
+	As a MIME::Body object, where the data may reside on disk or 
+	in-core, may be large, and may be binary (not line-oriented).
+
+
+=item Do messages generally have bodies?
+
+I<Mail::Internet:> 
+	Almost certainly yes.
+
+I<MIME::Entity:>   
+	Yes if this is a I<singlepart> message, and NO if it's a 
+	I<multipart> message... since for multiparts the message "body" is 
+	stored as the parsed collection of "parts" (each of which
+        is also a MIME::Entity).
+
+
+=item If an entity has a body, does it have a soul as well?
+
+The soul does not exist in a corporeal sense, the way the body does; 
+it is not a solid [Perl] object.  Rather, it is a virtual object
+which is only visible when you print() an entity to a file... in other
+words, the "soul" it is all that is left after the body is DESTROY'ed.  
+
+
+=item What's the best way to get at the body data?
+
+I<Mail::Internet:> 
+	Use the body() method.
+
+I<MIME::Entity:> 
+	Use the bodyhandle() method, or the brand-new open()
+	method.  The open() method returns a filehandle-like object to
+	you, which gives you methods like getline() and read().  
+	I<Use methods only> for portability; don't make any assumptions
+	about what you've been handed.
+
+    
+=item What does the body() method return?
+
+I<Mail::Internet:> 
+	The body, as an array of lines.
+
+I<MIME::Entity:>   
+	The body, as an array of lines...
+	but I<only> for a singlepart messages.  It returns I<nothing> for 
+	a multipart message, since multiparts by definition do not have bodies
+	of their own.  It's also somewhat inappropriate for non-textual 
+        bodies, like GIFs.
+
+
+=item What does print_body() print?
+
+I<Mail::Internet:> 
+	Exactly what body() would return to you.
+
+I<MIME::Entity:> 
+	The I<encoded representation> of "all the stuff following the header",
+        using the Content-transfer-encoding in the MIME header. This includes
+        the encoded representation of any I<parts> as well.
+        Put simply, print_body() doesn't just "print the body": it
+        prints a flattened representation of the I<entire entity,>
+        including subparts.  This is generally what people seem to expect.
+
+
+=item Assuming I have a singlepart, isn't the data 
+      from body() identical to the stuff printed by print_body()?
+
+I<Mail::Internet:> 
+	Yes.
+
+I<MIME::Entity:>   
+	Not likely.  If the original message held a base64-encoded
+        GIF file, the body() data will be the I<actual, decoded, binary
+        GIF data>... which is I<not> the same as that base64-encoded
+        stream of ASCII output by print_body().
+
+
+=item Conceptually, what's the difference between what's returned
+      by body() and what's printed by print_body()?
+
+I<Mail::Internet:> 
+	None.
+
+I<MIME::Entity:> 
+	Method body() refers to the I<actual body data> of the entity 
+        in question.
+        
+        Method print_body() (and stringify_body()) refers to the 
+        I<complete printed representation> of that entity.
+
+
+=item Say I have an entity which might be either singlepart or multipart.
+      How do I print out just "the stuff after the header"?
+
+I<Mail::Internet:> 
+	Use print_body().
+
+I<MIME::Entity:> 
+	Use print_body(). 
+
+
+=item Why is MIME::Entity so different from Mail::Internet?
+
+Because MIME streams are expected to have non-textual data...
+possibly, quite a lot of it, such as a tar file. 
+
+Because MIME messages can consist of multiple parts, which are most-easily 
+manipulated as MIME::Entity objects themselves.
+
+Because in the simpler world of Mail::Internet, the data of a message
+and its printed representation are I<identical>... and in the MIME
+world, they're not.
+
+Because parsing multipart bodies on-the-fly, or formatting multipart 
+bodies for output, is a non-trivial task.
+
+
+=item This is confusing.  Can the two classes be made more compatible?
+
+Not easily; their implementations are necessarily quite different.
+Mail::Internet is a simple, efficient way of dealing with a "black box"
+mail message... one whose internal data you don't care much about.  
+MIME::Entity, in contrast, cares I<very much> about the message contents: 
+that's its job!
+
+Here's an example:
+
+Suppose you wanted me to rewrite MIME::Entity so that you could properly
+set any body -- even a multipart body -- by giving its lines to body().  
+After all, I can just parse the lines you give me, right?
+
+Not quite.  In order to parse that data, I I<need> to have a header
+which tells me whether it's singlepart or multipart.  I I<need>
+to know the encoding, too.  So MIME::Entity will enforces a sequence 
+of events on how you set things up, unlike Mail::Internet -- which 
+doesn't care about message contents.
+
+=back
+
 
 
 =head2 Design issues
@@ -1865,7 +2037,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.111 $ $Date: 1998/01/14 09:15:40 $
+$Revision: 4.113 $ $Date: 1998/01/17 21:54:10 $
 
 =cut
 

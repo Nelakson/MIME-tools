@@ -48,7 +48,12 @@ You can also alter the behavior of the parser:
      
     # Automatically attempt to RFC-1522-decode the MIME headers:
     $parser->decode_headers(1);
-     
+
+Cute stuff... 
+
+    # Convert a Mail::Internet object to a MIME::Entity:
+    @lines = (@{$mail->header}, "\n", @{$mail->body});
+    $entity = $parser->parse_data(\@lines);
 
 
 =head1 DESCRIPTION
@@ -106,7 +111,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.106 $, 10;
+$VERSION = substr q$Revision: 4.107 $, 10;
 
 # How to catenate:
 $CAT = '/bin/cat';
@@ -1088,7 +1093,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.106 $ $Date: 1998/01/14 09:13:57 $
+$Revision: 4.107 $ $Date: 1998/01/17 06:31:12 $
 
 =cut
 
