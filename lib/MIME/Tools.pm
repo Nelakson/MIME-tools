@@ -5,24 +5,220 @@ package MIME::Tools;
 # the __END__ statement below...
 #------------------------------
 
-use MIME::ToolUtils;
-use vars qw($VERSION);
+use strict;
+use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION)); 
 
-# Delegate configuration:
-sub config { shift; MIME::ToolUtils->config(@_) }
+require Exporter;
+use FileHandle;
+use Carp;
+
+@ISA = qw(Exporter);
+
+# Exporting (importing should only be done by modules in this toolkit!):
+%EXPORT_TAGS = (
+    'config' => [qw(%CONFIG)],
+    'msgs'   => [qw(usage debug whine error)],
+    'utils'  => [qw(benchmark catfile shellquote textual_type tmpopen )],  
+    );
+Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.124 $, 10;
+$VERSION = substr q$Revision: 5.115 $, 10;
+
+# Configuration (do NOT alter this directly)...
+# All legal CONFIG vars *must* be in here, even if only to be set to undef:
+%CONFIG = 
+    (
+     DEBUGGING       => 0,
+     QUIET           => 1,
+     );
+
+# Was this warning given?
+my %AlreadySaid;
+
+
+#------------------------------
+#
+# CONFIGURATION... (see below)
+#
+#------------------------------
+
+sub config {
+    my $class = shift;
+    usage("config() is obsolete");
+
+    # No args? Just return list:
+    @_ or return keys %CONFIG; 
+    my $method = lc(shift);
+    return $class->$method(@_);
+}
+
+sub debugging {
+    my ($class, $value) = @_;
+    $CONFIG{'DEBUGGING'} = $value   if (@_ > 1);
+    $CONFIG{'DEBUGGING'};
+}
+
+sub quiet {
+    my ($class, $value) = @_;
+    $CONFIG{'QUIET'} = $value   if (@_ > 1);
+    $CONFIG{'QUIET'};
+}
+
+sub version {
+    my ($class, $value) = @_;
+    $VERSION;
+}
+
+
+
+#------------------------------
+#
+# MESSAGES...
+#
+#------------------------------
+
+#------------------------------
+#
+# debug MESSAGE...
+#
+# Private: output a debug message.
+#
+sub debug { 
+    print STDERR "DEBUG: ", @_, "\n"      if $CONFIG{DEBUGGING};
+}
+
+#------------------------------
+#
+# whine MESSAGE...
+#
+# Private: issue a warning, but only if $^W (-w) is true, and
+# we're not being QUIET.
+#
+sub whine { 
+    my ( $p,  $f,  $l,  $s) = caller(1);
+    my $msg = join('', (($s =~ /::/) ? "$s(): " : "${p}::$s(): "), @_, "\n");
+    warn $msg if ($^W && !$CONFIG{QUIET});
+    return (wantarray ? () : undef);
+}
+
+#------------------------------
+#
+# error MESSAGE...
+#
+# Private: something failed; register general unhappiness.
+#
+sub error { 
+    my ( $p,  $f,  $l,  $s) = caller(1);
+    my $msg = join('', (($s =~ /::/) ? "$s(): " : "${p}::$s(): "), @_, "\n");
+    warn $msg if $^W;
+    return (wantarray ? () : undef);
+}
+
+#------------------------------
+#
+# usage MESSAGE...
+#
+# Register unhappiness about usage (once per).
+#
+sub usage { 
+    my ( $p,  $f,  $l,  $s) = caller(1);
+    my ($cp, $cf, $cl, $cs) = caller(2);
+    my $msg = join('', (($s =~ /::/) ? "$s() " : "${p}::$s() "), @_, "\n");
+    my $loc = ($cf ? "\tin code called from $cf l.$cl" : '');
+    warn "$msg$loc\n" if ($^W && !$CONFIG{QUIET} && !$AlreadySaid{$msg});
+    $AlreadySaid{$msg} = 1;
+    return (wantarray ? () : undef);
+}
+
+
+
+#------------------------------
+#
+# UTILS...
+#
+#------------------------------
+
+#------------------------------
+#
+# benchmark CODE
+#
+# Private benchmarking utility.
+#
+sub benchmark(&) {
+    my ($code) = @_;
+    my $stime = time();
+    &$code; 
+    my $etime = time();
+    return ($etime - $stime)." seconds";
+}
+
+#------------------------------
+#
+# catfile DIR, FILE
+#
+# Directory/file concatenation.
+#
+sub catfile {
+    my ($parent, $child) = @_;
+    if ($^O eq 'Mac') {
+	$parent =~ s{:\Z}{};
+	return "$parent:$child";
+    }
+    else {
+	$parent =~ s{/\Z}{};
+	return "$parent/$child";
+    }
+}
+
+#------------------------------
+#
+# shellquote STRING
+#
+# Private utility: make string safe for shell.
+#
+sub shellquote {
+    my $str = shift;
+    $str =~ s/\$/\\\$/g;
+    $str =~ s/\`/\\`/g;
+    $str =~ s/\"/\\"/g;
+    return "\"$str\"";        # wrap in double-quotes
+}
+
+#------------------------------
+#
+# textual_type MIMETYPE
+#
+# Function.  Does the given MIME type indicate a textlike document?
+#
+sub textual_type {
+    ($_[0] =~ m{^(text|message)(/|\Z)}i);
+}
+
+#------------------------------
+#
+# tmpopen 
+#
+#
+sub tmpopen {
+    return IO::File->new_tmpfile;
+}
+
+
+
+
+
 
 #------------------------------
 1;
+package MIME::ToolUtils;
+@MIME::ToolUtils::ISA = qw(MIME::Tools);
 __END__
 
 
 =head1 NAME
 
 MIME-tools - modules for parsing (and creating!) MIME entities
-
 
 
 =head1 SYNOPSIS
@@ -32,40 +228,41 @@ its decoded components to a given directory:
 
     use MIME::Parser;
      
-    # Create parser, and set the output directory:
+    ### Create parser, and set some parsing options:
     my $parser = new MIME::Parser;
-    $parser->output_dir("$ENV{HOME}/mimemail");
+    $parser->output_under("$ENV{HOME}/mimemail");
      
-    # Parse input:
-    $entity = $parser->read(\*STDIN) or die "couldn't parse MIME stream";
+    ### Parse input:
+    $entity = $parser->parse(\*STDIN) or die "parse failed\n";
     
-    # Take a look at the top-level entity (and any parts it has):
+    ### Take a look at the top-level entity (and any parts it has):
     $entity->dump_skeleton; 
+
 
 Here's some code which B<composes and sends a MIME message> containing 
 three parts: a text file, an attached GIF, and some more text:
 
     use MIME::Entity;
 
-    # Create the top-level, and set up the mail headers:
-    $top = build MIME::Entity Type    =>"multipart/mixed",
-                              From    => "me\@myhost.com",
-	                      To      => "you\@yourhost.com",
-                              Subject => "Hello, nurse!";
+    ### Create the top-level, and set up the mail headers:
+    $top = MIME::Entity->build(Type    =>"multipart/mixed",
+                               From    => "me\@myhost.com",
+	                       To      => "you\@yourhost.com",
+                               Subject => "Hello, nurse!");
     
-    # Part #1: a simple text document: 
-    attach $top  Path=>"./testin/short.txt";
+    ### Part #1: a simple text document: 
+    $top->attach(Path=>"./testin/short.txt");
     
-    # Part #2: a GIF file:
-    attach $top  Path        => "./docs/mime-sm.gif",
+    ### Part #2: a GIF file:
+    $top->attach(Path        => "./docs/mime-sm.gif",
                  Type        => "image/gif",
-                 Encoding    => "base64";
+                 Encoding    => "base64");
         
-    # Part #3: some literal text:
-    attach $top  Data=>$message;
+    ### Part #3: some literal text:
+    $top->attach(Data=>$message);
     
-    # Send it:
-    open MAIL, "| /usr/lib/sendmail -t -i" or die "open: $!";
+    ### Send it:
+    open MAIL, "| /usr/lib/sendmail -t -oi -oem" or die "open: $!";
     $top->print(\*MAIL);
     close MAIL;
 
@@ -87,10 +284,10 @@ GIF files).
 Here are the classes you'll generally be dealing with directly:
 
 
-           .------------.       .------------.           
-           | MIME::     |------>| MIME::     |
-           | Parser     |  isa  | ParserBase |   
-           `------------'       `------------'
+           .------------.
+           | MIME::     |
+           | Parser     |
+           `------------'
               | parse()
               | returns a...
               |
@@ -122,24 +319,35 @@ To illustrate, parsing works this way:
 =item *
 
 B<The "parser" parses the MIME stream.>
-Every "parser" inherits from the "parser base" class, which does
-the real work.  When a message is parsed, the result is an "entity".
+A parser is an instance of C<MIME::Parser>.  
+You hand it an input stream (like a filehandle) to parse a message from: 
+if the parse is successful, the result is an "entity".
 
 =item *
 
-B<An "entity" has a "head" and a "body".>  
-Entities are MIME message parts.
+B<A parsed message is represented by an "entity".>
+An entity is an instance of C<MIME::Entity> (a subclass of C<Mail::Internet>).
+If the message had "parts" (e.g., attachments), then those parts
+are "entities" as well, contained inside the top-level entity.
+Each entity has a "head" and a "body".
 
 =item *
 
-B<A "body" knows where the data is.>  
+B<The entity's "head" contains information about the message.>  
+A "head" is an instance of C<MIME::Head> (a subclass of C<Mail::Header>).
+It contains information from the message header: content type,
+sender, subject line, etc.
+
+=item *
+
+B<The entity's "body" knows where the message data is.>  
 You can ask to "open" this data source for I<reading> or I<writing>, 
 and you will get back an "I/O handle".
 
 =item *
 
-B<An "I/O handle" knows how to read/write the data.>
-It is an object that is basically like an IO::Handle or 
+B<You can open() a "body" and get an "I/O handle" to read/write message data.>
+This handle is an object that is basically like an IO::Handle or 
 a FileHandle... it can be any class, so long as it supports a small,
 standard set of methods for reading from or writing to the underlying
 data source.
@@ -164,19 +372,19 @@ each of which would have its own MIME::Head.  Like this:
               |   .--------.   
               |---| MIME:: | Content-type: image/gif
                   | Entity | Content-transfer-encoding: base64
-                  `--------' Content-disposition: inline; filename="hs.gif"
+                  `--------' Content-disposition: inline; 
+                               filename="hs.gif"
 
 
 
 =head2 Parsing, in a nutshell
 
-You usually start by creating an instance of B<L<MIME::Parser>> (a subclass
-of the abstract B<L<MIME::ParserBase>>), and setting up
-certain parsing parameters: what directory to save extracted files 
-to, how to name the files, etc.
+You usually start by creating an instance of B<MIME::Parser>
+and setting up certain parsing parameters: what directory to save 
+extracted files to, how to name the files, etc.
 
 You then give that instance a readable filehandle on which waits a
-MIME message.  If all goes well, you will get back a B<L<MIME::Entity>>
+MIME message.  If all goes well, you will get back a B<MIME::Entity>
 object (a subclass of B<Mail::Internet>), which consists of...
 
 =over 4
@@ -201,7 +409,7 @@ object will have a non-empty list of "parts", each of which is in
 turn a MIME::Entity (which might also be a multipart entity, etc, 
 etc...).
 
-Internally, the parser (in MIME::ParserBase) asks for instances 
+Internally, the parser (in MIME::Parser) asks for instances 
 of B<MIME::Decoder> whenever it needs to decode an encoded file.  
 MIME::Decoder has a mapping from supported encodings (e.g., 'base64') 
 to classes whose instances can decode them.  You can add to this mapping 
@@ -211,13 +419,13 @@ MIME::Decoder by itself.
 
 =head2 Composing, in a nutshell
 
-All message composition is done via the B<L<MIME::Entity>> class.
-For single-part messages, you can use the L<MIME::Entity/build>
+All message composition is done via the B<MIME::Entity> class.
+For single-part messages, you can use the B<MIME::Entity/build>
 constructor to create MIME entities very easily.
 
 For multipart messages, you can start by creating a top-level
-C<multipart> entity with L<MIME::Entity/build>, and then use
-the similar L<MIME::Entity/attach> method to attach parts to 
+C<multipart> entity with B<MIME::Entity::build()>, and then use
+the similar B<MIME::Entity::attach()> method to attach parts to 
 that message.  I<Please note:> what most people think of as 
 "a text message with an attached GIF file" is I<really> a multipart
 message with 2 parts: the first being the text message, and the
@@ -237,7 +445,7 @@ L<"A MIME PRIMER">.
 
 =head2 Encoding/decoding, in a nutshell
 
-The L<MIME::Decoder> class can be used to I<encode> as well; this is done
+The B<MIME::Decoder> class can be used to I<encode> as well; this is done
 when printing MIME entities.  All the standard encodings are supported
 (see L<"A MIME PRIMER"> for details): 
 
@@ -268,7 +476,7 @@ to be asking for trouble... or at least, for Mail::Cap...
 =head2 Other stuff you can do
 
 If you want to tweak the way this toolkit works (for example, to 
-turn on debugging), use the routines in the B<L<MIME::ToolUtils>> module.
+turn on debugging), use the routines in the B<MIME::ToolUtils> module.
 
 
 =head2 Good advice
@@ -277,7 +485,7 @@ turn on debugging), use the routines in the B<L<MIME::ToolUtils>> module.
 
 =item *
 
-B<Run with C<-w> on.>  If you see a warning about a deprecated method,
+B<Run with -w on.>  If you see a warning about a deprecated method,
 change your code ASAP.  This will ease upgrades tremendously.
 
 =item *
@@ -293,7 +501,7 @@ For example, if your mail-handling code absolutely must not die,
 then perform mail parsing like this:
 
     $entity = eval { $parser->parse(\*INPUT) };
-    
+
 Parsing is a complex process, and some components may throw exceptions
 if seriously-bad things happen.  Since "seriously-bad" is in the
 eye of the beholder, you're better off I<catching> possible exceptions 
@@ -309,124 +517,38 @@ going to agree upon; thankfully, that's what C<eval{}> is good for.
 =head1 NOTES
 
 
-=head2 Terminology
-
-Here are some excerpts from RFC-1521 explaining the terminology
-we use; each is accompanied by the equivalent in MIME:: module terms...
-
-=over 4
-
-=item Message
-
-From RFC-1521:
-
-    The term "message", when not further qualified, means either the
-    (complete or "top-level") message being transferred on a network, or
-    a message encapsulated in a body of type "message".
-
-There currently is no explicit package for messages; under MIME::, 
-messages are streams of data which may be read in from files or 
-filehandles.
-
-=item Body part
-
-From RFC-1521:
-
-    The term "body part", in this document, means one of the parts of the
-    body of a multipart entity. A body part has a header and a body, so
-    it makes sense to speak about the body of a body part.
-
-Since a body part is just a kind of entity (see below), a body part 
-is represented by an instance of L<MIME::Entity>.
-
-=item Entity
-
-From RFC-1521:
-
-    The term "entity", in this document, means either a message or a body
-    part.  All kinds of entities share the property that they have a
-    header and a body.
-
-An entity is represented by an instance of L<MIME::Entity>.
-There are instance methods for recovering the header (a L<MIME::Head>)
-and the body (a L<MIME::Body>).
-
-=item Header
-
-This is the top portion of the MIME message, which contains the
-Content-type, Content-transfer-encoding, etc.  Every MIME entity has
-a header, represented by an instance of L<MIME::Head>.  You get the
-header of an entity by sending it a head() message.
-
-=item Body
-
-From RFC-1521:
-
-    The term "body", when not further qualified, means the body of an
-    entity, that is the body of either a message or of a body part.
-
-A body is represented by an instance of L<MIME::Body>.  You get the
-body of an entity by sending it a bodyhandle() message.
-
-=back
-
-
-=head2 Compatibility
-
-As of 4.x, MIME-tools can no longer emulate the old MIME-parser
-distribution.  If you're installing this as a replacement for the 
-MIME-parser 1.x release, you'll have to do a little tinkering with
-your code.
-
 
 =head2 Design issues
 
 =over 4
 
+
+=item Why the need for temp files?  Why not do everything in core?
+
+Although the amount of core available on even a modest home
+system continues to grow, the size of attachments continues
+to grow with it.  I wanted to make sure that even users with small
+systems could deal with decoding multi-megabyte sounds and movie files.
+That means not being core-bound.
+
+
 =item Why assume that MIME objects are email objects?
 
-I quote from Achim Bohnet, who gave feedback on v.1.9 (I think
-he's using the word I<header> where I would use I<field>; e.g.,
-to refer to "Subject:", "Content-type:", etc.):
+Achim Bohnet once pointed out that MIME headers do nothing more than
+store a collection of attributes, and thus could be represented as
+objects which don't inherit from Mail::Header.
 
-    There is also IMHO no requirement [for] MIME::Heads to look 
-    like [email] headers; so to speak, the MIME::Head [simply stores] 
-    the attributes of a complex object, e.g.:
-
-        new MIME::Head type => "text/plain",
-                       charset => ...,
-                       disposition => ..., ... ;
-
-I agree in principle, but (alas and dammit) RFC-1521 says otherwise.
+I agree in principle, but RFC-1521 says otherwise.
 RFC-1521 [MIME] headers are a syntactic subset of RFC-822 [email] headers.
-Perhaps a better name for these modules would be RFC1521:: instead of
-MIME::, but we're a little beyond that stage now.  (I<Note: RFC-1521 
-has recently been obsoleted by RFCs 2045-2049, so it's just as well 
-we didn't go that route...>)
-
-However, in my mind's eye, I see a mythical abstract class which does what 
-Achim suggests... so you could say:
-
-     my $attrs = new MIME::Attrs type => "text/plain",
-				 charset => ...,
-                                 disposition => ..., ... ;
-
-We could even make it a superclass or companion class of MIME::Head, 
-such that MIME::Head would allow itself to be initiallized from a 
-MIME::Attrs object.
-
-B<In the meanwhile,> look at the build() and attach() methods of MIME::Entity:
-they follow the spirit of this mythical class.
-
-
-=item To subclass or not to subclass?
+Perhaps a better name for these modules would have been RFC1521:: 
+instead of MIME::, but we're a little beyond that stage now.
 
 When I originally wrote these modules for the CPAN, I agonized for a long
 time about whether or not they really should subclass from B<Mail::Internet> 
 (then at version 1.17).  Thanks to Graham Barr, who graciously evolved
 MailTools 1.06 to be more MIME-friendly, unification was achieved
-at MIME-tools release 2.0.   The benefits in reuse alone have been
-substantial.
+at MIME-tools release 2.0.   
+The benefits in reuse alone have been substantial.
 
 =back
 
@@ -446,8 +568,6 @@ character C<"\n"> instead.
 An attempt has been made to allow the parser to handle both CRLF 
 and newline-terminated input.  
 
-I<See MIME::ParserBase for further details.>
-
 
 =item Fuzzing of CRLF and newline when decoding
 
@@ -460,19 +580,13 @@ and no explicit encoding will be output as a text file
 that, on many systems, will have an annoying ^M at the end of
 each line... I<but this is as it should be>.
 
-I<See MIME::ParserBase for further details.>
-
 
 =item Fuzzing of CRLF and newline when encoding/composing
 
 All encoders currently output the end-of-line sequence as a C<"\n">,
 with the assumption that the local mail agent will perform
 the conversion from newline to CRLF when sending the mail.
-
 However, there probably should be an option to output CRLF as per RFC-1521.
-I'm currently working on a good mechanism for this.
-
-I<See MIME::ParserBase for further details.>
 
 
 =item Inability to handle multipart boundaries with embedded newlines
@@ -482,8 +596,6 @@ If your mailer creates multipart boundary strings that contain
 newlines, give it two weeks notice and find another one.  If your
 mail robot receives MIME mail like this, regard it as syntactically
 incorrect, which it is.
-
-I<See MIME::ParserBase for further details.>
 
 
 =back
@@ -495,6 +607,75 @@ I<See MIME::ParserBase for further details.>
 
 So you need to parse (or create) MIME, but you're not quite up on 
 the specifics?  No problem...
+
+
+
+=head2 Glossary
+
+Here are some definitions adapted from RFC-1521 explaining the terminology
+we use; each is accompanied by the equivalent in MIME:: module terms...
+
+=over 4
+
+=item attachment
+
+An "attachment" is common slang for any part of a multipart message --
+except, perhaps, for the first part, which normally carries a user
+message describing the attachments that follow (e.g.: "Hey dude, here's
+that GIF file I promised you.").
+
+In our system, an attachment is just a B<MIME::Entity> under the
+top-level entity, probably one of its L<parts|MIME::Entity/parts>.
+
+=item body
+
+The "body" of an L<entity|/entity> is that portion of the entity 
+which follows the L<header|/header> and which contains the real message 
+content.  For example, if your MIME message has a GIF file attachment,
+then the body of that attachment is the base64-encoded GIF file itself.
+
+A body is represented by an instance of B<MIME::Body>.  You get the
+body of an entity by sending it a L<bodyhandle()|MIME::Entity/bodyhandle> 
+message.
+
+=item body part
+
+One of the parts of the body of a multipart B</entity>. 
+A body part has a B</header> and a B</body>, so it makes sense to
+speak about the body of a body part.
+
+Since a body part is just a kind of entity, it's represented by 
+an instance of B<MIME::Entity>.
+
+=item entity
+
+An "entity" means either a B</message> or a B</body part>.  
+All entities have a B</header> and a B</body>.
+
+An entity is represented by an instance of B<MIME::Entity>.
+There are instance methods for recovering the 
+L<header|MIME::Entity/head> (a B<MIME::Head>) and the
+L<body|MIME::Entity/bodyhandle> (a B<MIME::Body>).
+
+=item header
+
+This is the top portion of the MIME message, which contains the
+"Content-type", "Content-transfer-encoding", etc.  Every MIME entity has
+a header, represented by an instance of B<MIME::Head>.  You get the
+header of an entity by sending it a head() message.
+
+=item message
+
+A "message" generally means the complete (or "top-level") message being 
+transferred on a network.
+
+There currently is no explicit package for "messages"; under MIME::, 
+messages are streams of data which may be read in from files or 
+filehandles.  You can think of the B<MIME::Entity> returned by the
+B<MIME::Parser> as representing the full message.
+
+
+=back
 
 
 =head2 Content types
@@ -615,27 +796,63 @@ bugs I<before> they become problems...
 
 =head1 CHANGE LOG
 
-
-=head2 Future plans
-
 =over 4
 
-=item *
+=item Version 5.115
 
-Dress up mimedump and mimeexplode utilities to take cmd line options
-for directory, environment vars (MIMEDUMP_OUTPUT, etc.).
-
-=item *
-
-Support for S/MIME and message/partial?
-
-=back
+Fixed Ref.t bug, and documented how to remove parts from a MIME::Entity.
 
 
+=item Version 5.114 
 
-=head2 Current events
+Entity now uses MIME::Lite-style default suggested encoding.
 
-=over 4
+More regression test have been added, and the "Size" tests in 
+Ref.t are skipped for text document (due to CRLF differences
+between platforms).
+
+
+=item Version 5.113 (Initial 5.x Beta release)
+
+B<Major speed and structural improvements to the parser.>
+    I<Major, MAJOR thanks to Noel Burton-Krahn, Jeremy Gilbert,
+      and Doru Petrescu for all the patches, benchmarking,
+      and Beta-testing!>
+
+B<Convenient new one-directory-per-message parsing mechanism.>
+    Now through C<MIME::Parser> method C<output_under()>, 
+    you can tell the parser that you want it to create 
+    a unique directory for each message parsed, to hold the 
+    resulting parts.
+
+B<Elimination of $', $` and $&.>
+    Wow... I still can't believe I missed this.  D'OH!
+    I<Thanks to Noel Burton-Krahn for all his patches.>
+
+B<Parser is more tolerant of weird EOL termination.>
+    Some mailagents are can terminate lines with "\r\r\n".
+    We're okay with that now when we extract the header.
+    I<Thanks to Joao Fonseca for pointing this out.>
+
+B<Parser is tolerant of "From " lines in headers.>
+    I<Thanks to Joachim Wieland, Anthony Hinsinger, Marius Stan,
+      and numerous others.>
+
+B<Parser catches syntax errors in headers.>
+    I<Thanks to Russell P. Sutherland for catching this.>
+
+B<Parser no longer warns when subtype is undefined.>    
+    I<Thanks to Eric-Olivier Le Bigot for his fix.>
+
+B<Better integration with Mail::Internet.>
+    For example, smtpsend() should work fine.
+    I<Thanks to Michael Fischer and others for the patch.>
+
+B<Miscellaneous cleanup.>
+    I<Thanks to Marcus Brinkmann for additional helpful input.>
+    I<Thanks to Klaus Seidenfaden for good feedback on 5.x Alpha!>
+
+
 
 
 =item Version 4.123
@@ -800,13 +1017,10 @@ B<MIME::Head::add()> now no longer downcases its argument.
 
 =back
 
-=back
 
 
 
-=head2 Old news
 
-=over 4
 
 =item Version 3.204
 
@@ -835,8 +1049,8 @@ B<MIME::Entity tries harder to ensure MIME compliance.>
 	I<try> to protect you from mistakes.
 
 B<The "make" now halts if you don't have the right stuff,> 
-	provided your MakeMaker supports PREREQ_PM.  See the L<"REQUIREMENTS">
-	section for what you need to install this package.  I still provide
+	provided your MakeMaker supports PREREQ_PM.  See L<"REQUIREMENTS">
+	for what you need to install this package.  I still provide
 	old courtesy copies of the MIME:: decoding modules.
 I<Thanks to Hugo van der Sanden for suggesting this.>
 
@@ -1014,12 +1228,9 @@ There were a I<lot> of requests for this feature.
 Added option to parse C<"message/rfc822"> as a pseduo-multipart document.
 I<Thanks to Andreas Koenig for suggesting this.>
 
-=back
 
 
-=head2 Ancient history
 
-=over 4
 
 =item Version 1.13 	
 
@@ -1112,11 +1323,12 @@ MIME-tools was created by:
 Released as MIME-parser (1.0): 28 April 1996.
 Released as MIME-tools (2.0): Halloween 1996.
 Released as MIME-tools (4.0): Christmas 1997. 
+Released as MIME-tools (5.0): Mother's Day 2000.
 
 
 =head1 VERSION
 
-$Revision: 4.124 $ 
+$Revision: 5.115 $ 
 
 
 =head1 ACKNOWLEDGMENTS

@@ -6,13 +6,13 @@ WriteMakefile(
       PREREQ_PM    => {"Mail::Header"      => 1.01,
 		       "Mail::Internet"    => 1.0203,
 		       "Mail::Field"       => 1.05,
+
 		       "MIME::QuotedPrint" => 2.03,
-		       "MIME::Base64"      => 2.04,
-		       "IO::Scalar"        => 1.104,
-		       "IO::ScalarArray"   => 1.105,
+	               "MIME::Base64"      => 2.04,
+		       "IO::Stringy"       => 1.211,
 		       },
       'dist'       => {
-	  PREOP        => q{(cd docs ; make)},
+	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools -B", 
 	  COMPRESS     =>'gzip',
 	  SUFFIX       =>'gz',	      
       },

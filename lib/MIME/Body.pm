@@ -8,59 +8,57 @@ MIME::Body - the body of a MIME message
 
 =head1 SYNOPSIS
 
-Here's how a typical body object is obtained and used:
+=head2 Obtaining bodies
 
-   # Get the bodyhandle of a MIME::Entity object:
+   ### Get the bodyhandle of a MIME::Entity object:
    $body = $entity->bodyhandle;
-    
-   # Where's the data?
-   if (defined($body->path)) {   # data is on disk:
-       print "data is stored externally, in ", $body->path;
-   }
-   else {                        # data is in core:
-       print "data is already in core, and is...\n", $body->as_string;
-   }
-     
-   # Get rid of anything on disk:
-   $body->purge;
 
-If you don't want to worry about where the data is actually
-kept, you can use the generic access methods:
+   ### Create a body which stores data in a disk file:
+   $body = new MIME::Body::File "/path/to/file";
 
-   # Write data to the body:
+   ### Create a body which stores data in an in-core array:
+   $body = new MIME::Body::InCore \@strings;
+
+
+=head2 Opening, closing, and using IO handles
+
+   ### Write data to the body:
    $IO = $body->open("w")      || die "open body: $!";
    $IO->print($message);
    $IO->close                  || die "close I/O handle: $!";
    
-   # Read data from the body (in this case, line by line):
+   ### Read data from the body (in this case, line by line):
    $IO = $body->open("r")      || die "open body: $!";
    while (defined($_ = $IO->getline)) {
-       # do stuff
+       ### do stuff
    }
    $IO->close                  || die "close I/O handle: $!";
     
-   # Dump the ENCODED body data to a filehandle:
+
+=head2 Other I/O
+
+   ### Dump the ENCODED body data to a filehandle:
    $body->print(\*STDOUT);
        
-   # Slurp all the UNENCODED data in, and put it in a scalar:
+   ### Slurp all the UNENCODED data in, and put it in a scalar:
    $string = $body->as_string;
    
-   # Slurp all the UNENCODED data in, and put it in an array of lines:
+   ### Slurp all the UNENCODED data in, and put it in an array of lines:
    @lines = $body->as_lines;
 
-For example, this subclass stores the data in a disk file, which
-is only opened when needed:
 
-   $body = new MIME::Body::File "/path/to/file";
+=head2 Working directly with paths to underlying files
 
-While I<this> subclass stores the data in an in-core scalar:
-
-   $body = new MIME::Body::Scalar \$scalar;
-
-In any case, once a MIME::Body has been created, you ask to open it
-for reading or writing, which gets you an "i/o handle": you then use 
-the same mechanisms for reading from or writing to that handle, no matter 
-what class it is.
+   ### Where's the data?
+   if (defined($body->path)) {   ### data is on disk:
+       print "data is stored externally, in ", $body->path;
+   }
+   else {                        ### data is in core:
+       print "data is already in core, and is...\n", $body->as_string;
+   }
+     
+   ### Get rid of anything on disk:
+   $body->purge;
 
 
 =head1 DESCRIPTION
@@ -80,26 +78,26 @@ usually looks like this:
 =item 1.
 
 B<Body object is created by a MIME::Parser during parsing.>
-  It's at this point that the actual MIME::Body subclass is chosen,
-  and new() is invoked.  (For example: if the body data is going to 
-  a file, then it is at this point that the class MIME::Body::File,
-  and the filename, is chosen).
+It's at this point that the actual MIME::Body subclass is chosen,
+and new() is invoked.  (For example: if the body data is going to 
+a file, then it is at this point that the class MIME::Body::File,
+and the filename, is chosen).
 
 =item 2.
 
 B<Data is written to the body> (usually by the MIME parser) like this:
-  The body is opened for writing, via C<open("w")>.  This will trash any 
-  previous contents, and return an "I/O handle" opened for writing.  
-  Data is written to this I/O handle, via print().
-  Then the I/O handle is closed, via close().
+The body is opened for writing, via C<open("w")>.  This will trash any 
+previous contents, and return an "I/O handle" opened for writing.  
+Data is written to this I/O handle, via print().
+Then the I/O handle is closed, via close().
 
 =item 3. 
 
 B<Data is read from the body> (usually by the user application) like this: 
-  The body is opened for reading by a user application, via C<open("r")>.
-  This will return an "I/O handle" opened for reading.
-  Data is read from the I/O handle, via read(), getline(), or getlines().
-  Then the I/O handle is closed, via close().
+The body is opened for reading by a user application, via C<open("r")>.
+This will return an "I/O handle" opened for reading.
+Data is read from the I/O handle, via read(), getline(), or getlines().
+Then the I/O handle is closed, via close().
 
 =item 4. 
 
@@ -112,10 +110,13 @@ interface described below.  Implementers of subclasses should assume
 that steps 2 and 3 may be repeated any number of times, and in
 different orders (e.g., 1-2-2-3-2-3-3-3-3-3-2-4).
 
-Users should be aware that unless they know for certain what they
-have, they should not assume that the body has an underlying
-filehandle.
+In any case, once a MIME::Body has been created, you ask to open it
+for reading or writing, which gets you an "i/o handle": you then use 
+the same mechanisms for reading from or writing to that handle, no matter 
+what class it is.
 
+Beware: unless you know for certain what kind of body you have, you
+should I<not> assume that the body has an underlying filehandle.
 
 
 =head1 PUBLIC INTERFACE
@@ -125,16 +126,16 @@ filehandle.
 =cut
 
 
-# Pragmas:
+### Pragmas:
 use strict;
 use vars qw($VERSION); 
 
-# System modules:
+### System modules:
 use Carp;
 use IO::Scalar;
 
-# The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.109 $, 10;
+### The package version, both in 1.23 style *and* usable by MakeMaker:
+$VERSION = substr q$Revision: 5.106 $, 10;
 
 
 #------------------------------
@@ -209,7 +210,7 @@ sub as_string {
     $self->print($out);
     return $str;
 }
-*data = \&as_string;         # silenty invoke preferred usage
+*data = \&as_string;         ### silenty invoke preferred usage
 
 #------------------------------
 
@@ -244,7 +245,7 @@ not worry.
 
 sub dup {
     my $self = shift;
-    bless { %$self }, ref($self);   # shallow copy ok for ::File and ::Scalar
+    bless { %$self }, ref($self);   ### shallow copy ok for ::File and ::Scalar
 }
 
 #------------------------------
@@ -300,15 +301,15 @@ sub print {
     my ($self, $fh) = @_;
     my $nread;
 
-    # Get output filehandle, and ensure that it's a printable object:
+    ### Get output filehandle, and ensure that it's a printable object:
     $fh = IO::Wrap::wraphandle($fh || select);
 
-    # Write it:
+    ### Write it:
     my $buf = '';
     my $io = $self->open("r") || return undef;
     $fh->print($buf) while ($nread = $io->read($buf, 2048));
     $io->close;
-    return defined($nread);    # how'd we do?
+    return defined($nread);    ### how'd we do?
 }
 
 #------------------------------
@@ -334,11 +335,12 @@ sub purge {
 
 The following built-in classes are provided:
 
-   Body                Stores body   When open()ed,
-   class:              data in:      returns:    
+   Body                 Stores body     When open()ed,
+   class:               data in:        returns:    
    --------------------------------------------------------
-   MIME::Body::File    disk file     IO::Handle   
-   MIME::Body::Scalar  scalar        IO::Scalar  
+   MIME::Body::File     disk file       IO::Handle   
+   MIME::Body::Scalar   scalar          IO::Scalar  
+   MIME::Body::InCore   scalar array    IO::ScalarArray
 
 =cut
 
@@ -360,7 +362,7 @@ so you I<could> say:
     if (defined($body->path)) {
 	open BODY, $body->path or die "open: $!";
 	while (<BODY>) {
-	    # do stuff
+	    ### do stuff
         }
 	close BODY;
     }
@@ -370,15 +372,15 @@ But you're best off not doing this.
 =cut
 
 
-# Pragmas:
+### Pragmas:
 use vars qw(@ISA);
 use strict;
 
-# System modules:
+### System modules:
 require FileHandle;
 
-# Kit modules:
-use MIME::ToolUtils qw(whine);
+### Kit modules:
+use MIME::Tools qw(whine);
 use IO::Wrap;
 
 @ISA = qw(MIME::Body);
@@ -389,7 +391,7 @@ use IO::Wrap;
 #------------------------------
 sub init {
     my ($self, $path) = @_;
-    $self->path($path);               # use it as-is
+    $self->path($path);               ### use it as-is
     $self;
 }
 
@@ -400,17 +402,17 @@ sub open {
     my ($self, $mode) = @_;
     my $IO;
     my $path = $self->path;
-    if ($mode eq 'w') {          # writing
+    if ($mode eq 'w') {          ### writing
 	$IO = FileHandle->new(">$path") || die "write-open $path: $!";
     }
-    elsif ($mode eq 'r') {       # reading
+    elsif ($mode eq 'r') {       ### reading
 	$IO = FileHandle->new("<$path") || die "read-open $path: $!";
     }
     else {  
 	die "bad mode: '$mode'";
     }
-    binmode($IO) if $self->binmode;        # set binary read/write mode?
-    return (IO::Wrap::wraphandle($IO));    # wrap if old FileHandle class
+    binmode($IO) if $self->binmode;        ### set binary read/write mode?
+    return (IO::Wrap::wraphandle($IO));    ### wrap if old FileHandle class
 }
 
 #------------------------------
@@ -444,7 +446,7 @@ Invoke the constructor as:
 A single scalar argument sets the body to that value, exactly as though
 you'd opened for the body for writing, written the value, 
 and closed the body again:
-    
+
     $body = new MIME::Body::Scalar "Line 1\nLine 2\nLine 3";
 
 A single array reference sets the body to the result of joining all the
@@ -491,8 +493,92 @@ sub as_string {
 #------------------------------
 sub open {
     my ($self, $mode) = @_;
-    $self->{MBS_Data} = '' if ($mode eq 'w');        # writing
+    $self->{MBS_Data} = '' if ($mode eq 'w');        ### writing
     return new IO::Scalar \($self->{MBS_Data});
+}
+
+
+
+
+
+#------------------------------------------------------------
+package MIME::Body::InCore;
+#------------------------------------------------------------
+
+=head2 MIME::Body::InCore
+
+A body class that stores the data in-core.
+Invoke the constructor as:
+
+    $body = new MIME::Body::InCore \$scalar;
+    $body = new MIME::Body::InCore \@scalararray
+
+A simple scalar argument sets the body to that value, exactly as though
+you'd opened for the body for writing, written the value, 
+and closed the body again:
+    
+    $body = new MIME::Body::InCore "Line 1\nLine 2\nLine 3";
+
+A single array reference sets the body to the concatenation of all
+scalars that it holds:
+
+    $body = new MIME::Body::InCore ["Line 1\n",
+                                    "Line 2\n",
+                                    "Line 3"];
+
+Uses B<IO::ScalarArray> as the I/O handle.
+
+=cut
+
+use vars qw(@ISA);
+use strict;
+
+use Carp;
+require FileHandle;
+
+use IO::ScalarArray;
+
+@ISA = qw(MIME::Body);
+
+
+#------------------------------
+# init DATA
+#------------------------------
+sub init {
+    my ($self, $data) = @_;
+    if (!defined($data)) {  ### nothing
+	$self->{MBC_Data} = [];
+    }
+    elsif (!ref($data)) {   ### simple scalar
+	$self->{MBC_Data} = [ $data ];
+    }
+    elsif (ref($data) eq 'SCALAR') {
+	$self->{MBC_Data} = [ $$data ];
+    }
+    elsif (ref($data) eq 'ARRAY') {
+	$self->{MBC_Data} = $data;
+    }
+    else {
+	croak "I can't handle DATA which is a ".ref($data)."\n";
+    }
+    $self;
+}
+
+#------------------------------
+# as_string
+#------------------------------
+sub as_string {
+    my $self = shift;
+    return join '', @{$self->{MBC_Data}};
+}
+
+#------------------------------
+# open READWRITE
+#------------------------------
+sub open {
+    my ($self, $mode) = @_;
+    $self->{MBC_Data} = [] if ($mode eq 'w');        ### writing
+    return new IO::ScalarArray $self->{MBC_Data};
 }
 
 
@@ -504,7 +590,7 @@ __END__
 
 =head2 Defining your own subclasses
 
-So you're not happy with files and scalars?
+So you're not happy with files and scalar-arrays?
 No problem: just define your own MIME::Body subclass, and make a subclass
 of MIME::Parser or MIME::ParserBase which returns an instance of your
 body class whenever appropriate in the C<new_body_for(head)> method.
@@ -542,7 +628,7 @@ bodies was that I wanted a "body" object to be a form of completely
 encapsulated program-persistent storage; that is, I wanted users
 to be able to write code like this...
 
-   # Get body handle from this MIME message, and read its data:
+   ### Get body handle from this MIME message, and read its data:
    $body = $entity->bodyhandle;
    $IO = $body->open("r");
    while (defined($_ = $IO->getline)) {
@@ -576,7 +662,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 4.109 $ $Date: 1999/02/09 03:32:36 $
+$Revision: 5.106 $ $Date: 2000/05/23 05:36:18 $
 
 =cut
 

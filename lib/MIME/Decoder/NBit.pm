@@ -72,13 +72,7 @@ The B<encoder> does a line-by-line pass-through from input to output,
 and simply attempts to I<detect> violations of the C<7bit>/C<8bit>
 domain.  The default action is to warn once per encoding if violations
 are detected; the warnings may be silenced with the QUIET configuration
-of L<MIME::ToolUtils>.
-
-B<Note:> this is a I<major> departure from MIME-tools 3.x, which used
-to split long lines are perform 8-to-7 mappings for you.  But so long
-as you weren't dependent on these features, things should still work
-for you.  If you were counting on this automatic fixup, you should switch 
-your encoding to C<quoted-printable>.
+of L<MIME::Tools>.
 
 
 =head1 AUTHOR
@@ -91,7 +85,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.104 $ $Date: 1999/02/09 03:32:49 $
+$Revision: 5.104 $ $Date: 2000/05/21 07:54:10 $
 
 
 =cut
@@ -99,64 +93,13 @@ $Revision: 4.104 $ $Date: 1999/02/09 03:32:49 $
 use vars qw(@ISA $VERSION);
 
 use MIME::Decoder;
-use MIME::ToolUtils qw(:msgs);
+use MIME::Tools qw(:msgs);
 
 @ISA = qw(MIME::Decoder);
 
-# Default encoding...
-my $Encode8 = '';
-
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.104 $, 10;
+$VERSION = substr q$Revision: 5.104 $, 10;
 
-
-#------------------------------
-#
-# map_8_to_7 LINE
-#
-# Instance method.
-# We just read a line of the file that we're trying to 7-bit encode.  
-# Clean out any 8-bit characters, and return the result.
-
-sub map_8_to_7 {
-    my ($self, $line) = @_;
-    my $opt = $self->{MD_NBit_Encode8} || $Encode8;
-
-    usage "mapping 8bit data to 7bit is deprecated as of MIME-tools 4.x";
-    if ($opt eq 'STRIP') {                       # just remove offending chars
-	$line =~ s/[\200-\377]//g;
-    }
-    elsif ($opt eq 'CLEARBIT8') {                # just clear 8th bit
-	$line =~ tr[\200-\377][\000-\177];
-    }
-    elsif ($opt eq 'ENTITY') {                   # output HTML-style entity
-	$line =~ s/[\200-\377]/'&#'.ord($&).';'/ge;
-    }
-    elsif ($opt eq 'QP') {                       # output QP-style encoding
-	$line =~ s/[\200-\377]/sprintf("=%02X",ord($&))/ge;
-    }
-    else {        # APPROX                       # output ASCII approximation
-	require MIME::Latin1;
-	$line = MIME::Latin1::latin1_to_ascii($line);
-    }
-    $line;
-}
-
-#------------------------------
-#
-# map_8_to_7_by OPTION
-#
-# DEPRECATED class/instance method.
-# Set the scheme by which 8-bit characters are coerced into 7-bit ones.
-# As an instance method, affects just this decoder.
-# As a class method, affects the library-wide default!
-
-sub map_8_to_7_by {
-    my ($self, $opt) = @_;
-    usage "deprecated as of MIME-tools 4.x; create subclasses instead!";
-    (ref($self) ? $self->{MD_NBit_Encode8} : $Encode8) = $opt if (@_ > 1);
-    $opt;
-}
 
 #------------------------------
 #
@@ -180,7 +123,6 @@ sub encode_it {
     my $saw_8bit = 0;    # warn them ONCE PER ENCODING if 8-bit data exists
     my $saw_long = 0;    # warn them ONCE PER ENCODING if long lines exist
     my $seven_bit = ($self->encoding eq '7bit');              # 7bit?
-    my $map_8_to_7 = $self->{MD_NBit_Encode8} || $Encode8;    # map 8 to 7?
 
     my $line;
     while (defined($line = $in->getline)) {
@@ -188,7 +130,6 @@ sub encode_it {
 	# Whine if encoding is 7bit and it has 8-bit data:
 	if ($seven_bit && ($line =~ /[\200-\377]/)) {   # oops! saw 8-bit data!
 	    whine "saw 8-bit data while encoding 7bit" unless $saw_8bit++;
-	    $line = $self->map_8_to_7($line) if $map_8_to_7;  # REMOVE ASAP!
 	}
 
 	# Whine if long lines detected:
@@ -201,13 +142,6 @@ sub encode_it {
     }
     1;
 }
+
 1;
 
-#------------------------------
-# Backwards-compatibility:
-#
-package MIME::Decoder::Xbit;
-@MIME::Decoder::Xbit::ISA = qw(MIME::Decoder::NBit);
-
-#------------------------------
-1;

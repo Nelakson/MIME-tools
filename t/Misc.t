@@ -106,7 +106,7 @@ $T->begin(7);
 {
     my $parser = new MIME::Parser;
     $parser->output_to_core('ALL');
-#    my $e = eval { $parser->parse_in("testin/jt-0498.msg") };
+#    my $e = eval { $parser->parse_open("testin/jt-0498.msg") };
 #    $T->ok_eqnum(($e and $e->parts), 
 #		 2,
 #		 "bug 980430-JT: did we get 2 parts?");

@@ -88,7 +88,7 @@ use FileHandle;
 use File::Basename;
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 1.114 $, 10;
+$VERSION = substr q$Revision: 1.116 $, 10;
 
 
 
@@ -480,9 +480,13 @@ sub catfile {
 =head1 CHANGE LOG
 
 B<Current version:>
-$Id: TBone.pm,v 1.114 1999/05/12 15:11:30 eryq Exp $
+$Id: TBone.pm,v 1.116 2000/03/23 07:17:40 eryq Exp $
 
 =over 4
+
+=item Version 1.116
+
+Cosmetic improvements only.
 
 
 =item Version 1.112
@@ -508,8 +512,8 @@ Created: Friday-the-13th of February, 1998.
 
 =head1 AUTHOR
 
-Eryq; President, Zero G Inc.
-F<eryq@zeegee.com> / F<http://www.zeegee.com>.
+Eryq (F<eryq@zeegee.com>).
+President, ZeeGee Software Inc. (F<http://www.zeegee.com>)
 
 =cut
 

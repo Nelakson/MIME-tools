@@ -88,7 +88,7 @@ foreach $msgfile (@msgfiles) {
 	$parser->output_to_core($corelim);
 	
 	# Parse:
-	my $ent = $parser->parse_in("./testin/$msgfile");
+	my $ent = $parser->parse_open("./testin/$msgfile");
 	my $out = "./testout/gauntlet.out";
 	my $outsize = 3201 + ($uses_crlf * 97);
 

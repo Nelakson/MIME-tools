@@ -45,7 +45,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.105 $ $Date: 1999/02/09 03:32:49 $
+$Revision: 5.102 $ $Date: 2000/04/20 04:56:45 $
 
 =cut
 
@@ -55,14 +55,14 @@ use vars qw(@ISA $VERSION $ZIP $UNZIP);
 use MIME::Decoder;
 use MIME::Base64;
 use MIME::Decoder::Base64;
-use MIME::ToolUtils qw(tmpopen whine);
+use MIME::Tools qw(tmpopen whine);
 use IO::Wrap;
 
 # Inheritance:
 @ISA = qw(MIME::Decoder::Base64);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.105 $, 10;
+$VERSION = substr q$Revision: 5.102 $, 10;
 
 # How to compress stdin to stdout:
 $GZIP   = "gzip -c";

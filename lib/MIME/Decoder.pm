@@ -36,7 +36,7 @@ MIME::Decoder will know about them:
 You can also B<test if an encoding is supported:> 
 
     if (supported MIME::Decoder 'x-uuencode') {
-        # we can uuencode!
+        ### we can uuencode!
     }
 
 
@@ -67,17 +67,17 @@ encoding action.
 =cut
 
 
-# Pragmas:
+### Pragmas:
 use strict;
 use vars qw($VERSION %DecoderFor);
 
-# System modules:
+### System modules:
 use FileHandle;
 use Carp;
 use IPC::Open2;
 
-# Kit modules:
-use MIME::ToolUtils qw(:config :msgs);
+### Kit modules:
+use MIME::Tools qw(:config :msgs);
 use IO::Wrap;
 
 
@@ -87,10 +87,10 @@ use IO::Wrap;
 # 
 #------------------------------
 
-# The stream decoders:
+### The stream decoders:
 %DecoderFor = (
 
-  # Standard...
+  ### Standard...
     '7bit'       => 'MIME::Decoder::NBit',
     '8bit'       => 'MIME::Decoder::NBit',
     'base64'     => 'MIME::Decoder::Base64',
@@ -98,20 +98,22 @@ use IO::Wrap;
     'none'       => 'MIME::Decoder::Binary',
     'quoted-printable' => 'MIME::Decoder::QuotedPrint',
 
-  # Non-standard...
+  ### Non-standard...
     'x-uu'       => 'MIME::Decoder::UU',
     'x-uuencode' => 'MIME::Decoder::UU',
 
-  # This was removed, since I fear that x-gzip != x-gzip64...
+  ### This was removed, since I fear that x-gzip != x-gzip64...
 ### 'x-gzip'     => 'MIME::Decoder::Gzip64',
 
-  # This is no longer installed by default, since not all folks have gzip:
+  ### This is no longer installed by default, since not all folks have gzip:
 ### 'x-gzip64'   => 'MIME::Decoder::Gzip64',
 );
 
-# The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.107 $, 10;
+### The package version, both in 1.23 style *and* usable by MakeMaker:
+$VERSION = substr q$Revision: 5.105 $, 10;
 
+### Me:
+my $ME = 'MIME::Decoder';
 
 
 #------------------------------
@@ -145,14 +147,14 @@ sub new {
     my ($encoding) = @args;
     my ($concrete_name, $concrete_path);
 
-    # Coerce the type to be legit:
+    ### Coerce the type to be legit:
     $encoding = lc($encoding || '');
 
-    # Get the class:
+    ### Get the class:
     ($concrete_name = $DecoderFor{$encoding}) or return undef;
     ($concrete_path = $concrete_name.'.pm') =~ s{::}{/}g;
 
-    # Create the new object (if we can):
+    ### Create the new object (if we can):
     my $self = { MD_Encoding => lc($encoding) };
     require $concrete_path;
     bless $self, $concrete_name;
@@ -196,18 +198,24 @@ Read the section in this document on I/O handles for more information
 about the arguments.  Note that you can still supply old-style
 unblessed filehandles for INSTREAM and OUTSTREAM.
 
+Returns true on success, throws exception on failure.
+
 =cut
 
 sub decode {
     my ($self, $in, $out) = @_;
     
-    # Set up the default input record separator to be CRLF:
-    # $in->input_record_separator("\012\015");
+    ### Set up the default input record separator to be CRLF:
+    ### $in->input_record_separator("\012\015");
 
-    # Coerce old-style filehandles to legit objects, and do it!
+    ### Coerce old-style filehandles to legit objects, and do it!
     $in  = wraphandle($in);
     $out = wraphandle($out);
-    $self->decode_it($in, $out);   # invoke back-end method to do the work
+
+    ### Invoke back-end method to do the work:
+    $self->decode_it($in, $out) ||
+	die "$ME: ".$self->encoding." decoding failed\n";
+    1;
 }
 
 #------------------------------
@@ -222,15 +230,20 @@ Read the section in this document on I/O handles for more information
 about the arguments.  Note that you can still supply old-style
 unblessed filehandles for INSTREAM and OUTSTREAM.
 
+Returns true on success, throws exception on failure.
+
 =cut
 
 sub encode {
     my ($self, $in, $out) = @_;
     
-    # Coerce old-style filehandles to legit objects, and do it!
+    ### Coerce old-style filehandles to legit objects, and do it!
     $in  = wraphandle($in);
     $out = wraphandle($out);
-    $self->encode_it($in, $out);   # invoke back-end method to do the work
+
+    ### Invoke back-end method to do the work:
+    $self->encode_it($in, $out) || 
+	die "$ME: ".$self->encoding." encoding failed\n";
 }
 
 #------------------------------
@@ -276,10 +289,10 @@ is currently handled, and falsity otherwise.  The ENCODING will
 be automatically coerced to lowercase:
 
     if (supported MIME::Decoder '7BIT') {
-        # yes, we can handle it...
+        ### yes, we can handle it...
     }
     else {
-        # drop back six and punt...
+        ### drop back six and punt...
     } 
 
 With no args, returns a reference to a hash of all available decoders,
@@ -332,6 +345,7 @@ about it.
 
 Your method must return either C<undef> (to indicate failure),
 or C<1> (to indicate success).
+It may also throw an exception to indicate failure.
 
 =cut
 
@@ -359,7 +373,8 @@ into I/O handles for you by C<encode()>, so you don't need to worry
 about it.
 
 Your method must return either C<undef> (to indicate failure),
-or C<1> (to indicate success).
+or C<1> (to indicate success).  
+It may also throw an exception to indicate failure.
 
 =cut
 
@@ -393,23 +408,23 @@ sub filter {
     my ($self, $in, $out, @cmd) = @_;
     my $buf = '';
 
-    # Make sure we've got MIME::IO-compliant objects:
+    ### Make sure we've got MIME::IO-compliant objects:
     $in  = wraphandle($in);
     $out = wraphandle($out);
    
-    # Open pipe:
-    STDOUT->flush;       # very important, or else we get duplicate output!
+    ### Open pipe:
+    STDOUT->flush;       ### very important, or else we get duplicate output!
     my $kidpid = open2(\*CHILDOUT, \*CHILDIN, @cmd) || die "open2 failed: $!";
 
-    # Write all:
+    ### Write all:
     while ($in->read($buf, 2048)) { print CHILDIN $buf }
     close \*CHILDIN;
 
-    # Read all:
+    ### Read all:
     while (read(\*CHILDOUT, $buf, 2048)) { $out->print($buf) }
     close \*CHILDOUT;
     
-    # Wait for it:
+    ### Wait for it:
     waitpid($kidpid,0) or die "couldn't reap child $kidpid";
     1;
 }
@@ -548,8 +563,8 @@ more encodings like this:
 
     require MyDecoder;
 
-    install MyDecoder "7bit";        # use MyDecoder to decode "7bit"    
-    install MyDecoder "x-foo";       # also, use MyDecoder to decode "x-foo"
+    install MyDecoder "7bit";   ### use MyDecoder to decode "7bit"    
+    install MyDecoder "x-foo";  ### also use MyDecoder to decode "x-foo"
 
 =back
 
@@ -562,7 +577,7 @@ encoding:
     use MIME::Decoder;
     use MIME::QuotedPrint;
     
-    # decode_it - the private decoding method
+    ### decode_it - the private decoding method
     sub decode_it {
         my ($self, $in, $out) = @_;
         
@@ -573,7 +588,7 @@ encoding:
         1;
     }
     
-    # encode_it - the private encoding method
+    ### encode_it - the private encoding method
     sub encode_it {
         my ($self, $in, $out) = @_;
         
@@ -606,7 +621,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.107 $ $Date: 1999/02/09 03:32:36 $
+$Revision: 5.105 $ $Date: 2000/05/23 05:36:18 $
 
 =cut
 

@@ -223,7 +223,7 @@ $T->msg("Parse it back in, to check syntax");
 my $parser = new MIME::Parser;
 $parser->output_dir("testout");
 open IN, "./testout/entity.msg1" or die "open: $!";
-$top = $parser->read(\*IN);
+$top = $parser->parse(\*IN);
 #-----test------
 $T->ok($top, "parsed msg1 back in");
 
@@ -269,7 +269,7 @@ $T->ok(($line eq $LINE),
 $T->ok(($part->head->mime_type eq 'text/plain'), 
 	"MIME type okay");
 #-----test------
-$T->ok(($part->head->mime_encoding eq '7bit'),
+$T->ok(($part->head->mime_encoding eq 'binary'),
 	"MIME encoding okay");
 
 #------------------------------------------------------------

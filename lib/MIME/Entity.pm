@@ -8,21 +8,21 @@ MIME::Entity - class for parsed-and-decoded MIME message
 
 =head1 SYNOPSIS
 
-    # Create an entity:
-    $top = build MIME::Entity From     => 'me@myhost.com',
-                              To       => 'you@yourhost.com',
-                              Subject  => "Hello, nurse!",
-			      Data     => \@my_message;
+    ### Create an entity:
+    $top = MIME::Entity->build(From    => 'me@myhost.com',
+                               To      => 'you@yourhost.com',
+                               Subject => "Hello, nurse!",
+			       Data    => \@my_message);
      
-    # Attach stuff to it:
-    $top->attach(Path        => $gif_path,
-		 Type        => "image/gif",
-		 Encoding    => "base64");
+    ### Attach stuff to it:
+    $top->attach(Path     => $gif_path,
+		 Type     => "image/gif",
+		 Encoding => "base64");
          
-    # Sign it:
+    ### Sign it:
     $top->sign;
     
-    # Output it:
+    ### Output it:
     $top->print(\*STDOUT);
 
 
@@ -41,63 +41,62 @@ as specified in RFC 1521, I<Multipurpose Internet Mail Extensions>.
 Create a document for an ordinary 7-bit ASCII text file (lots of 
 stuff is defaulted for us):
 
-    $ent = build MIME::Entity Path=>"english-msg.txt";
+    $ent = MIME::Entity->build(Path=>"english-msg.txt");
 
 Create a document for a text file with 8-bit (Latin-1) characters:
 
-    $ent = build MIME::Entity Path     =>"french-msg.txt",
-                              Encoding =>"quoted-printable",
-                              From     =>'jean.luc@inria.fr',
-                              Subject  =>"C'est bon!";
+    $ent = MIME::Entity->build(Path     =>"french-msg.txt",
+                               Encoding =>"quoted-printable",
+                               From     =>'jean.luc@inria.fr',
+                               Subject  =>"C'est bon!");
 
 Create a document for a GIF file (the description is completely optional;
 note that we have to specify content-type and encoding since they're
 not the default values):
 
-    $ent = build MIME::Entity Description => "A pretty picture",
-                              Path        => "./docs/mime-sm.gif",
-                              Type        => "image/gif",
-                              Encoding    => "base64";
+    $ent = MIME::Entity->build(Description => "A pretty picture",
+                               Path        => "./docs/mime-sm.gif",
+                               Type        => "image/gif",
+                               Encoding    => "base64");
 
 Create a document that you already have the text for, using "Data":
 
-    $ent = build MIME::Entity Type        => "text/plain",
-                              Encoding    => "quoted-printable",
-                              Data        => ["First line.\n",
+    $ent = MIME::Entity->build(Type        => "text/plain",
+                               Encoding    => "quoted-printable",
+                               Data        => ["First line.\n",
                                               "Second line.\n",
-                                              "Last line.\n"];
+                                              "Last line.\n"]);
 
 Create a multipart message, with the entire structure given
 explicitly:
 
-    # Create the top-level, and set up the mail headers:
+    ### Create the top-level, and set up the mail headers:
     $top = MIME::Entity->build(Type     => "multipart/mixed",
                                From     => 'me@myhost.com',
                                To       => 'you@yourhost.com',
                                Subject  => "Hello, nurse!");
     
-    # Attachment #1: a simple text document: 
+    ### Attachment #1: a simple text document: 
     $top->attach(Path=>"./testin/short.txt");
     
-    # Attachment #2: a GIF file:
+    ### Attachment #2: a GIF file:
     $top->attach(Path        => "./docs/mime-sm.gif",
                  Type        => "image/gif",
                  Encoding    => "base64");
      
-    # Attachment #3: text we'll create with text we have on-hand:
+    ### Attachment #3: text we'll create with text we have on-hand:
     $top->attach(Data => $contents);
 
 Suppose you don't know ahead of time that you'll have attachments?
 No problem: you can "attach" to singleparts as well:
 
-    $top = MIME::Entity->build(From     => 'me@myhost.com',
-			       To       => 'you@yourhost.com',
-			       Subject  => "Hello, nurse!",
-			       Data     => \@my_message);
+    $top = MIME::Entity->build(From    => 'me@myhost.com',
+			       To      => 'you@yourhost.com',
+			       Subject => "Hello, nurse!",
+			       Data    => \@my_message);
     if ($GIF_path) { 
-	$top->attach(Path        => $GIF_path,
-	             Type        => 'image/gif',
-                     Encoding    => '-SUGGEST');
+	$top->attach(Path     => $GIF_path,
+	             Type     => 'image/gif');
     }
 
 Copy an entity (headers, parts... everything but external body data):
@@ -108,95 +107,101 @@ Copy an entity (headers, parts... everything but external body data):
 
 =head2 Access examples 
 
-    # Get the head, a MIME::Head:
+    ### Get the head, a MIME::Head:
     $head = $ent->head;
     
-    # Get the body, as a MIME::Body;
+    ### Get the body, as a MIME::Body;
     $bodyh = $ent->bodyhandle;
     
-    # Get the actual MIME type, in the header:
+    ### Get the actual MIME type, in the header:
     $type = $ent->mime_type;
 
-    # Get the effective MIME type (for dealing with nonstandard encodings):
+    ### Get the effective MIME type (for nonstandard encodings):
     $eff_type = $ent->effective_type;
      
-    # Get preamble, parts, and epilogue:
-    $preamble   = $ent->preamble;          # ref to array of lines
+    ### Get preamble, parts, and epilogue:
+    $preamble   = $ent->preamble;          ### ref to array of lines
     $num_parts  = $ent->parts;
-    $first_part = $ent->parts(0);          # an entity
-    $epilogue   = $ent->epilogue;          # ref to array of lines
+    $first_part = $ent->parts(0);          ### an entity
+    $epilogue   = $ent->epilogue;          ### ref to array of lines
 
 
 =head2 Manipulation examples
 
 Muck about with the body data:
 
-    # Read the (unencoded) body data:
+    ### Read the (unencoded) body data:
     if ($io = $ent->open("r")) {
 	while (defined($_ = $io->getline)) { print $_ }
 	$io->close;
     }
     
-    # Write the (unencoded) body data:
+    ### Write the (unencoded) body data:
     if ($io = $ent->open("w")) {
 	foreach (@lines) { $io->print($_) }
 	$io->close;
     }
     
-    # Delete the files for any external (on-disk) data:
+    ### Delete the files for any external (on-disk) data:
     $ent->purge;
 
 Muck about with the signature:
 
-    # Sign it (automatically removes any existing signature):
+    ### Sign it (automatically removes any existing signature):
     $top->sign(File=>"$ENV{HOME}/.signature");
         
-    # Remove any signature within 15 lines of the end:
+    ### Remove any signature within 15 lines of the end:
     $top->remove_sig(15);
 
 Muck about with the headers:
 
-    # Compute content-lengths for singleparts based on bodies:
-    #   (Do this right before you print!)
+    ### Compute content-lengths for singleparts based on bodies:
+    ###   (Do this right before you print!)
     $entity->sync_headers(Length=>'COMPUTE');
 
 Muck about with the structure:
 
-    # If a 0- or 1-part multipart, collapse to a singlepart:
+    ### If a 0- or 1-part multipart, collapse to a singlepart:
     $top->make_singlepart;
     
-    # If a singlepart, inflate to a multipart with 1 part:
+    ### If a singlepart, inflate to a multipart with 1 part:
     $top->make_multipart;
+
+Delete parts:
+
+    ### Delete some parts of a multipart message:
+    my @keep = grep { keep_part($_) } $msg->parts;
+    $msg->parts(\@keep); 
 
 
 =head2 Output examples
 
 Print to filehandles:
 
-    # Print the entire message:
+    ### Print the entire message:
     $top->print(\*STDOUT);
      
-    # Print just the header:
+    ### Print just the header:
     $top->print_header(\*STDOUT);   
     
-    # Print just the (encoded) body... includes parts as well!
+    ### Print just the (encoded) body... includes parts as well!
     $top->print_body(\*STDOUT);
 
 Stringify... note that C<stringify_xx> can also be written C<xx_as_string>;
 the methods are synonymous, and neither form will be deprecated:
 
-    # Stringify the entire message:
-    print $top->stringify;                   # or $top->as_string
+    ### Stringify the entire message:
+    print $top->stringify;              ### or $top->as_string
     
-    # Stringify just the header:
-    print $top->stringify_header;            # or $top->header_as_string
+    ### Stringify just the header:
+    print $top->stringify_header;       ### or $top->header_as_string
     
-    # Stringify just the (encoded) body... includes parts as well!
-    print $top->stringify_body;              # or $top->body_as_string
+    ### Stringify just the (encoded) body... includes parts as well!
+    print $top->stringify_body;         ### or $top->body_as_string
 
 Debug:
 
-    # Output debugging info:
+    ### Output debugging info:
     $entity->dump_skeleton(\*STDERR);
 
 
@@ -207,20 +212,20 @@ Debug:
 
 #------------------------------
 
-# Pragmas:
+### Pragmas:
 use vars qw(@ISA $VERSION); 
 use strict;
 
-# System modules:
+### System modules:
 use FileHandle;
 use Carp;
 
-# Other modules:
+### Other modules:
 use Mail::Internet 1.28 ();
 use Mail::Field    1.05 ();
 
-# Kit modules:
-use MIME::ToolUtils qw(:config :msgs :utils);
+### Kit modules:
+use MIME::Tools qw(:config :msgs :utils);
 use MIME::Head;
 use MIME::Body;
 use MIME::Decoder;
@@ -236,17 +241,17 @@ use IO::Wrap;
 #
 #------------------------------
 
-# The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.117 $, 10;
+### The package version, both in 1.23 style *and* usable by MakeMaker:
+$VERSION = substr q$Revision: 5.108 $, 10;
 
-# Boundary counter:
+### Boundary counter:
 my $BCount = 0;
 
-# Standard "Content-" MIME fields, for scrub():
+### Standard "Content-" MIME fields, for scrub():
 my $StandardFields = 'Description|Disposition|Id|Type|Transfer-Encoding';
 
-# Known Mail/MIME fields... these, plus some general forms like 
-# "x-*", are recognized by build():
+### Known Mail/MIME fields... these, plus some general forms like 
+### "x-*", are recognized by build():
 my %KnownField = map {$_=>1} 
 qw(
    bcc         cc          comments      date          encrypted 
@@ -255,7 +260,7 @@ qw(
    subject     to
    );
 
-# Fallback preamble and epilogue:
+### Fallback preamble and epilogue:
 my $DefPreamble = [ "This is a multi-part message in MIME format...\n" ];
 my $DefEpilogue = [ ];
 
@@ -324,13 +329,13 @@ B<Note:> in either case, the body will not be I<parsed:> merely read!
 
 sub new {
     my $class = shift;
-    my $self = $class->Mail::Internet::new(@_);   # inherited
-    $self->{ME_Parts} = [];                       # no parts extracted
+    my $self = $class->Mail::Internet::new(@_);   ### inherited
+    $self->{ME_Parts} = [];                       ### no parts extracted
     $self;
 }
 
 
-#------------------------------
+###------------------------------
 
 =item add_part ENTITY, [OFFSET]
 
@@ -356,7 +361,7 @@ sub add_part {
     my ($self, $part, $index) = @_;
     defined($index) or $index = -1;
 
-    # Make $index count from the end if negative:
+    ### Make $index count from the end if negative:
     $index = $#{$self->{ME_Parts}} + 2 + $index if ($index < 0);
     splice(@{$self->{ME_Parts}}, $index, 0, $part);
     $part;
@@ -393,38 +398,40 @@ I<Class/instance method.>
 A quick-and-easy catch-all way to create an entity.  Use it like this
 to build a "normal" single-part entity:
 
-   $ent = build MIME::Entity Type     => "image/gif",
-		             Encoding => "base64",
-                             Path     => "/path/to/xyz12345.gif",
-                             Filename => "saveme.gif",
-                             Disposition => "attachment";
+   $ent = MIME::Entity->build(Type     => "image/gif",
+		              Encoding => "base64",
+                              Path     => "/path/to/xyz12345.gif",
+                              Filename => "saveme.gif",
+                              Disposition => "attachment");
 
 And like this to build a "multipart" entity:
 
-   $ent = build MIME::Entity Type     => "multipart/mixed",
-                             Boundary => "---1234567";
+   $ent = MIME::Entity->build(Type     => "multipart/mixed",
+                              Boundary => "---1234567");
 
 A minimal MIME header will be created.  If you want to add or modify
 any header fields afterwards, you can of course do so via the underlying 
 head object... but hey, there's now a prettier syntax!
 
-   $ent = build MIME::Entity Type           =>"multipart/mixed",
-                             From           => $myaddr,
-                             Subject        => "Hi!",
-                             'X-Certified'  => ['SINED','SEELED','DELIVERED'];
+   $ent = MIME::Entity->build(Type          =>"multipart/mixed",
+                              From          => $myaddr,
+                              Subject       => "Hi!",
+                              'X-Certified' => ['SINED',
+                                                'SEELED',
+                                                'DELIVERED']);
 
 Normally, an C<X-Mailer> header field is output which contains this 
 toolkit's name and version (plus this module's RCS version).
 This will allow any bad MIME we generate to be traced back to us.
 You can of course overwrite that header with your own:
 
-   $ent = build MIME::Entity  Type        => "multipart/mixed",
-                              'X-Mailer'  => "myprog 1.1";
+   $ent = MIME::Entity->build(Type        => "multipart/mixed",
+                              'X-Mailer'  => "myprog 1.1");
 
 Or remove it entirely:
 
-   $ent = build MIME::Entity Type       => "multipart/mixed",
-                             'X-Mailer' => undef;
+   $ent = MIME::Entity->build(Type       => "multipart/mixed",
+                              'X-Mailer' => undef);
 
 OK, enough hype.  The parameters are:
 
@@ -490,10 +497,9 @@ compatibility.  I<Thanks to Kurt Freytag for suggesting this feature.>
 
 I<Optional.>  
 The content-transfer-encoding.
-If you don't specify it, the field is not put in the header... which means 
-that the encoding implicitly defaults to C<"7bit"> as per RFC-1521.  
-I<Do yourself a favor: put it in.>
-You can also give the special value '-SUGGEST', to have it chosen for you.
+If you don't specify it, a reasonable default is put in.
+You can also give the special value '-SUGGEST', to have it chosen for 
+you in a heavy-duty fashion which scans the data itself.
 
 =item Filename
 
@@ -532,13 +538,13 @@ sub build {
     my %params = @paramlist;
     my ($field, $filename, $boundary);
 
-    # Create a new entity, if needed:
+    ### Create a new entity, if needed:
     ref($self) or $self = $self->new;
 
 
     ### GET INFO...
 
-    # Get sundry field:
+    ### Get sundry field:
     my $type         = $params{Type} || 'text/plain';
     my $charset      = $params{Charset};
     my $is_multipart = ($type =~ m{^multipart/}i);
@@ -547,22 +553,22 @@ sub build {
     my $top          = exists($params{Top}) ? $params{Top} : 1;
     my $disposition  = $params{Disposition} || 'inline';
 
-    # Get recommended filename, allowing explicit no-value value:
+    ### Get recommended filename, allowing explicit no-value value:
     my ($path_fname) = (($params{Path}||'') =~ m{([^/]+)\Z});
     $filename = (exists($params{Filename}) ? $params{Filename} : $path_fname);
     $filename = undef if (defined($filename) and $filename eq '');
     
-    # Type-check sanity:
+    ### Type-check sanity:
     if ($type =~ m{^(multipart|message)/}) {
 	($encoding =~ /^(|7bit|8bit|binary|-suggest)$/i) 
 	    or croak "can't have encoding $encoding for message type $type!";
     }
 
-    # Multipart or not? Do sanity check and fixup:
-    if ($is_multipart) {      # multipart...
+    ### Multipart or not? Do sanity check and fixup:
+    if ($is_multipart) {      ### multipart...
 	
-	# Get any supplied boundary, and check it:
-	if (defined($boundary = $params{Boundary})) {  # they gave us one...
+	### Get any supplied boundary, and check it:
+	if (defined($boundary = $params{Boundary})) {  ### they gave us one...
 	    if ($boundary eq '') {
 		whine "empty string not a legal boundary: I'm ignoring it";
 		$boundary = undef;
@@ -573,11 +579,11 @@ sub build {
 	    }
 	}
 	
-	# If we have to roll our own boundary, do so:
+	### If we have to roll our own boundary, do so:
 	defined($boundary) or $boundary = make_boundary();
     }
-    else {                    # single part...
-	# Create body:
+    else {                    ### single part...
+	### Create body:
 	if ($params{Path}) {
 	    $self->bodyhandle(new MIME::Body::File $params{Path});
 	}
@@ -588,59 +594,64 @@ sub build {
 	    die "can't build entity: no body, and not multipart!\n";
 	}
 
-	# Check whether we need to binmode():   [Steve Kilbane]
+	### Check whether we need to binmode():   [Steve Kilbane]
 	$self->bodyhandle->binmode(1) unless textual_type($type);
     }
 
 
     ### MAKE HEAD...
 
-    # Create head:
+    ### Create head:
     my $head = new MIME::Head;
     $self->head($head);
     $head->modify(1);
 
-    # Add content-type field:
-    $field = new Mail::Field 'Content_type';         # not a typo :-(
+    ### Add content-type field:
+    $field = new Mail::Field 'Content_type';         ### not a typo :-(
     $field->type($type);
     $field->charset($charset)    if $charset;
     $field->name($filename)      if defined($filename);
     $field->boundary($boundary)  if defined($boundary);
     $head->replace('Content-type', $field->stringify);
 
-    # Now that both body and content-type are available, we can suggest 
-    # content-transfer-encoding (if desired);
-    $encoding = $self->suggest_encoding if (lc($encoding) eq '-suggest');
-
-    # Add content-disposition field (if not multipart):
+    ### Now that both body and content-type are available, we can suggest 
+    ### content-transfer-encoding (if desired);
+    if (!$encoding) {
+	$encoding = $self->suggest_encoding_lite;
+    }
+    elsif (lc($encoding) eq '-suggest') {
+	$encoding = $self->suggest_encoding;
+    }
+   
+    ### Add content-disposition field (if not multipart):
     unless ($is_multipart) {
-	$field = new Mail::Field 'Content_disposition';  # not a typo :-(
+	$field = new Mail::Field 'Content_disposition';  ### not a typo :-(
 	$field->type($disposition);
 	$field->filename($filename) if defined($filename);
 	$head->replace('Content-disposition', $field->stringify);
     }
 
-    # Add other MIME fields:
+    ### Add other MIME fields:
     $head->replace('Content-transfer-encoding', $encoding) if $encoding;
     $head->replace('Content-description', $desc)           if $desc;
     $head->replace('MIME-Version', '1.0')                  if $top;
 
-    # Add the X-Mailer field, if top level (use default value if not given):
+    ### Add the X-Mailer field, if top level (use default value if not given):
     $top and $head->replace('X-Mailer', 
-			    "MIME-tools ".(0+$CONFIG{VERSION}).
+			    "MIME-tools ".(0+MIME::Tools->version).
 			    " (Entity "  .(0+$VERSION).")"); 
 	
-    # Add remaining user-specified fields, if any:
+    ### Add remaining user-specified fields, if any:
     while (@paramlist) {
 	my ($tag, $value) = (shift @paramlist, shift @paramlist);
 
-	# Get fieldname, if that's what it is:
-	if    ($tag =~ /^-/)  { $tag = lc($') }    # old style, b.c.
-	elsif ($tag =~ /:$/ ) { $tag = lc($`) }    # new style
-	elsif (known_field(lc($tag)))     { 1 }    # known field
-	else { next; }                             # not a field
+	### Get fieldname, if that's what it is:
+	if    ($tag =~ /^-(.*)/s)  { $tag = lc($1) }    ### old style, b.c.
+	elsif ($tag =~ /(.*):$/s ) { $tag = lc($1) }    ### new style
+	elsif (known_field(lc($tag)))     { 1 }    ### known field
+	else { next; }                             ### not a field
 
-	# Clear head, get list of values, and add them:
+	### Clear head, get list of values, and add them:
 	$head->delete($tag);
 	foreach $value (ref($value) ? @$value : ($value)) {
 	    (defined($value) && ($value ne '')) or next;
@@ -648,7 +659,7 @@ sub build {
 	}
     }
     
-    # Done!
+    ### Done!
     $self;
 }
 
@@ -669,25 +680,25 @@ sub dup {
     my $self = shift;
     local($_);
 
-    # Self (this will also dup the header):
+    ### Self (this will also dup the header):
     my $dup = bless $self->SUPER::dup(), ref($self);
 
-    # Any simple inst vars:
+    ### Any simple inst vars:
     foreach (keys %$self) {$dup->{$_} = $self->{$_} unless ref($self->{$_})};
     
-    # Bodyhandle:
+    ### Bodyhandle:
     $dup->bodyhandle($self->bodyhandle ? $self->bodyhandle->dup : undef);
 
-    # Preamble and epilogue:
+    ### Preamble and epilogue:
     foreach (qw(ME_Preamble ME_Epilogue)) {
 	$dup->{$_} = [@{$self->{$_}}]  if $self->{$_};
     }
 
-    # Parts:
+    ### Parts:
     $dup->{ME_Parts} = [];
     foreach (@{$self->{ME_Parts}}) { push @{$dup->{ME_Parts}}, $_->dup }
 
-    # Done!
+    ### Done!
     $dup;
 }
 
@@ -713,14 +724,17 @@ sub dup {
 =item body [VALUE]
 
 I<Instance method.>
-Get or set the body, as an array of lines.  This should be regarded
-as a read-only data structure: changing its contents will have 
-unpredictable results (you can, of course, make your own copy,
-and work with that).  
+Get the I<encoded> (transport-ready) body, as an array of lines. 
+This is a read-only data structure: changing its contents will have 
+no effect.  Its contents are identical to what is printed by 
+L<print_body()|/print_body>.
 
-Provided for compatibility with Mail::Internet, and it might not 
-be as efficient as you'd like.  Also, it's somewhat silly/wrongheaded
-for binary bodies, like GIFs and tar files.  Instead, use the bodyhandle()
+Provided for compatibility with Mail::Internet, so that methods
+like C<smtpsend()> will work.  Note however that if VALUE is given, 
+a fatal exception is thrown, since you cannot use this method to 
+I<set> the lines of the encoded message.  
+
+If you want the raw (unencoded) body data, use the L<bodyhandle()|/bodyhandle>
 method to get and use a MIME::Body.  The content-type of the entity
 will tell you whether that body is best read as text (via getline())
 or raw data (via read()).
@@ -729,11 +743,14 @@ or raw data (via read()).
 
 sub body {
     my ($self, $value) = @_;
-    if (@_ > 1) {      # setting body line(s)...
-	return $self->bodyhandle(new MIME::Body::Scalar $value);
+    if (@_ > 1) {      ### setting body line(s)...
+	croak "you cannot use body() to set the encoded contents\n";
     }
-    else {             # getting body lines...
-	return ($self->bodyhandle ? [$self->bodyhandle->as_lines] : []);
+    else {             ### getting body lines...
+	my $lines = [];
+	my $lh = IO::Lines->new($lines);
+	$self->print_body($lh);
+	return $lines;
     }
 }
 
@@ -833,7 +850,7 @@ provide a method for setting the head to some given object.
 sub head { 
     my ($self, $value) = @_;
     (@_ > 1) and $self->{'mail_inet_head'} = $value;
-    $self->{'mail_inet_head'} ||= new MIME::Head;       # KLUDGE!
+    $self->{'mail_inet_head'} ||= new MIME::Head;       ### KLUDGE!
 }
 
 #------------------------------
@@ -844,15 +861,14 @@ I<Instance method.>
 Does this entity's MIME type indicate that it's a multipart entity?
 Returns undef (false) if the answer couldn't be determined, 0 (false)
 if it was determined to be false, and true otherwise.
-
 Note that this says nothing about whether or not parts were extracted.
 
 =cut
 
-# NOTE: should we use effective_type() instead?
+### NOTE: should we use effective_type() instead?
 sub is_multipart {
     my $self = shift;
-    $self->head or return undef;        # no head, so no MIME type!
+    $self->head or return undef;        ### no head, so no MIME type!
     my ($type, $subtype) = split('/', $self->head->mime_type);
     (($type eq 'multipart') ? 1 : 0);
 }
@@ -914,7 +930,12 @@ I<If an integer INDEX is given,> return the INDEXed part,
 or undef if it doesn't exist.
 
 I<If an ARRAYREF to an array of parts is given,> then this method I<sets> 
-the parts to a copy of that array, and returns the parts.
+the parts to a copy of that array, and returns the parts.  This can
+be used to delete parts, as follows:
+
+    ### Delete some parts of a multipart message:
+    $msg->parts([ grep { keep_part($_) } $msg->parts ]);
+    
 
 B<Note:> for multipart messages, the preamble and epilogue are I<not> 
 considered parts.  If you need them, use the C<preamble()> and C<epilogue()> 
@@ -930,12 +951,8 @@ a diddled entity to not be multipart, but still have parts attached to it!
 
 sub parts {
     my $self = shift;
-    ref($_[0]) and return @{$self->{ME_Parts} = [@{$_[0]}]};  # set the parts
+    ref($_[0]) and return @{$self->{ME_Parts} = [@{$_[0]}]};  ### set the parts
     (@_ ? $self->{ME_Parts}[$_[0]] : @{$self->{ME_Parts}});
-}
-sub part {
-    usage "deprecated; please use the identical parts() method instead";
-    shift->parts(@_);
 }
 
 #------------------------------
@@ -997,28 +1014,28 @@ sub make_multipart {
     my $tag;
     $subtype ||= 'mixed';
 
-    # Trap for simple case:
-    return 'ALREADY' if $self->is_multipart;       # already a multipart?
+    ### Trap for simple case:
+    return 'ALREADY' if $self->is_multipart;       ### already a multipart?
 
-    # Rip out our guts, and spew them into our future part:
-    my $part = bless {%$self}, ref($self);         # part is a shallow copy
-    %$self = ();                                   # lobotomize ourselves!
-    $self->head($part->head->dup);                 # dup the header
+    ### Rip out our guts, and spew them into our future part:
+    my $part = bless {%$self}, ref($self);         ### part is a shallow copy
+    %$self = ();                                   ### lobotomize ourselves!
+    $self->head($part->head->dup);                 ### dup the header
     
-    # Remove content headers from top-level, and set it up as a multipart:
+    ### Remove content headers from top-level, and set it up as a multipart:
     foreach $tag (grep {/^content-/i} $self->head->tags) {
 	$self->head->delete($tag);
     }
     $self->head->mime_attr('Content-type'          => "multipart/$subtype");
     $self->head->mime_attr('Content-type.boundary' => make_boundary());
 
-    # Remove NON-content headers from the part:
+    ### Remove NON-content headers from the part:
     foreach $tag (grep {!/^content-/i} $part->head->tags) {
 	$part->head->delete($tag);
     }
-    
-    # Add the part:
-    $self->{ME_Parts} = [];   # WARNING: any msg/rfc822 pseudo-parts are lost!
+
+    ### Add the [sole] part:
+    $self->{ME_Parts} = []; 
     $self->add_part($part);
     'DONE';
 }
@@ -1042,35 +1059,35 @@ Returns '0'       (and does nothing) if it can't be made into a singlepart.
 sub make_singlepart {
     my $self = shift;
 
-    # Trap for simple cases:
-    return 'ALREADY' if !$self->is_multipart;      # already a singlepart?
-    return '0' if ($self->parts > 1);              # can this even be done?
+    ### Trap for simple cases:
+    return 'ALREADY' if !$self->is_multipart;      ### already a singlepart?
+    return '0' if ($self->parts > 1);              ### can this even be done?
 
-    # Do it:
-    if ($self->parts == 1) {    # one part
+    ### Do it:
+    if ($self->parts == 1) {    ### one part
 	my $part = $self->parts(0);
 	my $tag;
 
-	# Get rid of all our existing content info:
+	### Get rid of all our existing content info:
 	foreach $tag (grep {/^content-/i} $self->head->tags) {
 	    $self->head->delete($tag);
 	}
 	
-	# Populate ourselves with any content info from the part:
+	### Populate ourselves with any content info from the part:
 	foreach $tag (grep {/^content-/i} $part->head->tags) {
 	    foreach ($part->head->get($tag)) { $self->head->add($tag, $_) }
 	}
 
-	# Save reconstructed header, replace our guts, and restore header:
+	### Save reconstructed header, replace our guts, and restore header:
 	my $new_head = $self->head;
-	%$self = %$part;               # shallow copy is ok!
+	%$self = %$part;               ### shallow copy is ok!
 	$self->head($new_head);
 
-	# One more thing: the part *may* have been a multi with 0 or 1 parts!
+	### One more thing: the part *may* have been a multi with 0 or 1 parts!
 	return $self->make_singlepart(@_) if $self->is_multipart;
     }
-    else {                      # no parts!
-	$self->head->mime_attr('Content-type'=>'text/plain');   # simple
+    else {                      ### no parts!
+	$self->head->mime_attr('Content-type'=>'text/plain');   ### simple
     }
     'DONE';
 }
@@ -1093,8 +1110,8 @@ I<Thanks to Jason L. Tibbitts III for suggesting this method.>
 
 sub purge {
     my $self = shift;
-    $self->bodyhandle and $self->bodyhandle->purge;      # purge me
-    foreach ($self->parts) { $_->purge }                 # recurse
+    $self->bodyhandle and $self->bodyhandle->purge;      ### purge me
+    foreach ($self->parts) { $_->purge }                 ### recurse
     1;
 }
 
@@ -1149,26 +1166,26 @@ sub remove_sig {
     my $self = shift;
     my $nlines = shift;
 
-    # Handle multiparts:
+    ### Handle multiparts:
     $self->is_multipart and return $self->{ME_Parts}[0]->remove_sig(@_);
 
-    # Refuse non-textual unless forced:
+    ### Refuse non-textual unless forced:
     textual_type($self->head->mime_type)
 	or return error "I won't un-sign a non-text message unless I'm forced";
     
-    # Get body data, as an array of newline-terminated lines:
+    ### Get body data, as an array of newline-terminated lines:
     $self->bodyhandle or return undef;
     my @body = $self->bodyhandle->as_lines;
 
-    # Nuke sig:
+    ### Nuke sig:
     _do_remove_sig(\@body, $nlines);
 
-    # Output data back into body:
+    ### Output data back into body:
     my $io = $self->bodyhandle->open("w");
-    foreach (@body) { $io->print($_) };  # body data
+    foreach (@body) { $io->print($_) };  ### body data
     $io->close;
 
-    # Done!
+    ### Done!
     1;       
 }
 
@@ -1237,17 +1254,17 @@ sub sign {
     my %params = @_;
     my $io;
 
-    # If multipart and not attaching, try to sign our first part:
+    ### If multipart and not attaching, try to sign our first part:
     if ($self->is_multipart and !$params{Attach}) {
 	return $self->parts(0)->sign(@_);
     }
 
-    # Get signature:
+    ### Get signature:
     my $sig;
-    if (defined($sig = $params{Signature})) {    # scalar or array
+    if (defined($sig = $params{Signature})) {    ### scalar or array
 	$sig = (ref($sig) ? join('', @$sig) : $sig);
     }
-    elsif ($params{File}) {                      # file contents
+    elsif ($params{File}) {                      ### file contents
 	CORE::open SIG, $params{File} or croak "can't open $params{File}: $!";
 	$sig = join('', SIG->getlines);
 	close SIG;
@@ -1256,37 +1273,37 @@ sub sign {
 	croak "no signature given!";
     }
 
-    # Add signature to message as appropriate:
-    if ($params{Attach}) {      # Attach .sig as new part...
+    ### Add signature to message as appropriate:
+    if ($params{Attach}) {      ### Attach .sig as new part...
 	return $self->attach(Type        => 'text/plain',
 			     Description => 'Signature',
 			     Disposition => 'inline',
 			     Encoding    => '-SUGGEST',
 			     Data        => $sig);
     }
-    else {                      # Add text of .sig to body data...
+    else {                      ### Add text of .sig to body data...
 
-	# Refuse non-textual unless forced:
+	### Refuse non-textual unless forced:
 	($self->head->mime_type =~ m{text/}i or $params{Force}) or
 	    return error "I won't sign a non-text message unless I'm forced";
 
-	# Get body data, as an array of newline-terminated lines:
+	### Get body data, as an array of newline-terminated lines:
 	$self->bodyhandle or return undef;
 	my @body = $self->bodyhandle->as_lines;
 	
-	# Nuke any existing sig?
+	### Nuke any existing sig?
 	if (!defined($params{Remove}) || ($params{Remove} > 0)) {
 	    _do_remove_sig(\@body, $params{Remove});
 	}
 
-	# Output data back into body, followed by signature:
+	### Output data back into body, followed by signature:
 	my $line;
 	$io = $self->open("w");
-	foreach $line (@body) { $io->print($line) };      # body data
-	(($body[-1]||'') =~ /\n\Z/) or $io->print("\n");  # ensure final \n
-	$io->print("-- \n$sig");                          # separator + sig
+	foreach $line (@body) { $io->print($line) };      ### body data
+	(($body[-1]||'') =~ /\n\Z/) or $io->print("\n");  ### ensure final \n
+	$io->print("-- \n$sig");                          ### separator + sig
 	$io->close;	
-	return 1;         # done!
+	return 1;         ### done!
     }
 }
 
@@ -1301,14 +1318,14 @@ C<text> and C<message> types have their bodies scanned line-by-line
 for 8-bit characters and long lines; lack of either means that the
 message is 7bit-ok.  Other types are chosen independent of their body:
 
-    Major type:       7bit ok?    Suggested encoding:
-    ------------------------------------------------------------
-    text              yes         7bit
-    text              no          quoted-printable    
-    message           yes         7bit
-    message           no          binary    
-    multipart         *           binary (in case some parts are not ok)
-    image, etc...     *           base64
+    Major type:      7bit ok?    Suggested encoding:
+    -----------------------------------------------------------
+    text             yes         7bit
+    text             no          quoted-printable    
+    message          yes         7bit
+    message          no          binary    
+    multipart        *           binary (in case some parts are bad)
+    image, etc...    *           base64
 
 =cut
 
@@ -1318,18 +1335,18 @@ sub suggest_encoding {
     my $self = shift;
 
     my ($type) = split '/', $self->effective_type;
-    if (($type eq 'text') || ($type eq 'message')) {    # scan message body
+    if (($type eq 'text') || ($type eq 'message')) {    ### scan message body
 	$self->bodyhandle || return ($self->parts ? 'binary' : '7bit');
 	my ($IO, $unclean);
 	if ($IO = $self->bodyhandle->open("r")) {
 
-	    # Scan message for 7bit-cleanliness:
+	    ### Scan message for 7bit-cleanliness:
 	    while (defined($_ = $IO->getline)) {
 		last if ($unclean = ((length($_) > 999) or /[\200-\377]/));
 	    }
 	    
-	    # Return '7bit' if clean; try and encode if not...
-	    # Note that encodings are not permitted for messages!
+	    ### Return '7bit' if clean; try and encode if not...
+	    ### Note that encodings are not permitted for messages!
 	    return ($unclean 
 		    ? (($type eq 'message') ? 'binary' : 'quoted-printable')
 		    : '7bit'); 
@@ -1338,6 +1355,12 @@ sub suggest_encoding {
     else {
 	return ($type eq 'multipart') ? 'binary' : 'base64';
     }
+}
+
+sub suggest_encoding_lite {
+    my $self = shift;
+    my ($type) = split '/', $self->effective_type;
+    return (($type =~ /^(text|message|multipart)$/) ? 'binary' : 'base64');
 }
 
 #------------------------------
@@ -1395,17 +1418,17 @@ Returns a true value if everything went okay, a false value otherwise.
 sub sync_headers {
     my $self = shift;    
     my $opts = ((int(@_) % 2 == 0) ? {@_} : shift);
-    my $ENCBODY;     # keep it around until done!
+    my $ENCBODY;     ### keep it around until done!
 
-    # Get options:
+    ### Get options:
     my $o_nonstandard = ($opts->{Nonstandard} || 0);
     my $o_length      = ($opts->{Length}      || 0);
     
-    # Get head:
+    ### Get head:
     my $head = $self->head;
     
-    # What to do with "nonstandard" MIME fields?
-    if ($o_nonstandard eq 'ERASE') {       # Erase them...
+    ### What to do with "nonstandard" MIME fields?
+    if ($o_nonstandard eq 'ERASE') {       ### Erase them...
 	my $tag;
 	foreach $tag ($head->tags()) {
 	    if (($tag =~ /\AContent-/i) && 
@@ -1415,39 +1438,39 @@ sub sync_headers {
 	}
     }
 
-    # What to do with the "Content-Length" MIME field?
-    if ($o_length eq 'COMPUTE') {        # Compute the content length...
+    ### What to do with the "Content-Length" MIME field?
+    if ($o_length eq 'COMPUTE') {        ### Compute the content length...
 	my $content_length = '';
 
-	# We don't have content-lengths in multiparts...
-	if ($self->is_multipart) {           # multipart...
+	### We don't have content-lengths in multiparts...
+	if ($self->is_multipart) {           ### multipart...
 	    $head->delete('Content-length');
 	}
-	else {                               # singlepart...
+	else {                               ### singlepart...
 
-	    # Get the encoded body, if we don't have it already:
+	    ### Get the encoded body, if we don't have it already:
 	    unless ($ENCBODY) {
 		$ENCBODY = tmpopen() || die "can't open tmpfile";
-		$self->print_body($ENCBODY);    # write encoded body to tmpfile
+		$self->print_body($ENCBODY);    ### write encoded to tmpfile
 	    }
 	    
-	    # Analyse it:
-	    $ENCBODY->seek(0,2);                # fast-forward
-	    $content_length = $ENCBODY->tell;   # get encoded length
-	    $ENCBODY->seek(0,0);                # rewind 	
+	    ### Analyse it:
+	    $ENCBODY->seek(0,2);                ### fast-forward
+	    $content_length = $ENCBODY->tell;   ### get encoded length
+	    $ENCBODY->seek(0,0);                ### rewind 	
 	    
-	    # Remember:   
+	    ### Remember:   
 	    $self->head->replace('Content-length', $content_length);	
 	}
     }
-    elsif ($o_length eq 'ERASE') {         # Erase the content-length...
+    elsif ($o_length eq 'ERASE') {         ### Erase the content-length...
 	$head->delete('Content-length');
     }
 
-    # Done with everything for us!
+    ### Done with everything for us!
     undef($ENCBODY);
  
-    # Recurse:
+    ### Recurse:
     my $part;
     foreach $part ($self->parts) { $part->sync_headers($opts) or return undef }
     1;
@@ -1514,25 +1537,25 @@ sub dump_skeleton {
     no strict 'refs';
 
 
-    # The content type:
+    ### The content type:
     print $fh $ind,"Content-type: ",   ($self->mime_type||'UNKNOWN'),"\n";
     print $fh $ind,"Effective-type: ", ($self->effective_type||'UNKNOWN'),"\n";
 
-    # The name of the file containing the body (if any!):
+    ### The name of the file containing the body (if any!):
     my $path = ($self->bodyhandle ? $self->bodyhandle->path : undef);
     print $fh $ind, "Body-file: ", ($path || 'NONE'), "\n";
 
-    # The recommended file name (thanks to Allen Campbell):
+    ### The recommended file name (thanks to Allen Campbell):
     my $filename = $self->head->recommended_filename;
     print $fh $ind, "Recommended-filename: ", $filename, "\n" if ($filename);
 
-    # The subject (note: already a newline if 2.x!)
+    ### The subject (note: already a newline if 2.x!)
     my $subj = $self->head->get('subject',0);
     defined($subj) or $subj = '';
     chomp($subj);
     print $fh $ind, "Subject: $subj\n" if $subj;
 
-    # The parts:
+    ### The parts:
     my @parts = $self->parts;
     print $fh $ind, "Num-parts: ", int(@parts), "\n" if @parts;
     print $fh $ind, "--\n";
@@ -1611,11 +1634,11 @@ some sort of email handler, it's up to you to save this information.
 
 sub print {
     my ($self, $out) = @_;
-    $out = wraphandle($out || select);             # get a printable output
+    $out = wraphandle($out || select);             ### get a printable output
     
-    $self->print_header($out);   # the header
+    $self->print_header($out);   ### the header
     $out->print("\n");
-    $self->print_body($out);     # the "stuff after the header"
+    $self->print_body($out);     ### the "stuff after the header"
 }
 
 #------------------------------
@@ -1653,31 +1676,31 @@ filehandle is given: this may lead to confusion.
 
 sub print_body {
     my ($self, $out) = @_;
-    $out = wraphandle($out || select);             # get a printable output
-    my ($type) = split '/', lc($self->mime_type);  # handle by MIME type
+    $out = wraphandle($out || select);             ### get a printable output
+    my ($type) = split '/', lc($self->mime_type);  ### handle by MIME type
 
-    # Multipart...
+    ### Multipart...
     if ($type eq 'multipart') {
 	my $boundary = $self->head->multipart_boundary; 
 
-	# Preamble:
+	### Preamble:
 	$out->print(join('', @{ $self->preamble || $DefPreamble }));
 
-	# Parts:
+	### Parts:
 	my $part;
 	foreach $part ($self->parts) {
 	    $out->print("\n--$boundary\n");
 	    $part->print($out);
 	}
 
-	# Epilogue:
+	### Epilogue:
 	$out->print("\n--$boundary--\n");
 	$out->print(join('', @{ $self->epilogue || $DefEpilogue }));
     }
 
-    # Singlepart type with parts...
-    #    This makes $ent->print handle message/rfc822 bodies
-    #    when parse_nested_messages('NEST') is on [idea by Marc Rouleau].
+    ### Singlepart type with parts...
+    ###    This makes $ent->print handle message/rfc822 bodies
+    ###    when parse_nested_messages('NEST') is on [idea by Marc Rouleau].
     elsif ($self->parts) {
 	my $need_sep = 0;
 	my $part;
@@ -1687,7 +1710,7 @@ sub print_body {
 	}	
     }
 
-    # Singlepart type, or no parts: output body...
+    ### Singlepart type, or no parts: output body...
     else {                     
 	$self->bodyhandle ? $self->print_bodyhandle($out)
 	                  : whine "missing body; treated as empty";
@@ -1706,14 +1729,14 @@ sub print_body {
 #
 sub print_bodyhandle {
     my ($self, $out) = @_;
-    $out = wraphandle($out || select);             # get a printable output
+    $out = wraphandle($out || select);             ### get a printable output
 
-    # Get the encoding, defaulting to "binary" if unsupported:
+    ### Get the encoding, defaulting to "binary" if unsupported:
     my $encoding = ($self->head->mime_encoding || 'binary');
     my $decoder = best MIME::Decoder $encoding;
-    $decoder->head($self->head);      # associate with head, if any
+    $decoder->head($self->head);      ### associate with head, if any
 
-    # Output the body:
+    ### Output the body:
     my $IO = $self->open("r")     || die "open body: $!";
     $decoder->encode($IO, $out)   || return error "encoding failed";
     $IO->close;
@@ -1748,7 +1771,7 @@ sub stringify {
     shift->print(new IO::Scalar \$str);
     $str;    
 }
-sub as_string { shift->stringify };      # silent BC
+sub as_string { shift->stringify };      ### silent BC
 
 #------------------------------
 
@@ -1853,24 +1876,24 @@ out there.  But let's open up the floor for a few questions...
 
 =item How are message bodies stored?
 
-I<Mail::Internet:> 
-	As an array of lines.
+B<Mail::Internet:> 
+As an array of lines.
 
-I<MIME::Entity:> 
-	As a MIME::Body object, where the data may reside on disk or 
-	in-core, may be large, and may be binary (not line-oriented).
+B<MIME::Entity:> 
+As a MIME::Body object, where the data may reside on disk or 
+in-core, may be large, and may be binary (not line-oriented).
 
 
 =item Do messages generally have bodies?
 
-I<Mail::Internet:> 
-	Almost certainly yes.
+B<Mail::Internet:> 
+Almost certainly yes.
 
-I<MIME::Entity:>   
-	Yes if this is a I<singlepart> message, and NO if it's a 
-	I<multipart> message... since for multiparts the message "body" is 
-	stored as the parsed collection of "parts" (each of which
-        is also a MIME::Entity).
+B<MIME::Entity:>   
+Yes if this is a I<singlepart> message, and NO if it's a 
+I<multipart> message... since for multiparts the message "body" is 
+stored as the parsed collection of "parts" (each of which
+is also a MIME::Entity).
 
 
 =item If an entity has a body, does it have a soul as well?
@@ -1883,78 +1906,77 @@ words, the "soul" it is all that is left after the body is DESTROY'ed.
 
 =item What's the best way to get at the body data?
 
-I<Mail::Internet:> 
-	Use the body() method.
+B<Mail::Internet:> 
+Use the body() method.
 
-I<MIME::Entity:> 
-	Use the bodyhandle() method, or the brand-new open()
-	method.  The open() method returns a filehandle-like object to
-	you, which gives you methods like getline() and read().  
-	I<Use methods only> for portability; don't make any assumptions
-	about what you've been handed.
+B<MIME::Entity:> 
+Use the bodyhandle() method, or the brand-new open()
+method.  The open() method returns a filehandle-like object to
+you, which gives you methods like getline() and read().  
+I<Use methods only> for portability; don't make any assumptions
+about what you've been handed.
 
 
 =item What does the body() method return?
 
-I<Mail::Internet:> 
-	The body, as an array of lines.
+B<Mail::Internet:> 
+The body, as an array of lines.
 
-I<MIME::Entity:>   
-	The body, as an array of lines...
-	but I<only> for a singlepart messages.  It returns I<nothing> for 
-	a multipart message, since multiparts by definition do not have bodies
-	of their own.  It's also somewhat inappropriate for non-textual 
-        bodies, like GIFs.
+B<MIME::Entity:>   
+The body, as an array of lines...
+but I<only> for a singlepart messages.  It returns I<nothing> for 
+a multipart message, since multiparts by definition do not have bodies
+of their own.  It's also somewhat inappropriate for non-textual 
+bodies, like GIFs.
 
 
 =item What does print_body() print?
 
-I<Mail::Internet:> 
-	Exactly what body() would return to you.
+B<Mail::Internet:> 
+Exactly what body() would return to you.
 
-I<MIME::Entity:> 
-	The I<encoded representation> of "all the stuff following the header",
-        using the Content-transfer-encoding in the MIME header. This includes
-        the encoded representation of any I<parts> as well.
-        Put simply, print_body() doesn't just "print the body": it
-        prints a flattened representation of the I<entire entity,>
-        including subparts.  This is generally what people seem to expect.
+B<MIME::Entity:> 
+The I<encoded representation> of "all the stuff following the header",
+using the Content-transfer-encoding in the MIME header. This includes
+the encoded representation of any I<parts> as well.
+Put simply, print_body() doesn't just "print the body": it
+prints a flattened representation of the I<entire entity,>
+including subparts.  This is generally what people seem to expect.
 
 
 =item Assuming I have a singlepart, isn't the data 
       from body() identical to the stuff printed by print_body()?
 
-I<Mail::Internet:> 
-	Yes.
+B<Mail::Internet:> 
+Yes.
 
-I<MIME::Entity:>   
-	Not likely.  If the original message held a base64-encoded
-        GIF file, the body() data will be the I<actual, decoded, binary
-        GIF data>... which is I<not> the same as that base64-encoded
-        stream of ASCII output by print_body().
+B<MIME::Entity:>   
+Not likely.  If the original message held a base64-encoded GIF file, 
+the body() data will be the I<actual, decoded, binary GIF data>... 
+which is I<not> the same as that base64-encoded
+stream of ASCII output by print_body().
 
 
 =item Conceptually, what's the difference between what's returned
       by body() and what's printed by print_body()?
 
-I<Mail::Internet:> 
-	None.
+B<Mail::Internet:> 
+None.
 
-I<MIME::Entity:> 
-	Method body() refers to the I<actual body data> of the entity 
-        in question.
-        Method print_body() (and stringify_body()) refers to the 
-        I<complete printed representation> of that entity.
+B<MIME::Entity:> 
+Method body() refers to the I<actual body data> of the entity in question.
+Method print_body() (and stringify_body()) refers to the 
+I<complete printed representation> of that entity.
 
 
 =item Say I have an entity which might be either singlepart or multipart.
       How do I print out just "the stuff after the header"?
 
-I<Mail::Internet:> 
-	Use print_body().
+B<Mail::Internet:> 
+Use print_body().
 
-I<MIME::Entity:> 
-	Use print_body(). 
+B<MIME::Entity:> 
+Use print_body(). 
 
 
 =item Why is MIME::Entity so different from Mail::Internet?
@@ -2009,19 +2031,21 @@ that follows the last encapsulation boundary.
 
 According to RFC-1521:
 
-    There appears to be room for additional information prior to the
-    first encapsulation boundary and following the final boundary.  These
-    areas should generally be left blank, and implementations must ignore
-    anything that appears before the first boundary or after the last one.
+    There appears to be room for additional information prior 
+    to the first encapsulation boundary and following the final 
+    boundary.  These areas should generally be left blank, and
+    implementations must ignore anything that appears before the 
+    first boundary or after the last one.
 
-    NOTE: These "preamble" and "epilogue" areas are generally not used
-    because of the lack of proper typing of these parts and the lack
-    of clear semantics for handling these areas at gateways,
-    particularly X.400 gateways.  However, rather than leaving the
-    preamble area blank, many MIME implementations have found this to
-    be a convenient place to insert an explanatory note for recipients
-    who read the message with pre-MIME software, since such notes will
-    be ignored by MIME-compliant software.
+    NOTE: These "preamble" and "epilogue" areas are generally 
+    not used because of the lack of proper typing of these parts 
+    and the lack of clear semantics for handling these areas at 
+    gateways, particularly X.400 gateways.  However, rather than 
+    leaving the preamble area blank, many MIME implementations 
+    have found this to be a convenient place to insert an 
+    explanatory note for recipients who read the message with 
+    pre-MIME software, since such notes will be ignored by 
+    MIME-compliant software.
 
 In the world of standards-and-practices, that's the standard.  
 Now for the practice: 
@@ -2047,7 +2071,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.117 $ $Date: 1999/05/12 15:20:25 $
+$Revision: 5.108 $ $Date: 2000/05/24 05:12:52 $
 
 =cut
 

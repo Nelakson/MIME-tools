@@ -36,7 +36,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.103 $ $Date: 1999/02/09 03:32:49 $
+$Revision: 5.102 $ $Date: 2000/05/21 07:54:10 $
 
 =cut
 
@@ -46,8 +46,10 @@ use vars qw(@ISA $VERSION);
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.103 $, 10;
+$VERSION = substr q$Revision: 5.102 $, 10;
 
+# Buffer length:
+my $BUFLEN = 8192;
 
 #------------------------------
 #
@@ -57,7 +59,7 @@ sub decode_it {
     my ($self, $in, $out) = @_;
 
     my ($buf, $nread) = ('', 0);
-    while ($nread = $in->read($buf, 4096)) {
+    while ($nread = $in->read($buf, $BUFLEN)) {
 	$out->print($buf);
     }
     defined($nread) or return undef;      # check for error
@@ -72,7 +74,7 @@ sub encode_it {
     my ($self, $in, $out) = @_;
 
     my ($buf, $nread) = ('', 0);
-    while ($nread = $in->read($buf, 4096)) {
+    while ($nread = $in->read($buf, $BUFLEN)) {
 	$out->print($buf);
     }
     defined($nread) or return undef;      # check for error

@@ -68,7 +68,7 @@ use Carp;
 use Mail::Field;
 
 # Kit modules:
-use MIME::ToolUtils qw(:config :msgs);
+use MIME::Tools qw(:config :msgs);
 
 @ISA = qw(Mail::Field);
 
@@ -80,7 +80,7 @@ use MIME::ToolUtils qw(:config :msgs);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.101 $, 10;
+$VERSION = substr q$Revision: 5.102 $, 10;
 
 
 #------------------------------

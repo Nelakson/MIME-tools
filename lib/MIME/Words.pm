@@ -10,21 +10,21 @@ MIME::Words - deal with RFC-1522 encoded words
 
     use MIME::Words qw(:all);   
      
-    # Decode the string into another string, forgetting the charsets:
+    ### Decode the string into another string, forgetting the charsets:
     $decoded = decode_mimewords(
           'To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>',
           );
     
-    # Split string into array of decoded [DATA,CHARSET] pairs:
+    ### Split string into array of decoded [DATA,CHARSET] pairs:
     @decoded = decode_mimewords(
           'To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>',
           );
      
-    # Encode a single unsafe word:
+    ### Encode a single unsafe word:
     $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
     
-    # Encode a string, trying to find the unsafe words inside it: 
-    $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB at the beach");
+    ### Encode a string, trying to find the unsafe words inside it: 
+    $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB in town");
 
 
 =head1 DESCRIPTION
@@ -58,11 +58,11 @@ Latin characters with 7 bit sequences /o and 'e):
 
 require 5.001;
 
-# Pragmas:
+### Pragmas:
 use strict;
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS @ISA);
 
-# Exporting:
+### Exporting:
 use Exporter;
 %EXPORT_TAGS = (all => [qw(decode_mimewords
 			   encode_mimeword
@@ -70,10 +70,10 @@ use Exporter;
 			   )]);
 Exporter::export_ok_tags('all');
 
-# Inheritance:
+### Inheritance:
 @ISA = qw(Exporter);
 
-# Other modules:
+### Other modules:
 use MIME::Base64;
 use MIME::QuotedPrint;
 
@@ -85,10 +85,10 @@ use MIME::QuotedPrint;
 #
 #------------------------------
 
-# The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.104 $, 10;
+### The package version, both in 1.23 style *and* usable by MakeMaker:
+$VERSION = substr q$Revision: 5.104 $, 10;
 
-# Nonprintables (controls + x7F + 8bit):
+### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
 
 
@@ -109,7 +109,7 @@ sub _decode_Q {
 #     almost, but not exactly, quoted-printable.  :-P
 sub _encode_Q {
     my $str = shift;
-    $str =~ s{[\?\=\_$NONPRINT]}{sprintf("=%02X", ord($&))}eog;
+    $str =~ s{([\?\=\_$NONPRINT])}{sprintf("=%02X", ord($1))}eog;
     $str;
 }
 
@@ -171,25 +171,25 @@ sub decode_mimewords {
     my $encstr = shift;
     my %params = @_;
     my @tokens;
-    $@ = '';           # error-return
+    $@ = '';           ### error-return
 
-    # Collapse boundaries between adjacent encoded words:
+    ### Collapse boundaries between adjacent encoded words:
     $encstr =~ s{(\?\=)\r?\n[ \t](\=\?)}{$1$2}gs;
     pos($encstr) = 0;
     ### print STDOUT "ENC = [", $encstr, "]\n";
 
-    # Decode:
+    ### Decode:
     my ($charset, $encoding, $enc, $dec);
     while (1) {
 	last if (pos($encstr) >= length($encstr));
-	my $pos = pos($encstr);               # save it
+	my $pos = pos($encstr);               ### save it
 
-	# Case 1: are we looking at "=?..?..?="?
-	if ($encstr =~    m{\G                # from where we left off..
-			    =\?([^?]*)        # "=?" + charset +
-			     \?([bq])         #  "?" + encoding +
-			     \?([^?]+)        #  "?" + data maybe with spcs +
-			     \?=              #  "?="
+	### Case 1: are we looking at "=?..?..?="?
+	if ($encstr =~    m{\G             # from where we left off..
+			    =\?([^?]*)     # "=?" + charset +
+			     \?([bq])      #  "?" + encoding +
+			     \?([^?]+)     #  "?" + data maybe with spcs +
+			     \?=           #  "?="
 			    }xgi) {
 	    ($charset, $encoding, $enc) = ($1, lc($2), $3);
 	    $dec = (($encoding eq 'q') ? _decode_Q($enc) : _decode_B($enc));
@@ -197,8 +197,8 @@ sub decode_mimewords {
 	    next;
 	}
 
-	# Case 2: are we looking at a bad "=?..." prefix? 
-	# We need this to detect problems for case 3, which stops at "=?":
+	### Case 2: are we looking at a bad "=?..." prefix? 
+	### We need this to detect problems for case 3, which stops at "=?":
 	pos($encstr) = $pos;               # reset the pointer.
 	if ($encstr =~ m{\G=\?}xg) {
 	    $@ .= qq|unterminated "=?..?..?=" in "$encstr" (pos $pos)\n|;
@@ -206,7 +206,7 @@ sub decode_mimewords {
 	    next;
 	}
 
-	# Case 3: are we looking at ordinary text?
+	### Case 3: are we looking at ordinary text?
 	pos($encstr) = $pos;               # reset the pointer.
 	if ($encstr =~ m{\G                # from where we left off...
 			 ([\x00-\xFF]*?    #   shortest possible string,
@@ -218,7 +218,7 @@ sub decode_mimewords {
 	    next;
 	}
 
-	# Case 4: bug!
+	### Case 4: bug!
 	die "MIME::Words: unexpected case:\n($encstr) pos $pos\n\t".
 	    "Please alert developer.\n";
     }
@@ -231,7 +231,7 @@ sub decode_mimewords {
 
 Encode a single RAW "word" that has unsafe characters.
 
-    # Encode "<<Franc,ois>>":
+    ### Encode "<<Franc,ois>>":
     $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
 
 You may specify the ENCODING (C<"Q"> or C<"B">), which defaults to C<"Q">.
@@ -256,8 +256,8 @@ sub encode_mimeword {
 Given a RAW string, try to find and encode all "unsafe" sequences 
 of characters:
 
-    # Encode a string with some unsafe "words":
-    $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB at the beach");
+    ### Encode a string with some unsafe "words":
+    $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB");
 
 Returns the encoded string.
 Any arguments past the RAW string are taken to define a hash of options:
@@ -281,7 +281,7 @@ Name of the mail field this string will be used in.  I<Currently ignored.>
 
 B<Warning:> this is a quick-and-dirty solution, intended for character
 sets which overlap ASCII.  You may want to roll your own variant,
-using L<encoded_mimeword()>, for your application.
+using C<encoded_mimeword()>, for your application.
 
 =cut
 
@@ -290,15 +290,15 @@ sub encode_mimewords {
     my $charset  = $params{Charset} || 'ISO-8859-1';
     my $encoding = lc($params{Encoding} || 'q');
 
-    # Encode any "words" with unsafe characters.
-    #    We limit such words to 18 characters, to guarantee that the 
-    #    worst-case encoding give us no more than 54 + ~10 < 75 characters
+    ### Encode any "words" with unsafe characters.
+    ###    We limit such words to 18 characters, to guarantee that the 
+    ###    worst-case encoding give us no more than 54 + ~10 < 75 characters
     my $word;
-    $rawstr =~ s{[a-zA-Z0-9\x7F-\xFF]{1,18}}{     # get next "word"
-	$word = $&;
+    $rawstr =~ s{([a-zA-Z0-9\x7F-\xFF]{1,18})}{     ### get next "word"
+	$word = $1;
 	(($word !~ /[$NONPRINT]/o) 
-	 ? $word                                          # no unsafe chars
-	 : encode_mimeword($word, $encoding, $charset));  # has unsafe chars
+	 ? $word                                          ### no unsafe chars
+	 : encode_mimeword($word, $encoding, $charset));  ### has unsafe chars
     }xeg;
     $rawstr;
 }
@@ -325,14 +325,14 @@ Thanks also to...
 
       Kent Boortz        For providing the idea, and the baseline 
                          RFC-1522-decoding code!
-      kjj@primenet.com   For requesting that this be split into
+      KJJ at PrimeNet    For requesting that this be split into
                          its own module.
       Stephane Barizien  For reporting a nasty bug.
 
 
 =head1 VERSION
 
-$Revision: 4.104 $ $Date: 1999/02/09 03:32:39 $
+$Revision: 5.104 $ $Date: 2000/05/23 05:36:20 $
 
 =cut
 
@@ -348,7 +348,7 @@ $Revision: 4.104 $ $Date: 1999/02/09 03:32:39 $
 __END__
 
 
-# Pick up other MIME stuff, just in case...
+### Pick up other MIME stuff, just in case...
 BEGIN { unshift @INC, ".", "./etc", "./lib" };
 import MIME::Words;
 
@@ -364,15 +364,15 @@ foreach $enc (@encs) {
     print "DEC: ", $x, "\n";
 }
 
-# Encode a single unsafe word:
+### Encode a single unsafe word:
 $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
 print "ENC1: ", $encoded, "\n";
     
-# Encode a string, trying to find the unsafe words inside it: 
+### Encode a string, trying to find the unsafe words inside it: 
 $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB at the beach");
 print "ENC2: ", $encoded, "\n";
 
-# Encode "<<Franc,ois>>":
+### Encode "<<Franc,ois>>":
 my $unsafe = <<EOF;
 Me and \xABFran\xE7ois\xBB, down at the beach
 with Dave <dave\@ether.net>
@@ -381,7 +381,7 @@ $encoded = encode_mimewords($unsafe);
 print "ENC3: ", $encoded, "\n";
 print "DEC3: ", scalar(decode_mimewords($encoded)), "\n";
 
-# So we know everything went well...
+### So we know everything went well...
 exit 0;
 
 #------------------------------
