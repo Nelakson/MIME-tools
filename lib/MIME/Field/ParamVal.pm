@@ -80,7 +80,7 @@ use MIME::Tools qw(:config :msgs);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.415";
+$VERSION = "5.416";
 
 
 #------------------------------
@@ -228,6 +228,7 @@ sub parse_params {
 
     # Extract special first parameter:
     $raw =~ m/\A$SPCZ($FIRST)$SPCZ/og or return {};    # nada!
+    $raw =~ s/\s+$//;              # Strip trailing whitespace
     $params{'_'} = $1;
 
     # Extract subsequent parameters.

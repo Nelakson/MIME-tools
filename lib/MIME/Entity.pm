@@ -249,7 +249,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.415";
+$VERSION = "5.416";
 
 ### Boundary counter:
 my $BCount = 0;
@@ -2235,7 +2235,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.7 $ $Date: 2004/10/27 12:44:25 $
+$Revision: 1.9 $ $Date: 2004/12/29 17:50:39 $
 
 =cut
 

@@ -1,3 +1,15 @@
+2005-01-03  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.416 RELEASED
+
+	* Allow MIME::Tools to work with MIME::QuotedPrint 2.20 again.
+	The Makefile.PL will warn about potential problems, but will allow you
+	to proceed.
+
+	* Field/ParamVal.pm: Strip trailing whitespace when extracting
+	parameters.  Apparently, not doing so can cause Perl to core dump
+	on certain badly-formed messages.
+
 2004-10-27  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.415 RELEASED

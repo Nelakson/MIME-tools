@@ -137,7 +137,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.415";
+$VERSION = "5.416";
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -904,7 +904,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 1.8 $ $Date: 2004/10/27 12:44:25 $
+$Revision: 1.10 $ $Date: 2004/12/29 17:50:39 $
 
 =cut
 

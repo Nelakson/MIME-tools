@@ -83,7 +83,7 @@ Exporter::export_ok_tags('all');
 
 ### Other modules:
 use MIME::Base64;
-use MIME::QuotedPrint 3.03;
+use MIME::QuotedPrint;
 
 
 
@@ -94,7 +94,7 @@ use MIME::QuotedPrint 3.03;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.415";
+$VERSION = "5.416";
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -350,7 +350,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 1.7 $ $Date: 2004/10/27 12:44:25 $
+$Revision: 1.10 $ $Date: 2004/12/29 17:50:39 $
 
 =cut
 
