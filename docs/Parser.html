@@ -4,23 +4,21 @@
     <TITLE>MIME::Parser</TITLE>
     </HEAD>
 
-    <BODY>
-
-    <A NAME="#__top"> <P></A>
+<BODY  LINK="#C00000"    ALINK="#FF2020"  VLINK="#900000" >    <A NAME="#__top"> <P></A>
 <CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Entity.html">MIME::Entity</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
 </B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Latin1.html">MIME::Latin1</A></FONT>
-</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::Parser</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ParserBase.html">MIME::ParserBase</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#000000>MIME::Parser</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ParserBase.html">MIME::ParserBase</A></FONT>
 </B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ToolUtils.html">MIME::ToolUtils</A></FONT>
 </B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
       <TR>
 	<TD VALIGN=TOP ALIGN=CENTER>
-	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>Parser</FONT></B></H1>
-	    <img src="mime-sm.gif" alt="MIME">
-	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+	    <H1><B><FONT SIZE=7 COLOR=#400000>MIME::<BR>Parser</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="LOGO">
+	    <P><FONT SIZE=+1 COLOR=#400000><I>It's MIME time!</I></FONT>
         <TD VALIGN=TOP>
 <!-- INDEX BEGIN -->
 <UL>
@@ -225,12 +223,46 @@ characters. Returns true or false.
 
 <STRONG>Note:</STRONG>
  Override this method in a subclass if you just want to change which
-externally-provided filenames are allowed, and which are not.
+externally-provided filenames are allowed, and which are not. Like this:
 
 
 <P>
 
-<EM>Thanks to Andrew Pimlott for finding a real dumb bug. :-)</EM>
+<PRE>
+     package MIME::MyParser;
+     
+     require 5.002;                # for SUPER
+     use package MIME::Parser;
+     
+     @MIME::MyParser::ISA = ('MIME::Parser');
+     
+     sub evil_filename {
+         my ($self, $name) = @_;
+         return 1 if (!defined($name) || ($name eq ''));
+         return 1 if ($name =~ m|/|);                      # Unix pathname
+         return 1 if (($name eq '.') || ($name eq '..'));  # Unix directories
+         return 1 if ($name =~ /[\s\x00-\x1f\x7f]/);       # non-printables
+         0;     # it's good!
+     }
+     1;
+</PRE>
+
+<P>
+
+<STRONG>Note:</STRONG>
+ My apologies to various individuals across the Atlantic who have been
+inconvenienced by this function's rejection of non-ASCII characters.
+Changing the default behavior now would likely cause howls of protest from
+folks who depend on it. If you don't like the behavior of this function,
+you can define your own subclass of <A HREF="Parser.html">MIME::Parser</A>
+and override it as shown above.
+
+
+<P>
+
+<EM>Thanks to Andrew Pimlott for finding a real dumb bug in the original
+version. Thanks to Nickolay Saukh for noting that (a) evil is in the eye of
+the beholder, and (b) 0x7F is whitespace, too.</EM>
 
 
 
@@ -309,6 +341,18 @@ subclass of <A HREF="Parser.html">MIME::Parser</A> and override it there:
      }
      1;
 </PRE>
+
+<P>
+
+<STRONG>Note:</STRONG>
+ Nickolay Saukh pointed out that, given the subjective nature of what is
+``evil'', this function really shouldn't <EM>warn</EM>
+ about an evil filename, but maybe just issue a <EM>debug</EM>
+ message. I considered that, but then I thought: if debugging were off,
+people wouldn't know why (or even if) a given filename had been ignored. In
+mail robots that depend on externally-provided filenames, this could cause
+hard-to-diagnose problems. So, the message is still a warning.
+
 
 <P>
 
@@ -484,19 +528,10 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.4 $ $Date: 1996/10/28 18:38:42 $
+$Revision: 2.8 $ $Date: 1997/01/13 00:23:32 $
 
 
 <P>
 
-    <P>
-    <HR>       
-    <FONT COLOR=#F00000>*</FONT>
-    <FONT SIZE=-1>
-    Artwork and slogan from Warner Bros' "Animaniacs". 
-    Neither this code nor its author are connected with or
-    endorsed by Warner Bros. in any way. Narf. Poit. 
-    </FONT>
-    </BODY>
-
-    </HTML>
+</BODY>
+</HTML>

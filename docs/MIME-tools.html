@@ -4,10 +4,8 @@
     <TITLE>MIME-tools</TITLE>
     </HEAD>
 
-    <BODY>
-
-    <A NAME="#__top"> <P></A>
-<CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><FONT COLOR=#B00002>Home</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
+<BODY  LINK="#C00000"    ALINK="#FF2020"  VLINK="#900000" >    <A NAME="#__top"> <P></A>
+<CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><FONT COLOR=##000000>Home</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Entity.html">MIME::Entity</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
@@ -19,25 +17,35 @@
 </B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
       <TR>
 	<TD VALIGN=TOP ALIGN=CENTER>
-	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME-tools</FONT></B></H1>
-	    <img src="mime-lg.gif" alt="MIME">
-	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+	    <H1><B><FONT SIZE=7 COLOR=#400000>MIME-tools</FONT></B></H1>
+	    <img src="mime-lg.gif" alt="LOGO">
+	    <P><FONT SIZE=+1 COLOR=#400000><I>It's MIME time!</I></FONT>
         <TD VALIGN=TOP>
 <!-- INDEX BEGIN -->
 <UL>
 	<LI><A HREF="#name">NAME</A>
+	<LI><A HREF="#synopsis">SYNOPSIS</A>
 	<LI><A HREF="#description">DESCRIPTION</A>
+	<LI><A HREF="#a_quick_tour">A QUICK TOUR</A>
 	<UL>
 		<LI><A HREF="#parsing_in_a_nutshell">Parsing, in a nutshell</A>
 		<LI><A HREF="#composing_in_a_nutshell">Composing, in a nutshell</A>
+		<LI><A HREF="#other_stuff">Other stuff</A>
 		</UL>
-	<LI><A HREF="#cpan_specifications">CPAN SPECIFICATIONS</A>
-	<LI><A HREF="#kit_contents">KIT CONTENTS </A>
+	<LI><A HREF="#contents">CONTENTS</A>
+	<UL>
+		<LI><A HREF="#modules_in_this_toolkit">Modules in this toolkit</A>
+		<LI><A HREF="#programs_in_this_toolkit">Programs in this toolkit</A>
+		</UL>
+	<LI><A HREF="#manifest">MANIFEST</A>
 	<LI><A HREF="#requirements">REQUIREMENTS</A>
 	<LI><A HREF="#installation">INSTALLATION</A>
-	<LI><A HREF="#compatibility">COMPATIBILITY</A>
-	<LI><A HREF="#design_issues">DESIGN ISSUES</A>
-	<LI><A HREF="#questionable_practices">QUESTIONABLE PRACTICES</A>
+	<LI><A HREF="#notes">NOTES</A>
+	<UL>
+		<LI><A HREF="#compatibility">Compatibility</A>
+		<LI><A HREF="#design_issues">Design issues</A>
+		<LI><A HREF="#questionable_practices">Questionable practices</A>
+		</UL>
 	<LI><A HREF="#change_log">CHANGE LOG</A>
 	<UL>
 		<LI><A HREF="#current_events">Current events</A>
@@ -45,8 +53,10 @@
 		<LI><A HREF="#future_plans">Future plans</A>
 		</UL>
 	<LI><A HREF="#terms_and_conditions">TERMS AND CONDITIONS</A>
+	<LI><A HREF="#support">SUPPORT</A>
+	<LI><A HREF="#author">AUTHOR </A>
+	<LI><A HREF="#acknowledgments">ACKNOWLEDGMENTS</A>
 	<LI><A HREF="#see_also">SEE ALSO</A>
-	<LI><A HREF="#author_and_credits">AUTHOR AND CREDITS</A>
 </UL>
 <!-- INDEX END -->
 
@@ -61,13 +71,81 @@ MIME-tools - modules for parsing (and creating!) MIME entities
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
-MIME-tools is a collection of Perl5 MIME:: modules for parsing and decoding
-single- or multipart (even nested multipart) MIME messages.
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="synopsis">SYNOPSIS</A></H2>
+Here's some pretty basic code for <STRONG>parsing a MIME message,</STRONG>
+ and outputting its decoded components to a given directory:
 
 
 <P>
 
+<PRE>
+    use MIME::Parser;
+     
+    # Create parser, and set the output directory:
+    my $parser = new MIME::Parser;
+    $parser-&gt;output_dir(&quot;$ENV{HOME}/mimemail&quot;);
+     
+    # Parse input:
+    $entity = $parser-&gt;read(\*STDIN) or die &quot;couldn't parse MIME stream&quot;;
+    
+    # Take a look at the top-level entity (and any parts it has):
+    $entity-&gt;dump_skeleton; 
+</PRE>
+
+<P>
+
+Here's some code which <STRONG>composes and sends a MIME message</STRONG>
+ containing three parts: a text file, an attached GIF, and some more text:
+
+
+<P>
+
+<PRE>
+    use MIME::Entity;
+</PRE>
+
+<P>
+
+<PRE>
+    # Create the top-level, and set up the mail headers:
+    $top = build MIME::Entity Type   =&gt;&quot;multipart/mixed&quot;,
+                              -From    =&gt; &quot;me\@myhost.com&quot;,
+	                      -To      =&gt; &quot;you\@yourhost.com&quot;,
+                              -Subject =&gt; &quot;Hello, nurse!&quot;;
+    
+    # Attachment #1: a simple text document: 
+    attach $top  Path=&gt;&quot;./testin/short.txt&quot;;
+    
+    # Attachment #2: a GIF file:
+    attach $top  Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
+                 Type        =&gt; &quot;image/gif&quot;,
+                 Encoding    =&gt; &quot;base64&quot;;
+        
+    # Attachment #3: some literal text:
+    attach $top  Data=&gt;$message;
+    
+    # Send it:
+    open MAIL, &quot;| /usr/lib/sendmail -t -i&quot; or die &quot;open: $!&quot;;
+    $top-&gt;print(\*MAIL);
+    close MAIL;
+</PRE>
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="description">DESCRIPTION</A></H2>
+MIME-tools is a collection of Perl5 MIME:: modules for parsing, decoding,
+<EM>and generating</EM>
+ single- or multipart (even nested multipart) MIME messages. (Yes, kids,
+that means you can send messages with attached GIF files).
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="a_quick_tour">A QUICK TOUR</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="parsing_in_a_nutshell">Parsing, in a nutshell</A></H3>
@@ -103,37 +181,12 @@ A <STRONG><A HREF="Body.html">MIME::Body</A></STRONG>
 to ``open'' itself for reading, and it will hand you back an ``I/O handle''
 for reading the data: this is a FileHandle-like object, and could be of any
 class, so long as it conforms to a subset of the <STRONG>IO::Handle</STRONG>
- interface. Most of the MIME:: modules will automatically wrap raw
-(unblessed) filehandles inside <STRONG><A HREF="IO.html">MIME::IO</A></STRONG>
- objects, so that they conform to this interface.
+ interface.  
 
 
 <P>
 
 </UL>
-Here's a simple example, which reads a MIME stream from STDIN and outputs
-all extracted parts to files in the given directory (and yes, you no longer <EM>have</EM>
- to output to files!):
-
-
-<P>
-
-<PRE>
-    use MIME::Parser;
-     
-    # Create parser, and set the output directory:
-    my $parser = new MIME::Parser;
-    $parser-&gt;output_dir(&quot;$ENV{HOME}/mimemail&quot;);
-     
-    # Parse input:
-    $entity = $parser-&gt;read(\*STDIN) or die &quot;couldn't parse MIME stream&quot;;
-    
-    # Take a look at the top-level entity (and any parts it has):
-    $entity-&gt;dump_skeleton; 
-</PRE>
-
-<P>
-
 If the original message was a multipart document, the <A
 HREF="Entity.html">MIME::Entity</A> object will have a non-empty list of
 ``parts'', each of which is in turn a <A
@@ -154,6 +207,47 @@ use <A HREF="Decoder.html">MIME::Decoder</A> by itself.
 
 <P>
 
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="composing_in_a_nutshell">Composing, in a nutshell</A></H3>
+On a small scale, the <A HREF="Decoder.html">MIME::Decoder</A> can be used
+to <EM>encode</EM>
+ as well. All the standard encodings are supported: 
+
+
+<P>
+
+<PRE>
+    7bit               Use this for plain ASCII documents (and multiparts)
+    8bit               
+    binary             
+    quoted-printable   Use this for text files with 8-bit characters
+    base64             Use this for binary files
+</PRE>
+
+<P>
+
+When encoding a text document as a <CODE>7bit</CODE> mail message, the software will not puke on 8-bit characters... instead,
+the 8-bit characters are escaped for you into reasonable ASCII sequences,
+by the 
+<STRONG><A HREF="Latin1.html">MIME::Latin1</A></STRONG>
+ module. This feature is for folks who really hate sending out a document as
+quoted-printable just because it happens to have a couple of French or
+German names.
+
+
+<P>
+
+I've considered making it so that the content-type and encoding can be
+automatically inferred from the file's path, but that seems to be asking
+for trouble... or at least, for Mail::Cap...
+
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="other_stuff">Other stuff</A></H3>
 If you want to tweak the way this toolkit works (for example, to turn on
 debugging), use the routines in the <STRONG><A HREF="ToolUtils.html">MIME::ToolUtils</A></STRONG>
  module.
@@ -162,82 +256,43 @@ debugging), use the routines in the <STRONG><A HREF="ToolUtils.html">MIME::ToolU
 <P>
 
 <P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="contents">CONTENTS</A></H2>
+<P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="composing_in_a_nutshell">Composing, in a nutshell</A></H3>
-On a small scale, the <A HREF="Decoder.html">MIME::Decoder</A> can be used
-to <EM>encode</EM>
- as well. When encoding an 8-bit document as a 7-bit mail message (a no-no,
-but allowed), the 8-bit characters are escaped for you into reasonable
-ASCII sequences, by the <STRONG><A HREF="Latin1.html">MIME::Latin1</A></STRONG>
- module.
-
-
-<P>
-
-Here's an example, which composes and sends a MIME message containing two
-parts: a text file, and an attached GIF:
-
-
-<P>
-
+<H3><A NAME="modules_in_this_toolkit">Modules in this toolkit</A></H3>
 <PRE>
-    use MIME::Entity;
-</PRE>
-
-<P>
-
-<PRE>
-    # Create the top-level, and set up the mail headers:
-    $top = build MIME::Entity Type=&gt;&quot;multipart/mixed&quot;;
-    $top-&gt;head-&gt;add('from',    &quot;me\@myhost.com&quot;);
-    $top-&gt;head-&gt;add('to',      &quot;you\@yourhost.com&quot;);
-    $top-&gt;head-&gt;add('subject', &quot;Hello, nurse!&quot;);
-    
-    # Attachment #1: a simple text document: 
-    attach $top  Path=&gt;&quot;./testin/short.txt&quot;;
-    
-    # Attachment #2: a GIF file:
-    attach $top  Path        =&gt; &quot;./docs/mime-sm.gif&quot;,
-                 Type        =&gt; &quot;image/gif&quot;,
-                 Encoding    =&gt; &quot;base64&quot;;
-    
-    # Send it:
-    open MAIL, &quot;| /usr/lib/sendmail -t -i&quot; or die &quot;open: $!&quot;;
-    $top-&gt;print(\*MAIL);
-    close MAIL;
-</PRE>
-
-<P>
-
-I'm working on making this even easier (in particular, to make it easier
-for you to set up the data for each attachment, and to test the interface
-with Mail::Send). I'd also like to make it so that the content-type and
-encoding can be automatically inferred from the file's path.
-
-
-<P>
-
-<P>
-<HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="cpan_specifications">CPAN SPECIFICATIONS</A></H2>
-<PRE>
-    Module       DSLI   Description                                 Info
-    ----------   ----   ----------------------------------------    ----
+    Module       DSLI   Description                                  Info
+    ----------   ----   ------------------------------------------   ----
     MIME::
-    ::Decoder    adpO   OO interface for decoding MIME messages     ERYQ
-    ::Entity     adpO   An extracted and decoded MIME entity        ERYQ
-    ::Head       adpO   A parsed MIME header                        ERYQ
-    ::IO         adpO   Simple I/O handles for filehandles/scalars  ERYQ
-    ::Latin1     adpO   Encoding 8-bit Latin-1 as 7-bit ASCII       ERYQ
-    ::Parser     adpO   Parses streams to create MIME entities      ERYQ
-    ::ParserBase adpO   For building your own MIME parser           ERYQ
+    ::Body       adpO   Abstract message holder (file, scalar, etc.) ERYQ
+    ::Decoder    bdpO   OO interface for decoding MIME messages      ERYQ
+    ::Entity     bdpO   An extracted and decoded MIME entity         ERYQ
+    ::Field::*   bdpO   Mail::Field subclasses for parsing fields    ERYQ
+    ::Head       bdpO   A parsed MIME header (Mail::Header subclass) ERYQ
+    ::IO         adpO   Simple I/O handles for filehandles/scalars   ERYQ
+    ::Latin1     adpO   Encoding 8-bit Latin-1 as 7-bit ASCII        ERYQ
+    ::Parser     bdpO   Parses streams to create MIME entities       ERYQ
+    ::ParserBase bdpO   For building your own MIME parser            ERYQ
+    ::ToolUtils  adpO   For tweaking the MIME-tools library          ERYQ
+</PRE>
+
+<P>
+
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="programs_in_this_toolkit">Programs in this toolkit</A></H3>
+<PRE>
+    mimedump    - dump out a summary of the contents of a MIME message
+    mimeexplode - parse/decode a MIME message into its component files
+    mimesend    - send a message with attachments from the command line
 </PRE>
 
 <P>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="kit_contents">KIT CONTENTS </A></H2>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="manifest">MANIFEST</A></H2>
 <PRE>
     ./MIME/*.pm         the MIME-tools classes
     ./Makefile.PL       the input to MakeMaker
@@ -245,6 +300,8 @@ encoding can be automatically inferred from the file's path.
     ./README            this file
     ./docs/             HTMLized documentation
     ./etc/              convenient copies of other modules you may need
+    ./examples          sample executables
+    ./t/*.t             the &quot;make test&quot; scripts
     ./testin/           files you can use for testing (as in &quot;make test&quot;)
     ./testout/          the output of &quot;make test&quot;
 </PRE>
@@ -260,35 +317,35 @@ You'll need <STRONG>Perl5.002</STRONG>
 
 <P>
 
-<UL>
-<LI><STRONG></STRONG>
-It <EM>might</EM>
- work with 5.001m+, but you'll need to get ahold of the ``vars'' module. For
-this reason, I don't yet ``require 5.002'' in my modules.
+You'll need to obtain and install the following kits from the CPAN:
 
 
 <P>
 
-</UL>
-Obtain and install the following kits from the CPAN:
+<DL>
+<DT><STRONG><A NAME="item_mimequotedprint_base64">MIME::(QuotedPrint, Base64)
+
+</A></STRONG><DD>
+These perform the low-level MIME decoding. Get these from <STRONG>Gisle Aas'</STRONG>
+ author directory. They are also reported to be in the LWP distribution.
 
 
 <P>
 
-<PRE>
-    MIME::QuotedPrint 
-    
-    MIME::Base64
-    
-    MailTools:             (1.06 or higher)  
-        Mail::Header
-        Mail::Internet
-        etc...
-</PRE>
+<DT><STRONG><A NAME="item_mailtools_106_or_higher">MailTools (1.06 or higher)
+
+</A></STRONG><DD>
+This is <STRONG>Graham Barr's</STRONG>
+ revamped set of Mail:: modules. Many of them are now superclasses of the
+MIME:: modules, and perform the core functionality of manipulating headers
+and fields.
+
 
 <P>
 
-For your convenience, possibly-old copies are provided in the ./etc
+</DL>
+<STRONG>For your convenience,</STRONG>
+ possibly-old copies of the MIME:: modules are provided in the ./etc
 directory, of the distribution, but they are NOT installed for you during
 the installation procedure.
 
@@ -326,12 +383,23 @@ Other interesting targets in the Makefile are:
 
 <P>
 
+If you're installing this as a replacment for MIME-parser 1.x or earlier,
+<EM>please</EM>
+ read the <A HREF="#compatibility">Compatibility</A>
+ notes.
+
+
+<P>
+
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="compatibility">COMPATIBILITY</A></H2>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="compatibility">Compatibility</A></H3>
 If you're installing this as a replacement for the MIME-parser 1.x release,
 and you really don't want to break existing code, you should do this at any
-point before the code is invoked:
+point before the parsing code is invoked:
 
 
 <P>
@@ -351,8 +419,8 @@ your code ASAP to the 2.0 style.
 <P>
 
 <P>
-<HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="design_issues">DESIGN ISSUES</A></H2>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="design_issues">Design issues</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_why_assume_that_mime_objects_are">Why assume that MIME objects are email objects?
 
@@ -416,9 +484,10 @@ object.
 <DT><STRONG><A NAME="item_to_subclass_or_not_to_subclass">To subclass or not to subclass?
 
 </A></STRONG><DD>
-When I originally wrote this module for the CPAN, I agonized for a long
-time about whether or not it really should just be a subclass of <STRONG>Mail::Internet</STRONG>
- (then at version 1.17). There were plusses:
+When I originally wrote these modules for the CPAN, I agonized for a long
+time about whether or not they really should subclass from <STRONG>Mail::Internet</STRONG>
+ 
+(then at version 1.17). There were plusses:
 
 
 <P>
@@ -481,16 +550,17 @@ lot of these issues.
 
 <P>
 
-With MailTools now its 1.06 release, it was finally time to finish what I
-started, and release MIME-tools 2.0.
+When MailTools hit its 1.06 release, it was finally time to finish what I
+had started, and release MIME-tools 2.0. We now are almost at the stage of
+a fully-integrated Mail/MIME environment.
 
 
 <P>
 
 </DL>
 <P>
-<HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="questionable_practices">QUESTIONABLE PRACTICES</A></H2>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="questionable_practices">Questionable practices</A></H3>
 <DL>
 <DT><STRONG><A NAME="item_fuzzing_of_crlf_and_newline_on_i">Fuzzing of CRLF and newline on input
 
@@ -502,7 +572,15 @@ streams where each line ends in the local newline character <CODE>"\n"</CODE> in
 <P>
 
 An attempt has been made to allow the parser to handle both CRLF and
-newline-terminated input.
+newline-terminated input.  
+
+
+<P>
+
+<STRONG>See <A HREF="ParserBase.html">MIME::ParserBase</A> for details.</STRONG>
+
+
+
 
 
 <P>
@@ -524,6 +602,14 @@ each line... <EM>but this is as it should be</EM>
 
 <P>
 
+<STRONG>See <A HREF="ParserBase.html">MIME::ParserBase</A> for details.</STRONG>
+
+
+
+
+
+<P>
+
 <DT><STRONG><A NAME="item_fuzzing_of_crlf_and_newline_when">Fuzzing of CRLF and newline when encoding/composing
 
 </A></STRONG><DD>
@@ -539,6 +625,33 @@ I'm currently working on a good mechanism for this.
 
 <P>
 
+<STRONG>See <A HREF="ParserBase.html">MIME::ParserBase</A> for details.</STRONG>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_inability_to_handle_multipart_bo">Inability to handle multipart boundaries with embedded newlines
+
+</A></STRONG><DD>
+First, let's get something straight: this is an evil, EVIL practice. If
+your mailer creates multipart boundary strings that contain newlines, give
+it two weeks notice and find another one. If your mail robot receives MIME
+mail like this, regard it as syntactically incorrect, which it is.
+
+
+<P>
+
+<STRONG>See <A HREF="ParserBase.html">MIME::ParserBase</A> for details.</STRONG>
+
+
+
+
+
+<P>
+
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
@@ -547,13 +660,147 @@ I'm currently working on a good mechanism for this.
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="current_events">Current events</A></H3>
 <DL>
+<DT><STRONG><A NAME="item_version_213">Version 2.13
+
+</A></STRONG><DD>
+<DL>
+<DT><STRONG><A NAME="item_new_features">New features
+
+</A></STRONG><DD>
+<STRONG>Added RFC-1522-style decoding of encoded header fields.</STRONG>
+
+Header decoding can now be done automatically during parsing via the new <CODE>decode()</CODE> method in <A HREF="Head.html">MIME::Head...</A> just tell your parser
+object that you want to <CODE>decode_headers()</CODE>. 
+<EM>Thanks to Kent Boortz for providing the idea, and the baseline
+RFC-1522-decoding code!</EM>
+
+
+
+
+
+<P>
+
+<STRONG>Building MIME messages is even easier.</STRONG>
+  Now, when you use <A HREF="Entity.html">MIME::Entity's</A> <CODE>build()</CODE> or <CODE>attach()</CODE>, you can also supply individual mail headers to set (e.g., <CODE>-Subject</CODE>, <CODE>-From</CODE>, <CODE>-To</CODE>).
+
+
+<P>
+
+Added <CODE>Disposition</CODE> to <A HREF="Entity.html">MIME::Entity's</A> <CODE>build()</CODE> method.
+<EM>Thanks to Kurt Freytag for suggesting this feature.</EM>
+
+
+
+
+
+<P>
+
+An <CODE>X-Mailer</CODE> header is now output by default in all MIME-Entity-prepared messages, so
+any bad MIME we generate can be traced back to this toolkit.
+
+
+<P>
+
+Added <CODE>purge()</CODE> method to <A HREF="Entity.html">MIME::Entity</A> for deleteing leftover
+files.
+<EM>Thanks to Jason L. Tibbitts III for suggesting this feature.</EM>
+
+
+
+
+
+<P>
+
+Added <CODE>seek()</CODE> and <CODE>tell()</CODE> methods to built-in <A HREF="IO.html">MIME::IO</A> classes. Only guaranteed
+to work when reading!
+<EM>Thanks to Jason L. Tibbitts III for suggesting this feature.</EM>
+
+
+
+
+
+<P>
+
+When parsing a multipart message with apparently no boundaries, the error
+message you get has been improved.  
+<EM>Thanks to Andreas Koenig for suggesting this.</EM>
+
+
+
+
+
+<P>
+
+<DT><STRONG><A NAME="item_bug_fixes">Bug fixes
+
+</A></STRONG><DD>
+<STRONG>Patched over a Perl 5.002 (and maybe earlier and later) bug involving
+FileHandle::new_tmpfile.</STRONG>
+  It seems that the underlying filehandles were not being closed when the
+FileHandle objects went out of scope! There is now an internal routine that
+creates true FileHandle objects for anonymous temp files. 
+<EM>Thanks to Dragomir R. Radev and Zyx for reporting the weird behavior that
+led to the discovery of this bug.</EM>
+
+
+
+
+
+<P>
+
+<A HREF="Entity.html">MIME::Entity's</A> <CODE>build()</CODE> method now warns you if you give it an illegal boundary string, and
+substitutes one of its own.
+
+
+<P>
+
+<A HREF="Entity.html">MIME::Entity's</A> <CODE>build()</CODE> method now generates safer, fully-RFC-1521-compliant boundary strings.
+
+
+<P>
+
+Bug in <A HREF="Decoder.html">MIME::Decoder's</A> <CODE>install()</CODE> method was fixed.  
+<EM>Thanks to Rolf Nelson and Nickolay Saukh for finding this.</EM>
+
+
+
+
+
+<P>
+
+Changed FileHandle::new_tmpfile to FileHandle->new_tmpfile, so some Perl
+installations will be happier.  
+<EM>Thanks to Larry W. Virden for finding this bug.</EM>
+
+
+
+
+
+<P>
+
+Gave <CODE>=over</CODE> an arg of 4 in all PODs.
+<EM>Thanks to Larry W. Virden for pointing out the problems of bare =over's</EM>
+
+
+
+
+
+<P>
+
+</DL>
 <DT><STRONG><A NAME="item_version_204">Version 2.04
 
 </A></STRONG><DD>
-A bug in <A HREF="Entity.html">MIME::Entity's</A> output method was
-corrected. <A HREF="Entity.html">MIME::Entity::print</A> now outputs
-everything to the desired filehandle explicitly. Thanks to Jake Morrison
-for pointing out the incompatibility with Mail::Header.
+<STRONG>A bug in <A HREF="Entity.html">MIME::Entity's</A> output method was
+corrected.</STRONG>
+
+<A HREF="Entity.html">MIME::Entity::print</A> now outputs everything to the
+desired filehandle explicitly.  
+<EM>Thanks to Jake Morrison for pointing out the incompatibility with
+Mail::Header.</EM>
+
+
+
 
 
 <P>
@@ -561,30 +808,43 @@ for pointing out the incompatibility with Mail::Header.
 <DT><STRONG><A NAME="item_version_203">Version 2.03
 
 </A></STRONG><DD>
-Fixed transposed ``if'' statement, removing spurious printing of header
-from <A HREF="Parser.html">MIME::Parser,</A> and fixing bug in
-autogenerated filenames. (Annoyingly, this bug is invisible if debugging is
-turned on!) Thanks to Andreas Koenig for bringing this to my attention.
+<STRONG>Fixed bug in autogenerated filenames</STRONG>
+ resulting from transposed ``if'' statement in <A
+HREF="Parser.html">MIME::Parser,</A> removing spurious printing of header
+as well. (Annoyingly, this bug is invisible if debugging is turned on!)
+<EM>Thanks to Andreas Koenig for bringing this to my attention.</EM>
+
+
+
 
 
 <P>
 
 Fixed bug in <A HREF="Entity.html">MIME::Entity::body()</A> where it was
-using the bodyhandle completely incorrectly. Thanks to Joel Noble for
-bringing this to my attention.
+using the bodyhandle completely incorrectly.  
+<EM>Thanks to Joel Noble for bringing this to my attention.</EM>
+
+
+
 
 
 <P>
 
 Fixed <A HREF="Head.html">MIME::Head::VERSION</A> so CPAN:: is happier.
-Thanks to Larry Virden for bringing this to my attention.
+<EM>Thanks to Larry Virden for bringing this to my attention.</EM>
+
+
+
 
 
 <P>
 
 Fixed undefined-variable warnings when dumping skeleton (happened when
-there was no Subject: line) Thanks to Joel Noble for bringing this to my
-attention.
+there was no Subject: line)
+<EM>Thanks to Joel Noble for bringing this to my attention.</EM>
+
+
+
 
 
 <P>
@@ -592,8 +852,13 @@ attention.
 <DT><STRONG><A NAME="item_version_202">Version 2.02
 
 </A></STRONG><DD>
-Stupid, stupid bugs in both BASE64 encoding and decoding. Thanks to Phil
-Abercrombie for locating them.
+<STRONG>Stupid, stupid bugs in both BASE64 encoding and decoding were fixed.</STRONG>
+
+
+<EM>Thanks to Phil Abercrombie for locating them.</EM>
+
+
+
 
 
 <P>
@@ -601,28 +866,34 @@ Abercrombie for locating them.
 <DT><STRONG><A NAME="item_version_201">Version 2.01
 
 </A></STRONG><DD>
-Modules now inherit from the new Mail:: modules! This means big changes in
-behavior.
+<STRONG>Modules now inherit from the new Mail:: modules!</STRONG>
+
+This means big changes in behavior.
 
 
 <P>
 
-Added option to parse <CODE>"message/rfc822"</CODE> as a pseduo-multipart document. Thanks to Andreas Koenig for suggesting
-this.
+<STRONG><A HREF="Parser.html">MIME::Parser</A> can now store message data in-core.</STRONG>
 
-
-<P>
-
-<A HREF="Parser.html">MIME::Parser</A> can now store message data in-core.
 There were a <EM>lot</EM>
- of requestes for this feature.
+ of requests for this feature.
 
 
 <P>
 
-<A HREF="Entity.html">MIME::Entity</A> can now compose messages. There were
-a <EM>lot</EM>
- of requestes for this feature.
+<STRONG><A HREF="Entity.html">MIME::Entity</A> can now compose messages.</STRONG>
+
+There were a <EM>lot</EM>
+ of requests for this feature.
+
+
+<P>
+
+Added option to parse <CODE>"message/rfc822"</CODE> as a pseduo-multipart document.
+<EM>Thanks to Andreas Koenig for suggesting this.</EM>
+
+
+
 
 
 <P>
@@ -637,7 +908,11 @@ a <EM>lot</EM>
 </A></STRONG><DD>
 <A HREF="Head.html">MIME::Head</A> now no longer requires space after
 ``:'', although either a space or a tab after the ``:'' will be swallowed
-if there. Thanks to Igor Starovoitov for pointing out this shortcoming.
+if there.  
+<EM>Thanks to Igor Starovoitov for pointing out this shortcoming.</EM>
+
+
+
 
 
 <P>
@@ -646,14 +921,20 @@ if there. Thanks to Igor Starovoitov for pointing out this shortcoming.
 
 </A></STRONG><DD>
 Fixed bugs in parser where CRLF-terminated lines were blowing out the
-handling of preambles/epilogues. Thanks to Russell Sutherland for reporting
-this bug.
+handling of preambles/epilogues.
+<EM>Thanks to Russell Sutherland for reporting this bug.</EM>
+
+
+
 
 
 <P>
 
-Fixed idiotic <CODE>is_multipart()</CODE> bug. Thanks to Andreas Koenig for
-noticing it.
+Fixed idiotic <CODE>is_multipart()</CODE> bug.  
+<EM>Thanks to Andreas Koenig for noticing it.</EM>
+
+
+
 
 
 <P>
@@ -690,8 +971,11 @@ Added unsupported ./examples directory.
 <DT><STRONG><A NAME="item_version_111">Version 1.11	
 
 </A></STRONG><DD>
-Converted over to using Makefile.PL. Thanks to Andreas Koenig for the
-much-needed kick in the pants...
+Converted over to using Makefile.PL.  
+<EM>Thanks to Andreas Koenig for the much-needed kick in the pants...</EM>
+
+
+
 
 
 <P>
@@ -702,8 +986,8 @@ Added t/*.t files for testing. Eeeeeeeeeeeh...it's a start.
 <P>
 
 Fixed bug in default parsing routine for generating output paths; it was
-warning about evil filenames if there simply *were* no recommended
-filenames. D'oh!
+warning about evil filenames if there simply <EM>were</EM>
+ no recommended filenames. D'oh!
 
 
 <P>
@@ -723,17 +1007,27 @@ Fixed bugs in Head where field name wasn't being case folded.
 </A></STRONG><DD>
 A typo was causing the epilogue of an inner multipart message to be
 swallowed to the end of the OUTER multipart message; this has now been
-fixed. Thanks to Igor Starovoitov for reporting this bug.
+fixed.  
+<EM>Thanks to Igor Starovoitov for reporting this bug.</EM>
+
+
+
 
 
 <P>
 
 A bad regexp for parameter names was causing some parameters to be parsed
-incorrectly; this has also been fixed. Thanks again to Igor Starovoitov for
-reporting this bug. It is now possible to get full control of the
-filenaming algorithm before output files are generated, and the default
-algorithm is safer. Thanks to Laurent Amon for pointing out the problems,
-and suggesting some solutions. 
+incorrectly; this has also been fixed.  
+<EM>Thanks again to Igor Starovoitov for reporting this bug.</EM>
+
+	
+It is now possible to get full control of the filenaming algorithm before
+output files are generated, and the default algorithm is safer.  
+<EM>Thanks to Laurent Amon for pointing out the problems, and suggesting some
+solutions.</EM>
+
+
+
 
 
 <P>
@@ -779,7 +1073,7 @@ Make it even easier to compose and send MIME messages.
 <P>
 
 <LI><STRONG></STRONG>
-Make VERSION a bit more sensible (2.8, 2.9, 2.10 effective goes
+Make VERSIONs a bit more sensible (e.g., 2.8, 2.9, 2.10 effectively goes
 backwards...).
 
 
@@ -803,20 +1097,15 @@ See the COPYING file in the distribution for details.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
-The MIME format is documented in RFC 1521.  
-
-
-<P>
-
-The MIME header format is documented in RFC 822.
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="support">SUPPORT</A></H2>
+Please email me directly with questions/problems (see AUTHOR below).
 
 
 <P>
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author_and_credits">AUTHOR AND CREDITS</A></H2>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR </A></H2>
 <STRONG>MIME-tools was created by:</STRONG>
 
 
@@ -825,9 +1114,13 @@ The MIME header format is documented in RFC 822.
 
 <P>
 
-Eryq, <A
-HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
-
+<PRE>
+    ___  _ _ _   _  ___ _     
+   / _ \| '_| | | |/ _ ' /    Eryq
+  |  __/| | | |_| | |_| |     http://www.mcs.net/~eryq
+   \___||_|  \__, |\__, |__   eryq@enteract.com
+             |___/    |___/   eryq@rhine.gsfc.nasa.gov 
+</PRE>
 
 <P>
 
@@ -836,6 +1129,9 @@ Initial release (1.0): 28 April 1996. Re-release (2.0): Halloween 1996.
 
 <P>
 
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="acknowledgments">ACKNOWLEDGMENTS</A></H2>
 <STRONG>This kit would not have been possible</STRONG>
  but for the direct contributions of the following:
 
@@ -843,47 +1139,63 @@ Initial release (1.0): 28 April 1996. Re-release (2.0): Halloween 1996.
 <P>
 
 <PRE>
-	Gisle Aas           The MIME encoding/decoding modules
-	Laurent Amon        Bug reports and suggestions
-	Graham Barr         The new MailTools
-	Achim Bohnet        Numerous good suggestions, including the I/O model
-	Andreas Koenig      Numerous good ideas, tons of beta testing,
-       	                    and help with CPAN-friendly packaging
-	Igor Starovoitov    Bug reports and suggestions
+    Gisle Aas          The MIME encoding/decoding modules
+    Laurent Amon       Bug reports and suggestions
+    Graham Barr        The new MailTools
+    Achim Bohnet       Numerous good suggestions, including the I/O model
+    Kent Boortz        Initial code for RFC-1522-decoding of MIME headers
+    Andreas Koenig     Numerous good ideas, tons of beta testing,
+                       and help with CPAN-friendly packaging
+    Igor Starovoitov   Bug reports and suggestions
+ 
+Not to mention the Accidental Beta Test Team, whose bug reports (and
+comments) have been invaluable in improving the whole:
 </PRE>
-
-<P>
-
-Not to mention the Accidental Beta Test Team, whose bug reports have been
-invaluable in improving the whole:
-
 
 <P>
 
 <PRE>
-	Phil Abercrombie
-	Jake Morrison
-	Joel Noble    
-	Andrew Pimlott
-	Russell Sutherland
-	Larry Virden
+    Phil Abercrombie
+    Kurt Freytag
+    Jake Morrison
+    Rolf Nelson
+    Joel Noble    
+    Andrew Pimlott
+    Dragomir R. Radev
+    Nickolay Saukh
+    Russell Sutherland
+    Larry Virden
+    Zyx
 </PRE>
 
 <P>
 
-Please forgive me if I've left you out. Or email me.
+Please forgive me if I've accidentally left you out. Better yet, email me,
+and I'll put you in.
 
 
 <P>
 
-    <P>
-    <HR>       
-    <FONT COLOR=#F00000>*</FONT>
-    <FONT SIZE=-1>
-    Artwork and slogan from Warner Bros' "Animaniacs". 
-    Neither this code nor its author are connected with or
-    endorsed by Warner Bros. in any way. Narf. Poit. 
-    </FONT>
-    </BODY>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="see_also">SEE ALSO</A></H2>
+Users of this toolkit may wish to read the documentation of Mail::Header
+and Mail::Internet.
 
-    </HTML>
+
+<P>
+
+The MIME format is documented in RFCs 1521-1522, and more recently in RFCs
+2045-2049.
+
+
+<P>
+
+The MIME header format is an outgrowth of the mail header format documented
+in RFC 822.
+
+
+<P>
+
+</BODY>
+</HTML>

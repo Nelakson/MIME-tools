@@ -4,9 +4,7 @@
     <TITLE>MIME::ToolUtils</TITLE>
     </HEAD>
 
-    <BODY>
-
-    <A NAME="#__top"> <P></A>
+<BODY  LINK="#C00000"    ALINK="#FF2020"  VLINK="#900000" >    <A NAME="#__top"> <P></A>
 <CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Entity.html">MIME::Entity</A></FONT>
@@ -15,12 +13,12 @@
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Latin1.html">MIME::Latin1</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Parser.html">MIME::Parser</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ParserBase.html">MIME::ParserBase</A></FONT>
-</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::ToolUtils</FONT></B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
+</B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#000000>MIME::ToolUtils</FONT></B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
       <TR>
 	<TD VALIGN=TOP ALIGN=CENTER>
-	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>ToolUtils</FONT></B></H1>
-	    <img src="mime-sm.gif" alt="MIME">
-	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+	    <H1><B><FONT SIZE=7 COLOR=#400000>MIME::<BR>ToolUtils</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="LOGO">
+	    <P><FONT SIZE=+1 COLOR=#400000><I>It's MIME time!</I></FONT>
         <TD VALIGN=TOP>
 <!-- INDEX BEGIN -->
 <UL>
@@ -55,13 +53,91 @@ configuration of the MIME-tools kit.
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="public_interface">PUBLIC INTERFACE</A></H2>
 <DL>
-<DT><STRONG><A NAME="item_debugging_onoff">debugging ONOFF
+<DT><STRONG><A NAME="item_debugging_onoff">debugging [ONOFF]
 
 </A></STRONG><DD>
 <EM>Class method.</EM>
 
-Turn debugging on (true) or off (false) for the entire MIME-tools library.
-Debug messages go to STDERR.
+Turn debugging on (if ONOFF is true) or off (if ONOFF is false) for the
+entire MIME-tools library. Debug messages go to STDERR.
+
+
+<P>
+
+With no argument, this method just returns the current setting.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_emulate_tmpfile_option">emulate_tmpfile [OPTION]
+
+</A></STRONG><DD>
+<EM>Class method.</EM>
+
+Determines how to patch a Perl 5.002 bug in FileHandle::new_tmpfile, and
+get a FileHandle object which really <EM>will</EM>
+ be destroyed when it goes out of scope. Possible options are:
+
+
+<P>
+
+<DL>
+<DT><STRONG><A NAME="item_opendup">OPENDUP
+
+</A></STRONG><DD>
+Always emulate FileHandle->new_tmpfile, using an fd-opened duplicate
+filehandle. Pretty ugly (two additional filehandles sharing the same
+descriptor are briefly open at one point, though both are closed before the
+new tmpfile object is returned): however, it's probably quite portable
+since it (a) doesn't require POSIX, and (b) doesn't make assumptions as to
+the underlying implementation of FileHandle objects.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_unlink">UNLINK   
+
+</A></STRONG><DD>
+Always emulate FileHandle->new_tmpfile, using <CODE>tmpnam()</CODE> plus
+<CODE>unlink().</CODE> Probably only works on Unix-like systems, but is
+very straightforward. Depends on POSIX::tmpnam() and on the
+autodelete-on-unlink behavior. 
+
+
+<P>
+
+<DT><STRONG><A NAME="item_no">NO
+
+</A></STRONG><DD>
+No emulation: always just use FileHandle->new_tmpfile to get tmpfile
+handles.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_a_subroutine_reference">(a subroutine reference)
+
+</A></STRONG><DD>
+Use this subroutine.
+
+
+<P>
+
+</DL>
+If any of the emulation options ends with '!' (e.g., ``UNLINK!''), then the
+package will <EM>always</EM>
+ emulate that way. Otherwise, it will try to make a reasonable guess as to
+whether emulation is necessary, based on your version of Perl.
+
+
+<P>
+
+The default setting (if you never invoke this method) is <A HREF="#item_opendup">OPENDUP</A>.
+
+
+<P>
+
+With no argument, this method just returns the current setting.
 
 
 <P>
@@ -91,6 +167,11 @@ The VERSION should be '1' or '1.0'.
 
 <P>
 
+With no argument, this method just returns the current setting.
+
+
+<P>
+
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
@@ -110,19 +191,19 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 1.2 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 2.13 $ $Date: 1997/01/13 01:37:53 $
 
 
 <P>
 
-    <P>
-    <HR>       
-    <FONT COLOR=#F00000>*</FONT>
-    <FONT SIZE=-1>
-    Artwork and slogan from Warner Bros' "Animaniacs". 
-    Neither this code nor its author are connected with or
-    endorsed by Warner Bros. in any way. Narf. Poit. 
-    </FONT>
-    </BODY>
+<EM>Note: this file is used to set the version of the entire MIME-tools
+distribution.</EM>
 
-    </HTML>
+
+
+
+
+<P>
+
+</BODY>
+</HTML>

@@ -1,18 +1,28 @@
+1. FileHandle::tmpfile is emulated
 
-As of MIME-parser 2.0...
+	A bug was discovered in FileHandle::tmpfile that affects
+	5.002 and 5.003 at least: it causes a descriptor leak.
+	A new tmpfile routine is used in this package, but it has
+	not been tested outside of Linux.  You can control this emulation
+	in your code: see MIME::ToolUtils for details.
 
-	MIME::Head is a subclass of Mail::Header
-	MIME::Entity is a subclass of Mail::Internet
+2. Major changes between 1.0 and 2.0:
 
-If you are upgrading from the MIME-parser 1.0 package, and you used 
-these module directly, you may notice some warnings about deprecated 
-constructs in your code... much your stuff should (hopefully) 
-still work... you'll just see a lot of warnings.  
+	As of MIME-parser 2.0...
 
-HOWEVER...
+		MIME::Head is a subclass of Mail::Header
+		MIME::Entity is a subclass of Mail::Internet
 
-There are some true incompatibilities between MIME::Head 1.0 and 
-Mail::Header.  Please read the full documentation before proceeding!
+	If you are upgrading from the MIME-parser 1.0 package, and you used 
+	these module directly, you may notice some warnings about deprecated 
+	constructs in your code... much your stuff should (hopefully) 
+	still work... you'll just see a lot of warnings.  
 
-If you desperately need to upgrade, you can emulate the old version's
-behavior.  See the MIME::ToolUtils package for details.
+	HOWEVER...
+
+	There are some true incompatibilities between MIME::Head 1.0 and 
+	Mail::Header.  Please read the full documentation before proceeding!
+
+	If you desperately need to upgrade, you can emulate the old version's
+	behavior.  See the MIME::ToolUtils package for details.
+

@@ -4,13 +4,11 @@
     <TITLE>MIME::Head</TITLE>
     </HEAD>
 
-    <BODY>
-
-    <A NAME="#__top"> <P></A>
+<BODY  LINK="#C00000"    ALINK="#FF2020"  VLINK="#900000" >    <A NAME="#__top"> <P></A>
 <CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Entity.html">MIME::Entity</A></FONT>
-</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::Head</FONT></B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#000000>MIME::Head</FONT></B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Latin1.html">MIME::Latin1</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Parser.html">MIME::Parser</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="ParserBase.html">MIME::ParserBase</A></FONT>
@@ -18,9 +16,9 @@
 </B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
       <TR>
 	<TD VALIGN=TOP ALIGN=CENTER>
-	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>Head</FONT></B></H1>
-	    <img src="mime-sm.gif" alt="MIME">
-	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+	    <H1><B><FONT SIZE=7 COLOR=#400000>MIME::<BR>Head</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="LOGO">
+	    <P><FONT SIZE=+1 COLOR=#400000><I>It's MIME time!</I></FONT>
         <TD VALIGN=TOP>
 <!-- INDEX BEGIN -->
 <UL>
@@ -105,6 +103,17 @@ To get rid of all internal newlines in all fields (called <STRONG>unfolding</STR
 <PRE>
     # Get rid of all internal newlines:
     $head-&gt;unfold();
+</PRE>
+
+<P>
+
+To RFC-1522-decode any Q- or B-encoded-text in the header fields:
+
+
+<P>
+
+<PRE>
+    $head-&gt;decode();
 </PRE>
 
 <P>
@@ -336,10 +345,9 @@ takes this into account.
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="gettingsetting_fields">Getting/setting fields</A></H3>
-<STRONG>NOTE:</STRONG>
- this interface is not as extensive as that of Mail::Internet; however, I
-have provided a set of methods that I can guarantee are supportable across
-any changes to the internal implementation of this class.
+The following are methods related to retrieving and modifying the header
+fields. Some are inherited from Mail::Header, but I've kept the
+documentation around for convenience.
 
 
 <P>
@@ -384,6 +392,86 @@ allowed, but deprecated.
 occurences... so if you just want to <EM>change</EM>
  the value of a field (creating it if necessary), then you probably <STRONG>don't</STRONG>
  want to use this method: consider using <A HREF="#item_set">set</A> instead.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_decode">decode
+
+</A></STRONG><DD>
+Go through all the header fields, looking for RFC-1522-style ``Q''
+(quoted-printable, sort of) or ``B'' (base64) encoding, and decode them
+in-place. Fellow Americans, you probably don't know what the hell I'm
+talking about. Europeans, Russians, et al, you probably do.  <CODE>:-)</CODE>. 
+
+
+<P>
+
+For example, here's a valid header you might get:
+
+
+<P>
+
+<PRE>
+      From: =?US-ASCII?Q?Keith_Moore?= &lt;moore@cs.utk.edu&gt;
+      To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= &lt;keld@dkuug.dk&gt;
+      CC: =?ISO-8859-1?Q?Andr=E9_?= Pirard &lt;PIRARD@vm1.ulg.ac.be&gt;
+      Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
+       =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=
+       =?US-ASCII?Q?.._cool!?=
+</PRE>
+
+<P>
+
+That basically decodes to (sorry, I can only approximate the Latin
+characters with 7 bit sequences /o and 'e):
+
+
+<P>
+
+<PRE>
+      From: Keith Moore &lt;moore@cs.utk.edu&gt;
+      To: Keld J/orn Simonsen &lt;keld@dkuug.dk&gt;
+      CC: Andr'e  Pirard &lt;PIRARD@vm1.ulg.ac.be&gt;
+      Subject: If you can read this you understand the example... cool!
+</PRE>
+
+<P>
+
+<STRONG>NOTE:</STRONG>
+ currently, the decodings are done without regard to the character set:
+thus, the Q-encoding <CODE>=F8</CODE> is simply translated to the octet (hexadecimal <CODE>F8</CODE>), period. Perhaps this is a bad idea; I honestly don't know. Certainly, a
+mail <EM>reader</EM>
+ intended for humans should use the raw (undecoded) header. But a mail
+robot? Anyway, I'll gladly take guidance from anyone who has a clear idea
+of what should happen.
+
+
+<P>
+
+<STRONG>WARNING:</STRONG>
+ the CRLF+SPACE separator that splits up long encoded words into shorter
+sequences (see the Subject: example above) gets lost when the field is
+unfolded, and so decoding after unfolding causes a spurious space to be
+left in the field.  
+<EM>THEREFORE: if you're going to decode, do so BEFORE unfolding!</EM>
+
+
+
+
+
+<P>
+
+This method returns the self object.
+
+
+<P>
+
+<EM>Thanks to Kent Boortz for providing the idea, and the baseline
+RFC-1522-decoding code!</EM>
+
+
+
 
 
 <P>
@@ -1068,19 +1156,10 @@ Advanced Data Solutions.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.9 $ $Date: 1996/10/28 18:29:55 $
+$Revision: 2.12 $ $Date: 1997/01/03 23:33:26 $
 
 
 <P>
 
-    <P>
-    <HR>       
-    <FONT COLOR=#F00000>*</FONT>
-    <FONT SIZE=-1>
-    Artwork and slogan from Warner Bros' "Animaniacs". 
-    Neither this code nor its author are connected with or
-    endorsed by Warner Bros. in any way. Narf. Poit. 
-    </FONT>
-    </BODY>
-
-    </HTML>
+</BODY>
+</HTML>

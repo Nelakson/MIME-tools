@@ -19,7 +19,7 @@ that contains 8-bit (presumably Latin-1) characters.
 
 =head1 PUBLIC INTERFACE 
 
-=over
+=over 4
 
 =cut
 
@@ -33,7 +33,7 @@ require Exporter;
 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # The map:
 @Map = (
@@ -203,7 +203,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.2 $ $Date: 1996/10/18 21:32:56 $
+$Revision: 1.3 $ $Date: 1997/01/03 21:05:13 $
 
 =cut
 

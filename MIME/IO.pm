@@ -17,8 +17,7 @@ require (and, thus, all that they can assume) is that they are manipulating
 an object which responds to the following small, well-defined set of 
 messages:
 
-
-=over
+=over 4
 
 =item close
 
@@ -54,8 +53,29 @@ and 0 on end of file.
 
 =back
 
-I<Thanks to Achim Bohnet for suggesting this more-generic I/O model.>
 
+By popular demand, I have also added the following to the built-in classes,
+but I do not use them anywhere in the parsing/generating code so it's
+safe for you to omit them from your class:
+
+=over
+
+=item seek POS,WHENCE
+
+I<Instance method, FOR READ-OPENED STREAMS ONLY.>
+Seek to the given POSition in the stream.  The WHENCE has the same
+meaning as in the Perl built-in C<seek()>.
+
+=item tell
+
+I<Instance method, FOR READ-OPENED STREAMS ONLY.>
+Tell the given position in the stream.
+
+=back
+
+
+I<Thanks to Achim Bohnet for suggesting this more-generic I/O model.>
+I<Thanks to Jason L Tibbitts III for suggesting the seek/tell interface.>
 
 =head1 BUILT-IN SUBCLASSES
 
@@ -65,7 +85,7 @@ I<Thanks to Achim Bohnet for suggesting this more-generic I/O model.>
 use vars qw($VERSION);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 1.7 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 #============================================================
@@ -75,7 +95,7 @@ package MIME::IO::Handle;
 
 =head2 MIME::IO::Handle
 
-=over
+=over 4
 
 =item B<DESCRIPTION>
 
@@ -83,7 +103,7 @@ An I/O interface object wrapped around a raw filehandle.
 If you hand this class' C<wrap()> constructor an argument, it is 
 expected to be one of the following:
 
-=over
+=over 4
 
 =item *
 
@@ -186,7 +206,7 @@ sub getline {
 }
 sub getlines {
     my $self = shift;
-    wantarray or croak "Can't call getlines in scalar context!";
+    wantarray or croak("Can't call getlines in scalar context!");
     my $fh = $$self;
     <$fh>;
 }
@@ -199,6 +219,17 @@ sub read {
     return read($$self, $_[0], $_[1]);
 }
 
+sub seek {
+    my $self = shift;
+    return seek($$self, $_[0], $_[1]);
+}
+sub tell {
+    my $self = shift;
+    return tell($$self);
+}
+
+
+
 
 #============================================================
 #============================================================
@@ -207,7 +238,7 @@ package MIME::IO::Scalar;
 
 =head2 MIME::IO::Scalar
 
-=over
+=over 4
 
 =item DESCRIPTION
 
@@ -269,7 +300,7 @@ sub getline {
 #------------------------------
 sub getlines {
     my $self = shift;
-    wantarray or croak "Can't call getlines in scalar context!";
+    wantarray or croak("Can't call getlines in scalar context!");
 
     # Get all lines:
     my ($line, @lines);
@@ -285,6 +316,8 @@ sub getlines {
 sub print {
     my $self = shift;
     ${$self->{Sref}} .= join('', @_);
+#   $self->{Index} = length(${$self->{Sref}});
+    1;
 }
 
 #------------------------------
@@ -297,6 +330,36 @@ sub read {
     $_[1] = $read;
     return length($read);
 }
+
+#------------------------------
+# seek POS,WHENCE
+#------------------------------
+# Warning: you may only seek when reading!
+
+sub seek {
+    my ($self, $pos, $whence) = @_;
+    my $eofpos = length(${$self->{Sref}});
+
+    # Seek:
+    if    ($whence == 0) { $self->{Index} = $pos }
+    elsif ($whence == 1) { $self->{Index} += $pos }
+    elsif ($whence == 2) { $self->{Index} = $eofpos + $pos}
+    else                 { die "bad seek whence ($whence)" }
+
+    # Fixup:
+    if ($self->{Index} < 0)       { $self->{Index} = 0 }
+    if ($self->{Index} > $eofpos) { $self->{Index} = $eofpos }
+    1;
+}
+
+#------------------------------
+# tell
+#------------------------------
+sub tell {
+    my $self = shift;
+    $self->{Index};
+}
+
 
 
 
@@ -319,7 +382,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.5 $ $Date: 1996/10/28 18:47:29 $
+$Revision: 1.7 $ $Date: 1997/01/13 00:23:06 $
 
 
 =cut

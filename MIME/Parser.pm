@@ -90,7 +90,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.8 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Count of fake filenames generated:
 my $G_output_path = 0;
@@ -271,8 +271,35 @@ non-ASCII characters.  Returns true or false.
 
 B<Note:> Override this method in a subclass if you just want to change 
 which externally-provided filenames are allowed, and which are not.
+Like this:
 
-I<Thanks to Andrew Pimlott for finding a real dumb bug. :-)>
+     package MIME::MyParser;
+     
+     require 5.002;                # for SUPER
+     use package MIME::Parser;
+     
+     @MIME::MyParser::ISA = ('MIME::Parser');
+     
+     sub evil_filename {
+         my ($self, $name) = @_;
+         return 1 if (!defined($name) || ($name eq ''));
+         return 1 if ($name =~ m|/|);                      # Unix pathname
+         return 1 if (($name eq '.') || ($name eq '..'));  # Unix directories
+         return 1 if ($name =~ /[\s\x00-\x1f\x7f]/);       # non-printables
+         0;     # it's good!
+     }
+     1;
+
+B<Note:> My apologies to various individuals across the Atlantic
+who have been inconvenienced by this function's rejection of non-ASCII
+characters.  Changing the default behavior now would likely cause
+howls of protest from folks who depend on it.  If you don't like the 
+behavior of this function, you can define your own subclass of MIME::Parser 
+and override it as shown above.
+
+I<Thanks to Andrew Pimlott for finding a real dumb bug in the original
+version.  Thanks to Nickolay Saukh for noting that (a) evil is in the 
+eye of the beholder, and (b) 0x7F is whitespace, too.>
 
 =cut
 
@@ -285,15 +312,15 @@ sub evil_filename {
 # evil_name (private; deprecated)
 #------------------------------------------------------------
 # Is this an evil filename?  It is if it contains path info or
-# non-ASCII characters.  Provided for backwards-compatibility
-# with version 1.x.
+# non-ASCII characters.  PROVIDED FOR BACKWARDS-COMPATIBILITY
+# WITH VERSION 1.x.
 
 sub evil_name {
     my $name = shift;
     return 1 if (!defined($name) || ($name eq ''));
     return 1 if ($name =~ m|/|);                      # currently, '/' is evil
     return 1 if (($name eq '.') || ($name eq '..'));  # '.' and '..' are evil
-    return 1 if ($name =~ /[\x00-\x1f\x80-\xff]/);    # non-ASCIIs are evil
+    return 1 if ($name =~ /[\s\x00-\x1f\x7f-\xff]/);  # non-printables & 8bits
     0;     # it's good!
 }
 
@@ -310,7 +337,7 @@ output pathname for the extracted file.
 The "directory" portion of the returned path will be the C<output_dir()>, 
 and the "filename" portion will be determined as follows:
 
-=over
+=over 4
 
 =item *
 
@@ -356,6 +383,14 @@ can define your own subclass of MIME::Parser and override it there:
      }
      1;
 
+B<Note:> Nickolay Saukh pointed out that, given the subjective nature of
+what is "evil", this function really shouldn't I<warn> about an evil
+filename, but maybe just issue a I<debug> message.  I considered that, 
+but then I thought: if debugging were off, people wouldn't know why 
+(or even if) a given filename had been ignored.  In mail robots
+that depend on externally-provided filenames, this could cause 
+hard-to-diagnose problems.  So, the message is still a warning.
+
 I<Thanks to Laurent Amon for pointing out problems with the original
 implementation, and for making some good suggestions.  Thanks also to
 Achim Bohnet for pointing out that there should be a hookless, OO way of 
@@ -369,7 +404,8 @@ sub output_path {
     # Get the output filename:
     my $outname = $head->recommended_filename;
     if (defined($outname) && $self->evil_filename($outname)) {
-	warn "Provided filename '$outname' is evil... I'm ignoring it\n";
+	warn "Provided filename '$outname' is regarded as evil \n",
+	     "by this parser... I'm ignoring it and supplying my own.\n";
 	$outname = undef;
     }
     if (!defined($outname)) {      # evil or missing; make our OWN filename:
@@ -460,7 +496,7 @@ sub output_prefix {
 Authors of subclasses can consider overriding the following methods.
 They are listed in approximate order of most-to-least impact.
 
-=over
+=over 4
 
 =item new_body_for
 
@@ -514,7 +550,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.4 $ $Date: 1996/10/28 18:38:42 $
+$Revision: 2.8 $ $Date: 1997/01/13 00:23:32 $
 
 =cut
 
@@ -525,7 +561,7 @@ $Revision: 2.4 $ $Date: 1996/10/28 18:38:42 $
 #------------------------------------------------------------
 { 
   package main; no strict;
-  eval join('',<main::DATA>) || die "$@ $main::DATA" unless caller();
+  eval join('',<main::DATA>) || die $@ unless caller();
 }
 1;           # end the module
 __END__
@@ -553,6 +589,7 @@ my $parser = new MIME::Parser;
 $parser->output_dir($DIR);
 $parser->output_to_core(512);       # 512 bytes or less goes to core
 $parser->parse_nested_messages('REPLACE');
+$parser->decode_headers(1);
 
 # Uncomment me to see path hooks in action...
 # $parser->output_path_hook(\&simple_output_path);
@@ -564,7 +601,8 @@ $entity or die "parse failed";
 print "=" x 60, "\n";
 $entity->dump_skeleton;
 print "=" x 60, "\n\n";
-
+$entity->purge;
+$entity->dump_skeleton;
 
 #------------------------------------------------------------
 1;

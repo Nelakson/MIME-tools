@@ -45,7 +45,7 @@ You can also B<test if an encoding is supported:>
 This abstract class, and its private concrete subclasses (see below)
 provide an OO front end to the actions of...
 
-=over
+=over 4
 
 =item *
 
@@ -98,7 +98,7 @@ use MIME::IO;
 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.7 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.9 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 
@@ -376,7 +376,7 @@ You should not override this method.
 =cut
 
 sub install {
-    my ($class, $encoding) = shift;
+    my ($class, $encoding) = @_;
     $DecoderFor{lc($encoding)} = $class;
 }
 
@@ -646,7 +646,7 @@ inserted and 8-bit characters are squished.
 There are several possible ways to use this class to encode arbitrary 
 8-bit text as 7-bit text:
 
-=over
+=over 4
 
 =item Don't use this class.
 
@@ -882,7 +882,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.7 $ $Date: 1996/10/23 17:03:49 $
+$Revision: 2.9 $ $Date: 1997/01/03 21:06:09 $
 
 =cut
 

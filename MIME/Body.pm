@@ -47,21 +47,43 @@ are best stored in files, while short ones are perhaps best stored
 in core.
 
 This class is an attempt to define a common interface for objects
-which contain that message data, regardless of how the data is
-physically stored.  It works this way:
+which contain message data, regardless of how the data is
+physically stored.  Here's an overview:  
 
-=over
+
+            head()        .--------.
+            returns a...  | MIME:: |
+            .------------>| Head   |
+     .--------.           `--------'
+     | MIME:: |
+     | Entity |           .--------. 
+     `--------'           | MIME:: | 
+            `------------>| Body   |           .--------. read()
+             bodyhandle() `--------'           | MIME:: | getline()
+             returns a...        `------------>| IO     | print()
+                                  open()       `--------' etc...
+                                  returns a...
+
+It works this way:
+
+=over 4
 
 =item *
 
-B<A "body" knows where the data is.>  You can ask to "open" this data
-source for I<reading> or I<writing>, and you will get back an "I/O handle".
+B<An "entity" has a "head" and a "body".>  
+Entities are MIME message parts.
+
+=item *
+
+B<A "body" knows where the data is.>  
+You can ask to "open" this data source for I<reading> or I<writing>, 
+and you will get back an "I/O handle".
 
 =item *
 
 B<An "I/O handle" knows how to read/write the data.>
 It is an object that is basically like an IO::Handle
-or a FileHandle: it can be any class, so long as it supports a small,
+or a FileHandle... it can be any class, so long as it supports a small,
 standard set of methods for reading from or writing to the underlying
 data source.
 
@@ -69,7 +91,7 @@ data source.
 
 The lifespan of a "body" usually looks like this:
 
-=over
+=over 4
 
 =item 1.
 
@@ -120,14 +142,10 @@ filehandle.
 
 =head1 DEFINING YOUR OWN SUBCLASSES
 
-So you're not happy with files, scalars, and arrays?
+So you're not happy with files and scalars?
 No problem: just define your own MIME::Body subclass, and make a subclass
 of MIME::Parser or MIME::ParserBase which returns an instance of your
 body class whenever appropriate in the C<new_body_for(head)> method.
-
-I<Things to make you go hmm:> there's nothing stopping you from
-writing a single class that is both a "body" class and an "I/O handle"
-class for that body.  Look at B<MIME::Body::Scalar> for an example.
 
 
 =head2 Writing a "body" class
@@ -135,7 +153,7 @@ class for that body.  Look at B<MIME::Body::Scalar> for an example.
 Your "body" class must inherit from MIME::Body (or some subclass of it),
 and it must either provide or inherit the following methods:
 
-=over
+=over 4
 
 =item init ARGS...
 
@@ -162,10 +180,11 @@ current value.  The inherited action should be fine.
 I<Instance method.>
 Oh, the joys of encapsulation.
 If you're storing the body data in a new disk file, you'll want to
-give applications the ability to get at that file, if only for cleanup.
-This method should return the path to the file, or undef 
-if there is none (e.g., if the data is in core).  The default 
-inherited method just returns undef.
+give applications the ability to get at that file, if only for cleanup
+(see MIME::Entity::purge() for an example).  This method should return 
+the path to the file, or undef if there is none 
+(e.g., if the data is in core).  
+The default inherited method just returns undef.
 
 =back
 
@@ -178,8 +197,7 @@ reading/writing data.
 
 See the documentation on the B<MIME::IO> class for details on 
 what is expected of an I/O handle.
-Note that the B<IO::Handle> class already conforms to this interface,
-as does B<MIME::IO>.
+B<Note that the IO::Handle class already conforms to this interface.>
 
 
 =head1 NOTES
@@ -206,11 +224,19 @@ array variable, or whatever).
 Storing the body of each MIME message in a persistently-open
 IO::Handle was a possibility, but it seemed like a bad idea,
 considering that a single multipart MIME message could easily suck up
-all the available file descriptors.  This risk increases if the user
-application is processing more than one MIME entity at a time.
+all the available file descriptors on som OSes.  This risk increases 
+if the user application is processing more than one MIME entity at a time.
 
 
 =head1 SUBCLASSES
+
+Basically, we have the following classes:
+
+   Body                Stores body   When open()ed,     Someday soon
+   class:              data in:      returns:           will return:
+   ----------------------------------------------------------------------
+   MIME::Body::File    disk file     MIME::IO::Handle   IO::Handle
+   MIME::Body::Scalar  scalar        MIME::IO::Scalar   IO::????
 
 =cut
 
@@ -280,6 +306,11 @@ used directly.
 B<Note:> All of the usual caveats related to shell commands apply!
 To make sure you won't accidentally do something you'll regret, 
 use taint-checking (B<perl -T>) in your application.
+
+B<Note:> I would have had MIME::Body::File return a FileHandle, except that
+there are some methods that FileHandle does not support in 5.002,
+and it was too soon to require IO::Handle.
+
 
 =cut
 
@@ -429,7 +460,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 1.9 $ $Date: 1996/10/28 06:51:47 $
+$Revision: 1.11 $ $Date: 1997/01/13 00:21:47 $
 
 =cut
 

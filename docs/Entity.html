@@ -4,12 +4,10 @@
     <TITLE>MIME::Entity</TITLE>
     </HEAD>
 
-    <BODY>
-
-    <A NAME="#__top"> <P></A>
+<BODY  LINK="#C00000"    ALINK="#FF2020"  VLINK="#900000" >    <A NAME="#__top"> <P></A>
 <CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Body.html">MIME::Body</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
-</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::Entity</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
+</B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#000000>MIME::Entity</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
 </B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Latin1.html">MIME::Latin1</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Parser.html">MIME::Parser</A></FONT>
@@ -18,9 +16,9 @@
 </B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
       <TR>
 	<TD VALIGN=TOP ALIGN=CENTER>
-	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>Entity</FONT></B></H1>
-	    <img src="mime-sm.gif" alt="MIME">
-	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+	    <H1><B><FONT SIZE=7 COLOR=#400000>MIME::<BR>Entity</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="LOGO">
+	    <P><FONT SIZE=+1 COLOR=#400000><I>It's MIME time!</I></FONT>
         <TD VALIGN=TOP>
 <!-- INDEX BEGIN -->
 <UL>
@@ -95,7 +93,9 @@ Create a document for a text file with 8-bit (Latin-1) characters:
 
 <PRE>
     $ent = build MIME::Entity Path     =&gt;&quot;french-msg.txt&quot;,
-                              Encoding =&gt;&quot;quoted-printable&quot;;
+                              Encoding =&gt;&quot;quoted-printable&quot;,
+                              -From    =&gt;'jean.luc@inria.fr',
+                              -Subject =&gt;&quot;C'est bon!&quot;;
 </PRE>
 
 <P>
@@ -141,10 +141,10 @@ Create a multipart message (could it <EM>be</EM>
 
 <PRE>
     # Create the top-level, and set up the mail headers:
-    $top = build MIME::Entity Type=&gt;&quot;multipart/mixed&quot;;
-    $top-&gt;head-&gt;add('from',    &quot;me\@myhost.com&quot;);
-    $top-&gt;head-&gt;add('to',      &quot;you\@yourhost.com&quot;);
-    $top-&gt;head-&gt;add('subject', &quot;Hello, nurse!&quot;);
+    $top = build MIME::Entity Type     =&gt; &quot;multipart/mixed&quot;,
+                              -From    =&gt; 'me@myhost.com',
+                              -To      =&gt; 'you@yourhost.com',
+                              -Subject =&gt; &quot;Hello, nurse!&quot;;
     
     # Attachment #1: a simple text document: 
     attach $top  Path=&gt;&quot;./testin/short.txt&quot;;
@@ -353,7 +353,8 @@ build a ``normal'' single-part entity:
    $ent = build MIME::Entity Type     =&gt; &quot;image/gif&quot;,
 		             Encoding =&gt; &quot;base64&quot;,
                              Path     =&gt; &quot;/path/to/xyz12345.gif&quot;,
-                             Filename =&gt; &quot;saveme.gif&quot;;
+                             Filename =&gt; &quot;saveme.gif&quot;,
+                             Disposition =&gt; &quot;attachment&quot;;
 </PRE>
 
 <P>
@@ -370,19 +371,78 @@ And like this to build a ``multipart'' entity:
 
 <P>
 
-A minimal MIME header will be created. The params are:
+A minimal MIME header will be created. If you want to add or modify any
+header fields afterwards, you can of course do so via the underlying head
+object... but hey, there's now a prettier syntax!
+
+
+<P>
+
+<PRE>
+   $ent = build MIME::Entity Type     =&gt;&quot;multipart/mixed&quot;,
+                             -From         =&gt; $myaddr,
+                             -Subject      =&gt; &quot;Hi!&quot;,
+                            '-X-Certified' =&gt; ['SINED','SEELED','DELIVERED'];
+</PRE>
+
+<P>
+
+Normally, an <CODE>X-Mailer</CODE> header field is output which contains this toolkit's name and version (plus
+this module's RCS version). This will allow any bad MIME we generate to be
+traced back to us. You can of course overwrite that header with your own:
+
+
+<P>
+
+<PRE>
+   $ent = build MIME::Entity  Type       =&gt; &quot;multipart/mixed&quot;,
+                             '-X-Mailer' =&gt; &quot;myprog 1.1&quot;;
+</PRE>
+
+<P>
+
+Or remove it entirely:
+
+
+<P>
+
+<PRE>
+   $ent = build MIME::Entity  Type       =&gt; &quot;multipart/mixed&quot;,
+                             '-X-Mailer' =&gt; undef;
+</PRE>
+
+<P>
+
+OK, enough hype. The parameters are:
 
 
 <P>
 
 <DL>
+<DT><STRONG><A NAME="item_fieldname">-FIELDNAME
+
+</A></STRONG><DD>
+Any parameter with a leading <CODE>'-'</CODE> is taken to be a mail header field, whose value is to <EM>replace</EM>
+ the corresponding header field <EM>after</EM>
+ we go through all the other params and construct the basic MIME header. Use
+with care: you don't want to trash those nice MIME fields!
+<EM>Syntactic sugar, totally optional. TMTOWTDI.</EM>
+
+
+
+
+
+<P>
+
 <DT><STRONG><A NAME="item_boundary">Boundary
 
 </A></STRONG><DD>
 <EM>Multipart entities only. Optional.</EM>
   
-The boundary string. If you omit this, a random string will be chosen...
-which is probably safer.
+The boundary string. As per RFC-1521, it must consist only of the
+characters <CODE>[0-9a-zA-Z'()+_,-./:=?]</CODE> and space (you'll be warned, and your boundary will be ignored, if this is
+not the case). If you omit this, a random string will be chosen... which is
+probably safer.
 
 
 <P>
@@ -407,6 +467,20 @@ HREF="Body.html">MIME::Body::Scalar.</A>
   
 The text of the content-description. If you don't specify it, the field is
 not put in the header.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_disposition">Disposition
+
+</A></STRONG><DD>
+<EM>Optional.</EM>
+  
+The basic content-disposition (<CODE>"attachment"</CODE> or <CODE>"inline"</CODE>). If you don't specify it, it defaults to ``inline'' for backwards
+compatibility.  <EM>Thanks to Kurt Freytag for suggesting this feature.</EM>
+
+
+
 
 
 <P>
@@ -453,7 +527,7 @@ HREF="Body.html">MIME::Body::File.</A>
 <EM>Optional.</EM>
   
 Is this a top-level entity? If so, it must sport a MIME-Version. The
-default is true.
+default is true. (NB: look at how <CODE>attach()</CODE> uses it.)
 
 
 <P>
@@ -463,7 +537,7 @@ default is true.
 </A></STRONG><DD>
 <EM>Optional.</EM>
   
-The content-type. If you don't specify it, it defaults to <CODE>"text/plain"</CODE> 
+The basic content-type (<CODE>"text/plain"</CODE>, etc.). If you don't specify it, it defaults to <CODE>"text/plain"</CODE> 
 as per RFC-1521.  <EM>Do yourself a favor: put it in.</EM>
 
 
@@ -504,7 +578,7 @@ equivalent to:
 <P>
 
 <PRE>
-    $entity-&gt;add_part(ref($entity)-&gt;build(PARAMHASH));
+    $entity-&gt;add_part(ref($entity)-&gt;build(PARAMHASH, Top=&gt;0));
 </PRE>
 
 <P>
@@ -784,6 +858,33 @@ will work with both text and binary bodies.
 
 <P>
 
+<DT><STRONG><A NAME="item_purge">purge
+
+</A></STRONG><DD>
+Recursively purge all <EM>on-disk</EM>
+ body parts in this message. This assumes that the <CODE>path()</CODE>
+method returns something reasonable for the ``bodyhandle'' object... <A
+HREF="Body.html">MIME::Body::File</A> and <A
+HREF="Body.html">MIME::Body::Scalar</A> do, at least.
+
+
+<P>
+
+I wouldn't attempt to read those body files after you do this, for obvious
+reasons. I probably should nuke the bodyhandle's path afterwards, but
+currently I don't. Don't gamble on this for the future, though.
+
+
+<P>
+
+<EM>Thanks to Jason L. Tibbitts III for suggesting this method.</EM>
+
+
+
+
+
+<P>
+
 </DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
@@ -925,19 +1026,10 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.8 $ $Date: 1996/11/03 00:19:30 $
+$Revision: 2.14 $ $Date: 1997/01/13 00:22:41 $
 
 
 <P>
 
-    <P>
-    <HR>       
-    <FONT COLOR=#F00000>*</FONT>
-    <FONT SIZE=-1>
-    Artwork and slogan from Warner Bros' "Animaniacs". 
-    Neither this code nor its author are connected with or
-    endorsed by Warner Bros. in any way. Narf. Poit. 
-    </FONT>
-    </BODY>
-
-    </HTML>
+</BODY>
+</HTML>

@@ -40,6 +40,9 @@ You can also alter the behavior of the parser:
 
     # Parse contained "message/rfc822" objects as nested MIME streams:
     $parser->parse_nested_messages(1);
+     
+    # Automatically attempt to RFC-1522-decode the MIME headers:
+    $parser->decode_headers(1);
 
 
 =head1 DESCRIPTION
@@ -78,7 +81,7 @@ use FileHandle ();
 use Carp;
 
 # Kit modules:
-use MIME::ToolUtils qw(:config :msgs);
+use MIME::ToolUtils qw(:config :msgs :utils);
 use MIME::Head;
 use MIME::Body;
 use MIME::Entity;
@@ -93,7 +96,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.1 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 1.8 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # How to catenate:
 $CAT = '/bin/cat';
@@ -153,6 +156,40 @@ sub new {
     $self->init(@_);
 }
 
+
+#------------------------------------------------------------
+# decode_headers 
+#------------------------------------------------------------
+
+=item decode_headers ONOFF
+
+If set true, then the parser will attempt to decode the MIME headers
+as per RFC-1522 the moment it sees them.  This will probably be of
+most use to those of you who expect some international mail,
+especially mail from individuals with 8-bit characters in their names.
+
+If set false, no attempt at decoding will be done.
+
+With no argument, just returns the current setting.
+
+B<Warning:> some folks already have code which assumes that no decoding
+is done, and since this is pretty new and radical stuff, I have
+initially made "off" the default setting for backwards compatibility in 2.05.
+However, I will possibly change this in future releases, so I<please:>
+if you want a particular setting, declare it when you create your parser
+object.
+
+=cut
+
+sub decode_headers {
+    my ($self, $onoff) = @_;
+    if (@_ > 1) {
+	$self->{MPB_DecodeHeaders} = $onoff;
+    }
+    $self->{MPB_DecodeHeaders};
+}
+
+
 #------------------------------------------------------------
 # init
 #------------------------------------------------------------
@@ -186,6 +223,7 @@ sub init {
     $self->{MPB_Interface} = {};
     $self->interface(ENTITY_CLASS => 'MIME::Entity');
     $self->interface(HEAD_CLASS   => 'MIME::Head');
+    $self->decode_headers(1);
     $self;
 }
 
@@ -289,8 +327,8 @@ I<Thanks to Andreas Koenig for suggesting this method.>
 
 sub parse_nested_messages {
     my ($self, $option) = @_;
-    $self->{MPB_RFC822} = $option if (@_ > 1);
-    $self->{MPB_RFC822};
+    $self->{MPB_ParseNested} = $option if (@_ > 1);
+    $self->{MPB_ParseNested};
 }
 
 #------------------------------------------------------------
@@ -315,11 +353,14 @@ sub parse_preamble {
     while (<$in>) {
 	s/\r?\n$//o;        # chomps both \r and \r\n
 	
-	debug "preamble: <$_>";
+	### debug "preamble: <$_>";
 	($_ eq $delim) and return 'DELIM';
 	($_ eq $close) and return error "multipart message has no parts";
     }
-    error "unexpected eof in preamble" if eof($in);
+    return error "Unexpected EOF in preamble.\n".
+	         "Message looks illegal: I couldn't find the boundary...\n".
+		  qq{BOUND = "$inner_bound"\n}.
+		 "...as --BOUND or --BOUND-- on any line of this message!";
 }
 
 #------------------------------------------------------------
@@ -345,7 +386,7 @@ sub parse_epilogue {
     while (<$in>) {
 	s/\r?\n$//o;        # chomps both \r and \r\n
 
-	debug "epilogue: <$_>";
+	### debug "epilogue: <$_>";
 	if (defined($outer_bound)) {    # if there's a boundary, look for it:
 	    ($_ eq $delim) and return 'DELIM';
 	    ($_ eq $close) and return 'CLOSE';
@@ -390,7 +431,10 @@ sub parse_to_bound {
     }
 
     # Yow!
-    return error "unexpected EOF while waiting for $bound !";
+    return error "Unexpected EOF.\n".
+	         "Message looks illegal: I couldn't find the boundary...\n".
+	         qq{BOUND = "$bound"\n}.
+		 "...as --BOUND or --BOUND-- on any line of this message!";
 }
 
 #------------------------------------------------------------
@@ -421,6 +465,15 @@ sub parse_part {
     debug "created head $head";
     $head->read($in) or return error "couldn't parse head!";
 
+    # If desired, auto-decode the header as per RFC-1522.  
+    #    This shouldn't affect non-encoded headers; however, it will decode
+    #    headers with international characters.  WARNING: currently, the
+    #    character-set information is LOST after decoding.
+    if ($self->{MPB_DecodeHeaders}) {
+	debug "auto-decoding the header";
+	$head->decode;
+    }
+
     # Attach it to the entity; also, if this is the top-level head, save it:
     $entity->head($head);
     $self->{MPB_LastHead} or $self->{MPB_LastHead} = $head;
@@ -432,7 +485,11 @@ sub parse_part {
 	# Get the boundaries for the parts:
 	my $inner_bound = $head->multipart_boundary;
 	defined($inner_bound) or return error "no multipart boundary!";
-	
+
+	# Check for unparseable boundaries...
+	return error "can't parse: CR or LF in multipart boundary!!" 
+	    if ($inner_bound =~ /[\r\n]/);
+
 	# Parse preamble:
 	debug "parsing preamble...";
 	($state = $self->parse_preamble($inner_bound, $in))
@@ -449,6 +506,9 @@ sub parse_part {
 	    ($part, $state) = $self->parse_part($inner_bound, $in)
 		or return ();
 	    ($state eq 'EOF') and return error "unexpected EOF before close";
+
+	    # Tweak the content-type if the parent is multipart/digest?
+	    # Hmmm... no, that's semantics, not syntax...
 
 	    # Add it to the entity:
 	    $entity->add_part($part);
@@ -479,9 +539,9 @@ sub parse_part {
 	if (defined($outer_bound)) {     # BOUNDARIES...
 
 	    # Open a temp file to dump the encoded info to, and do so:
-	    $encoded = FileHandle->new_tmpfile;
+	    $encoded = tmpopen() or die "couldn't open tmpfile!";
 	    binmode($encoded);                # extract the part AS IS
-	    $state = $self->parse_to_bound($outer_bound, $in, $encoded)
+	    $state = $self->parse_to_bound($outer_bound,$in,$encoded)
 		or return ();
 	    
 	    # Flush and rewind it, so we can read it:
@@ -522,7 +582,8 @@ sub parse_part {
 	    debug "reparsing enclosed message!";
 
 	    # Open a tmpfile for the bodyhandle:
-	    my $tmpbody = FileHandle->new_tmpfile;
+	    my $tmpbody;
+	    $tmpbody = tmpopen() or die "couldn't open tmpfile!";
 	    
 	    # Decode and save the body (using the decoder):
 	    my $decoded_ok = $decoder->decode($encoded, $tmpbody);
@@ -798,6 +859,7 @@ veeeeeeeeery long indeed.
 A better solution for this case would be to set up some form of 
 state machine for input processing.  This will be left for future versions.
 
+
 =item Multipart parts read into temp files before decoding
 
 In my original implementation, the MIME::Decoder classes had to be aware
@@ -821,6 +883,7 @@ directed the encoded part into a scalar, and someone unexpectedly
 sends you a 6 MB tar file?).  Finally, I'm just not conviced that 
 the temp-file use adds significant overhead.
 
+
 =item Fuzzing of CRLF and newline on input
 
 RFC-1521 dictates that MIME streams have lines terminated by CRLF
@@ -830,6 +893,7 @@ character C<"\n"> instead.
 
 An attempt has been made to allow the parser to handle both CRLF 
 and newline-terminated input.
+
 
 =item Fuzzing of CRLF and newline on output
 
@@ -842,12 +906,62 @@ and no explicit encoding will be output as a text file
 that, on many systems, will have an annoying ^M at the end of
 each line... I<but this is as it should be>.
 
+
+=item Inability to handle multipart boundaries that contain newlines
+
+First, let's get something straight: I<this is an evil, EVIL practice,>
+and is incompatible with RFC-1521... hence, it's not valid MIME.
+
+If your mailer creates multipart boundary strings that contain
+newlines I<when they appear in the message body,> give it two weeks notice 
+and find another one.  If your mail robot receives MIME mail like this, 
+regard it as syntactically incorrect MIME, which it is.
+
+Why do I say that?  Well, in RFC-1521, the syntax of a boundary is 
+given quite clearly:
+
+      boundary := 0*69<bchars> bcharsnospace
+        
+      bchars := bcharsnospace / " "
+      
+      bcharsnospace :=    DIGIT / ALPHA / "'" / "(" / ")" / "+" /"_"
+                   / "," / "-" / "." / "/" / ":" / "=" / "?"
+
+All of which means that a valid boundary string I<cannot> have 
+newlines in it, and any newlines in such a string in the message header
+are expected to be solely the result of I<folding> the string (i.e.,
+inserting to-be-removed newlines for readability and line-shortening 
+I<only>).
+
+Yet, there is at least one brain-damaged user agent out there 
+that composes mail like this:
+
+      MIME-Version: 1.0
+      Content-type: multipart/mixed; boundary="----ABC-
+       123----"
+      Subject: Hi... I'm a dork!
+      
+      This is a multipart MIME message (yeah, right...)
+      
+      ----ABC-
+       123----
+      
+      Hi there! 
+
+We have I<got> to discourage practices like this (and the recent file
+upload idiocy where binary files that are part of a multipart MIME
+message aren't base64-encoded) if we want MIME to stay relatively 
+simple, and MIME parsers to be relatively robust. 
+
+I<Thanks to Andreas Koenig for bringing a baaaaaaaaad user agent to
+my attention.>
+
 =back
 
 
 =head1 WARNINGS
 
-=over
+=over 4
 
 =item binmode
 
@@ -883,7 +997,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.1 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 1.8 $ $Date: 1997/01/13 00:23:54 $
 
 =cut
 

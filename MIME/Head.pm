@@ -33,6 +33,10 @@ To get rid of all internal newlines in all fields (called B<unfolding>):
     # Get rid of all internal newlines:
     $head->unfold();
 
+To RFC-1522-decode any Q- or B-encoded-text in the header fields:
+
+    $head->decode();
+
 To test whether a given field B<exists>:
 
     # Was a "Subject:" given?
@@ -106,6 +110,8 @@ use Carp;
 
 # Other modules:
 use Mail::Header;
+use MIME::Base64;
+use MIME::QuotedPrint;
 
 # Kit modules:
 use MIME::ToolUtils qw(:config :msgs);
@@ -124,7 +130,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.9 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.12 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Sanity (we put this test after our own version, for CPAN::):
 $Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
@@ -257,10 +263,9 @@ sub read {
 
 =head2 Getting/setting fields
 
-B<NOTE:> this interface is not as extensive as that of Mail::Internet;
-however, I have provided a set of methods that I can guarantee are 
-supportable across any changes to the internal implementation of this
-class.
+The following are methods related to retrieving and modifying the header 
+fields.  Some are inherited from Mail::Header, but I've kept the
+documentation around for convenience.
 
 =over 4
 
@@ -331,6 +336,100 @@ sub add_text {
     $self->replace($tag, "$old$text", -1);   
 }
 
+
+#------------------------------------------------------------
+# decode
+#------------------------------------------------------------
+
+=item decode
+
+Go through all the header fields, looking for RFC-1522-style "Q"
+(quoted-printable, sort of) or "B" (base64) encoding, and decode them
+in-place.  Fellow Americans, you probably don't know what the hell I'm
+talking about.  Europeans, Russians, et al, you probably do.  C<:-)>. 
+
+For example, here's a valid header you might get:
+
+      From: =?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>
+      To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>
+      CC: =?ISO-8859-1?Q?Andr=E9_?= Pirard <PIRARD@vm1.ulg.ac.be>
+      Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
+       =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=
+       =?US-ASCII?Q?.._cool!?=
+
+That basically decodes to (sorry, I can only approximate the
+Latin characters with 7 bit sequences /o and 'e):
+
+      From: Keith Moore <moore@cs.utk.edu>
+      To: Keld J/orn Simonsen <keld@dkuug.dk>
+      CC: Andr'e  Pirard <PIRARD@vm1.ulg.ac.be>
+      Subject: If you can read this you understand the example... cool!
+
+B<NOTE:> currently, the decodings are done without regard to the
+character set: thus, the Q-encoding C<=F8> is simply translated to the
+octet (hexadecimal C<F8>), period.  Perhaps this is a bad idea; I
+honestly don't know.  Certainly, a mail I<reader> intended for humans
+should use the raw (undecoded) header.  But a mail robot?  Anyway,
+I'll gladly take guidance from anyone who has a
+clear idea of what should happen.
+
+B<WARNING:> the CRLF+SPACE separator that splits up long encoded words 
+into shorter sequences (see the Subject: example above) gets lost
+when the field is unfolded, and so decoding after unfolding causes
+a spurious space to be left in the field.  
+I<THEREFORE: if you're going to decode, do so BEFORE unfolding!>
+
+This method returns the self object.
+
+I<Thanks to Kent Boortz for providing the idea, and the baseline 
+RFC-1522-decoding code!>
+
+=cut
+
+sub decode {
+    my $self = shift;
+    my ($tag, $i, @decoded);
+    foreach $tag ($self->tags()) {
+	@decoded = map { _decode_header($_) } $self->get_all($tag);
+	for ($i = 0; $i < @decoded; $i++) {
+	    $self->replace($tag, $decoded[$i], $i);
+	}
+    }
+    $self;
+}
+
+# _decode_header STRING
+#     Private: used by decode() to decode a single header field.
+sub _decode_header {
+    my $str = shift;
+
+    # Collapse boundaries between adjacent encoded words:
+    $str =~ s/(\?=)\r?\n[ \t](=\?)/$1$2/g;
+
+    # Decode:
+    $str =~ s/=\?([^\?]+)\?q\?([^\? ]+)\?=/_decode_Q_text($1,$2)/gie;
+    $str =~ s/=\?([^\?]+)\?b\?([^\? ]+)\?=/_decode_B_text($1,$2)/gie;
+    $str;
+}
+
+# _decode_Q_text CHARSET,STRING
+#     Private: used by _decode_header() to decode "Q" encoding, which is
+#     almost, but not exactly, quoted-printable.  :-P
+sub _decode_Q_text {
+    my ($enc, $str) = @_;
+    $str =~ s/=([\da-fA-F]{2})/pack("C", hex($1))/ge;  # RFC-1522, Q rule 1
+    $str =~ s/_/\x20/g;                                # RFC-1522, Q rule 2
+    $str;
+}
+
+# _decode_B_text CHARSET,STRING
+#     Private: used by _decode_header() to decode "B" encoding.
+sub _decode_B_text {
+    my ($enc, $str) = @_;
+    decode_base64($str);
+}
+
+
 #------------------------------------------------------------
 # delete
 #------------------------------------------------------------
@@ -347,6 +446,8 @@ Delete all occurences of the field named TAG.
     $head->delete('Content-disposition');
 
 =cut
+
+### Inherited
 
 
 #------------------------------------------------------------
@@ -368,6 +469,8 @@ This method returns some false value if the field doesn't exist,
 and some true value if it does.
 
 =cut
+
+### Inherited ###
 
 
 #------------------------------------------------------------
@@ -731,7 +834,7 @@ sub tweak_FROM_parsing {
 
 =head2 Design issues
 
-=over
+=over 4
 
 =item Why have separate objects for the entity, head, and body?
 
@@ -842,14 +945,14 @@ need to flip back and forth between man pages to use this module.
 
 =head2 UPGRADING FROM 1.x to 2.x
 
-=over
+=over 4
 
 =item Altered methods/usage
 
 There are things you must beware of if you are either a MIME-parser 
 1.x user or a Mail::Header user:
 
-=over
+=over 4
 
 =item Modified get() behavior
 
@@ -880,7 +983,7 @@ The following are deprecated as of MIME-parser v.2.0.
 In many cases, they are redundant with Mail::Header subroutines
 of different names:
 
-=over
+=over 4
 
 =item add
 
@@ -931,7 +1034,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 2.9 $ $Date: 1996/10/28 18:29:55 $
+$Revision: 2.12 $ $Date: 1997/01/03 23:33:26 $
 
 =cut
 
@@ -991,6 +1094,12 @@ print $head->original_text;
 print '=' x 60, "\n\n";
 
 print "\n* Dumping current header to STDOUT...\n";
+print '=' x 60, "\n";
+$head->print(\*STDOUT);
+print '=' x 60, "\n\n";
+
+print "\n* Decoding and dumping again...\n";
+$head->decode;
 print '=' x 60, "\n";
 $head->print(\*STDOUT);
 print '=' x 60, "\n\n";

@@ -28,7 +28,9 @@ stuff is defaulted for us):
 Create a document for a text file with 8-bit (Latin-1) characters:
 
     $ent = build MIME::Entity Path     =>"french-msg.txt",
-                              Encoding =>"quoted-printable";
+                              Encoding =>"quoted-printable",
+                              -From    =>'jean.luc@inria.fr',
+                              -Subject =>"C'est bon!";
 
 Create a document for a GIF file (the description is completely optional,
 and note that we have to specify content-type and encoding since they're
@@ -52,10 +54,10 @@ Create a document that you already have the text for:
 Create a multipart message (could it I<be> much easier?)
 
     # Create the top-level, and set up the mail headers:
-    $top = build MIME::Entity Type=>"multipart/mixed";
-    $top->head->add('from',    "me\@myhost.com");
-    $top->head->add('to',      "you\@yourhost.com");
-    $top->head->add('subject', "Hello, nurse!");
+    $top = build MIME::Entity Type     => "multipart/mixed",
+                              -From    => 'me@myhost.com',
+                              -To      => 'you@yourhost.com',
+                              -Subject => "Hello, nurse!";
     
     # Attachment #1: a simple text document: 
     attach $top  Path=>"./testin/short.txt";
@@ -178,7 +180,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.8 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.14 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Boundary counter:
 my $BCount = 0;
@@ -239,22 +241,56 @@ to build a "normal" single-part entity:
    $ent = build MIME::Entity Type     => "image/gif",
 		             Encoding => "base64",
                              Path     => "/path/to/xyz12345.gif",
-                             Filename => "saveme.gif";
+                             Filename => "saveme.gif",
+                             Disposition => "attachment";
 
 And like this to build a "multipart" entity:
 
    $ent = build MIME::Entity Type     => "multipart/mixed",
                              Boundary => "---1234567";
 
-A minimal MIME header will be created.  The params are:
+A minimal MIME header will be created.  If you want to add or modify
+any header fields afterwards, you can of course do so via the underlying 
+head object... but hey, there's now a prettier syntax!
 
-=over
+   $ent = build MIME::Entity Type     =>"multipart/mixed",
+                             -From         => $myaddr,
+                             -Subject      => "Hi!",
+                            '-X-Certified' => ['SINED','SEELED','DELIVERED'];
+
+Normally, an C<X-Mailer> header field is output which contains this 
+toolkit's name and version (plus this module's RCS version).
+This will allow any bad MIME we generate to be traced back to us.
+You can of course overwrite that header with your own:
+
+   $ent = build MIME::Entity  Type       => "multipart/mixed",
+                             '-X-Mailer' => "myprog 1.1";
+
+Or remove it entirely:
+
+   $ent = build MIME::Entity  Type       => "multipart/mixed",
+                             '-X-Mailer' => undef;
+
+OK, enough hype.  The parameters are:
+
+=over 4
+
+=item I<-FIELDNAME>
+
+Any parameter with a leading C<'-'> is taken to be a mail header field,
+whose value is to I<replace> the corresponding header field I<after> we
+go through all the other params and construct the basic MIME header.
+Use with care: you don't want to trash those nice MIME fields!
+I<Syntactic sugar, totally optional.  TMTOWTDI.>
 
 =item Boundary
 
 I<Multipart entities only. Optional.>  
-The boundary string.
-If you omit this, a random string will be chosen... which is probably safer.
+The boundary string.  As per RFC-1521, it must consist only
+of the characters C<[0-9a-zA-Z'()+_,-./:=?]> and space (you'll be
+warned, and your boundary will be ignored, if this is not the case).
+If you omit this, a random string will be chosen... which is probably 
+safer.
 
 =item Data
 
@@ -269,6 +305,13 @@ MIME::Body::Scalar.
 I<Optional.>  
 The text of the content-description.  
 If you don't specify it, the field is not put in the header.
+
+=item Disposition
+
+I<Optional.>  
+The basic content-disposition (C<"attachment"> or C<"inline">).
+If you don't specify it, it defaults to "inline" for backwards
+compatibility.  I<Thanks to Kurt Freytag for suggesting this feature.>
 
 =item Encoding
 
@@ -295,12 +338,12 @@ using MIME::Body::File.
 
 I<Optional.>  
 Is this a top-level entity?  If so, it must sport a MIME-Version.
-The default is true.
+The default is true.  (NB: look at how C<attach()> uses it.)
 
 =item Type
 
 I<Optional.>  
-The content-type. 
+The basic content-type (C<"text/plain">, etc.). 
 If you don't specify it, it defaults to C<"text/plain"> 
 as per RFC-1521.  I<Do yourself a favor: put it in.>
 
@@ -309,8 +352,8 @@ as per RFC-1521.  I<Do yourself a favor: put it in.>
 =cut
 
 sub build {
-    my $self = shift;
-    my %params = @_;
+    my ($self, @paramlist) = @_;
+    my %params = @paramlist;
     my ($field, $filename, $boundary);
 
 
@@ -323,11 +366,12 @@ sub build {
     ### GET INFO...
 
     # Get sundry fields:
-    my $type     = $params{Type} || 'text/plain';
+    my $type         = $params{Type} || 'text/plain';
     my $is_multipart = ($type =~ m{^multipart/}i);
-    my $encoding = $params{Encoding} || '';
-    my $desc     = $params{Description};
-    my $top      = exists($params{Top}) ? $params{Top} : 1;
+    my $encoding     = $params{Encoding} || '';
+    my $desc         = $params{Description};
+    my $top          = exists($params{Top}) ? $params{Top} : 1;
+    my $disposition  = $params{Disposition} || 'inline';
 
     # Get recommended filename:
     $filename = $params{Filename} || $params{Path} || '';
@@ -340,9 +384,24 @@ sub build {
 	($encoding =~ /^(|7bit|8bit|binary)$/i) 
 	    or die "multipart message with illegal encoding: $encoding!";
 	
-	# Force boundary:
-	$boundary = $params{Boundary} ||
-	    ("------------".scalar(time)."-$$-".$BCount++);
+	# Get any supplied boundary, and check it:
+	if (defined($boundary = $params{Boundary})) {  # they gave us one...
+	    if ($boundary eq '') {
+		warn "empty string not a legal boundary: I'm ignoring it";
+		$boundary = undef;
+	    }
+	    elsif ($boundary =~ m{[^0-9a-zA-Z\'\(\)\+\_\,\.\/\:\=\?\- ]}) {
+		warn "boundary ($boundary) \n".
+		     "contains illegal characters; I'm ignoring it.";
+		$boundary = undef;
+	    }
+	}
+	
+	# If we have to roll our own boundary, we choose one containing 
+	# a "=_", as RFC1521 suggests:
+	if (!defined($boundary)) {
+	    $boundary = "----------=_".scalar(time)."-".$BCount++;
+	}
     }
     else {                    # single part...
 	# Create body:
@@ -369,20 +428,41 @@ sub build {
     $field->type($type);
     $field->name($filename)      if ($filename ne '');
     $field->boundary($boundary)  if (defined($boundary));
-    $head->add('Content-type', $field->stringify);
+    $head->replace('Content-type', $field->stringify);
 
     # Add content-disposition field (if not multipart):
     unless ($is_multipart) {
 	$field = new Mail::Field 'Content_disposition';  # not a typo :-(
-	$field->type('inline');
+	$field->type($disposition);
 	$field->filename($filename) if ($filename ne '');
-	$head->add('Content-disposition', $field->stringify);
+	$head->replace('Content-disposition', $field->stringify);
     }
 
-    # Add other fields:
-    $head->add('Content-transfer-encoding', $encoding) if $encoding;
-    $head->add('Content-description', $desc)           if $desc;
-    $head->add('MIME-Version', '1.0')                  if $top;
+    # Add other MIME fields:
+    $head->replace('Content-transfer-encoding', $encoding) if $encoding;
+    $head->replace('Content-description', $desc)           if $desc;
+    $head->replace('MIME-Version', '1.0')                  if $top;
+
+    # Add the X-Mailer field (use default value if not given):
+    if ($top) {
+	$head->replace('X-Mailer', 
+		       "MIME-tools $CONFIG{'VERSION'} (ME $VERSION)");
+    }
+
+    # Add remaining user-specified fields, if any:
+    while (@paramlist) {
+	my $tag = shift @paramlist;
+	my $value = shift @paramlist;
+	next if (substr($tag,0,1) ne '-');
+
+	# Clear head, get list of values, and add one by one:
+	$head->delete($tag = substr($tag,1));
+	my $values = ref($value) ? $value : [$value];
+	foreach $value (@$values) {
+	    (defined($value) && ($value ne '')) or next;
+	    $head->add($tag, $value);
+	}
+    }
     
     # Done!
     $self->head($head);
@@ -455,7 +535,7 @@ sub all_parts {
 The real quick-and-easy way to create multipart messages.
 Basically equivalent to:
 
-    $entity->add_part(ref($entity)->build(PARAMHASH));
+    $entity->add_part(ref($entity)->build(PARAMHASH, Top=>0));
 
 Except that it's a lot nicer to look at.
 
@@ -472,7 +552,7 @@ sub attach {
 
 =item body [VALUE]
 
-=over
+=over 4
 
 =item B<If emulating version 1.x:>
 
@@ -828,6 +908,50 @@ sub print_body {
 }
 
 #------------------------------------------------------------
+# purge
+#------------------------------------------------------------
+
+=item purge
+
+Recursively purge all I<on-disk> body parts in this message.  This
+assumes that the path() method returns something reasonable for the
+"bodyhandle" object... MIME::Body::File and MIME::Body::Scalar do, at 
+least.
+
+I wouldn't attempt to read those body files after you do this, for
+obvious reasons.  I probably should nuke the bodyhandle's path afterwards,
+but currently I don't.  Don't gamble on this for the future, though.
+
+I<Thanks to Jason L. Tibbitts III for suggesting this method.>
+
+=cut
+
+sub purge {
+    my $self = shift;
+    my $path;
+    my $part;
+
+    # The name of the file containing the body (if any!):
+    if ($CONFIG{EMULATE_VERSION} < 2) {      # version 1.x: body = filename
+	$path = $self->body;
+    }
+    else {
+	$path = eval { $self->bodyhandle->path };
+    }
+    
+    # Unlink the file, if there seems to be a file:
+    if (defined($path) && ($path ne '')) {
+	debug "purging: about to unlink $path";
+	unlink $path or warn "couldn't unlink $path: $!";
+    }
+
+    # The parts:
+    foreach $part ($self->parts) {
+	$part->purge;
+    }
+}
+
+#------------------------------------------------------------
 
 =back
 
@@ -866,7 +990,7 @@ Of course, any/all of its component parts can have bodies.
 
 =head2 Design issues
 
-=over
+=over 4
 
 =item Some things just can't be ignored
 
@@ -922,7 +1046,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.8 $ $Date: 1996/11/03 00:19:30 $
+$Revision: 2.14 $ $Date: 1997/01/13 00:22:41 $
 
 =cut
 
@@ -971,7 +1095,8 @@ $top = build MIME::Entity Type=>"multipart/mixed";
 attach $top  Path=>"./testin/short.txt";
 
 attach $top  Path        =>"./testin/short.txt",
-             Encoding    => "quoted-printable";
+             Encoding    => "quoted-printable",
+             Disposition => "attachment";
 
 attach $top  Description => "A short document",
              Path        => "./docs/mime-sm.gif",

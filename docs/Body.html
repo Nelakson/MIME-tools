@@ -4,10 +4,8 @@
     <TITLE>MIME::Body</TITLE>
     </HEAD>
 
-    <BODY>
-
-    <A NAME="#__top"> <P></A>
-<CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#B00020>MIME::Body</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
+<BODY  LINK="#C00000"    ALINK="#FF2020"  VLINK="#900000" >    <A NAME="#__top"> <P></A>
+<CENTER><TABLE BORDER=2 CELLPADDING=2 WIDTH=100%><TR><TD WIDTH=20% ROWSPAN=3 ALIGN=CENTER><B><A HREF="MIME-tools.html">Home</A></B></TD><TD WIDTH=20%><B><FONT SIZE=-1 COLOR=#000000>MIME::Body</FONT></B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Decoder.html">MIME::Decoder</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Entity.html">MIME::Entity</A></FONT>
 </B></TD><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="Head.html">MIME::Head</A></FONT>
 </B></TD><TR><TD WIDTH=20%><B><FONT SIZE=-1><A HREF="IO.html">MIME::IO</A></FONT>
@@ -18,9 +16,9 @@
 </B></TD></TABLE></CENTER>    <P><TABLE BORDER=0>
       <TR>
 	<TD VALIGN=TOP ALIGN=CENTER>
-	    <H1><B><FONT SIZE=7 COLOR=#300080>MIME::<BR>Body</FONT></B></H1>
-	    <img src="mime-sm.gif" alt="MIME">
-	    <P><FONT SIZE=+1 COLOR=#B00020><I>It's MIME time! *</I></FONT>
+	    <H1><B><FONT SIZE=7 COLOR=#400000>MIME::<BR>Body</FONT></B></H1>
+	    <img src="mime-sm.gif" alt="LOGO">
+	    <P><FONT SIZE=+1 COLOR=#400000><I>It's MIME time!</I></FONT>
         <TD VALIGN=TOP>
 <!-- INDEX BEGIN -->
 <UL>
@@ -124,7 +122,29 @@ in files, while short ones are perhaps best stored in core.
 <P>
 
 This class is an attempt to define a common interface for objects which
-contain that message data, regardless of how the data is physically stored.
+contain message data, regardless of how the data is physically stored.
+Here's an overview:  
+
+
+<P>
+
+<PRE>
+            head()        .--------.
+            returns a...  | MIME:: |
+            .------------&gt;| Head   |
+     .--------.           `--------'
+     | MIME:: |
+     | Entity |           .--------. 
+     `--------'           | MIME:: | 
+            `------------&gt;| Body   |           .--------. read()
+             bodyhandle() `--------'           | MIME:: | getline()
+             returns a...        `------------&gt;| IO     | print()
+                                  open()       `--------' etc...
+                                  returns a...
+</PRE>
+
+<P>
+
 It works this way:
 
 
@@ -132,8 +152,17 @@ It works this way:
 
 <UL>
 <LI><STRONG></STRONG>
+<STRONG>An ``entity'' has a ``head'' and a ``body''.</STRONG>
+  
+Entities are MIME message parts.
+
+
+<P>
+
+<LI><STRONG></STRONG>
 <STRONG>A ``body'' knows where the data is.</STRONG>
-  You can ask to ``open'' this data source for <EM>reading</EM>
+  
+You can ask to ``open'' this data source for <EM>reading</EM>
  or <EM>writing</EM>
 , and you will get back an ``I/O handle''.
 
@@ -143,7 +172,7 @@ It works this way:
 <LI><STRONG></STRONG>
 <STRONG>An ``I/O handle'' knows how to read/write the data.</STRONG>
 
-It is an object that is basically like an IO::Handle or a FileHandle: it
+It is an object that is basically like an IO::Handle or a FileHandle... it
 can be any class, so long as it supports a small, standard set of methods
 for reading from or writing to the underlying data source.
 
@@ -252,19 +281,11 @@ they should not assume that the body has an underlying filehandle.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="defining_your_own_subclasses">DEFINING YOUR OWN SUBCLASSES</A></H2>
-So you're not happy with files, scalars, and arrays? No problem: just
-define your own <A HREF="Body.html">MIME::Body</A> subclass, and make a
-subclass of <A HREF="Parser.html">MIME::Parser</A> or <A
+So you're not happy with files and scalars? No problem: just define your
+own <A HREF="Body.html">MIME::Body</A> subclass, and make a subclass of <A
+HREF="Parser.html">MIME::Parser</A> or <A
 HREF="ParserBase.html">MIME::ParserBase</A> which returns an instance of
 your body class whenever appropriate in the <CODE>new_body_for(head)</CODE> method.
-
-
-<P>
-
-<EM>Things to make you go hmm:</EM>
- there's nothing stopping you from writing a single class that is both a
-``body'' class and an ``I/O handle'' class for that body. Look at <STRONG><A HREF="Body.html">MIME::Body::Scalar</A></STRONG>
- for an example.
 
 
 <P>
@@ -321,9 +342,10 @@ just returns the current value. The inherited action should be fine.
 
 Oh, the joys of encapsulation. If you're storing the body data in a new
 disk file, you'll want to give applications the ability to get at that
-file, if only for cleanup. This method should return the path to the file,
-or undef if there is none (e.g., if the data is in core). The default
-inherited method just returns undef.
+file, if only for cleanup (see <A
+HREF="Entity.html">MIME::Entity::purge()</A> for an example). This method
+should return the path to the file, or undef if there is none (e.g., if the
+data is in core). The default inherited method just returns undef.
 
 
 <P>
@@ -339,9 +361,11 @@ supports a small set of standard methods for reading/writing data.
 <P>
 
 See the documentation on the <STRONG><A HREF="IO.html">MIME::IO</A></STRONG>
- class for details on what is expected of an I/O handle. Note that the <STRONG>IO::Handle</STRONG>
- class already conforms to this interface, as does <STRONG><A HREF="IO.html">MIME::IO</A></STRONG>
-.
+ class for details on what is expected of an I/O handle.
+<STRONG>Note that the IO::Handle class already conforms to this interface.</STRONG>
+
+
+
 
 
 <P>
@@ -382,8 +406,8 @@ variable, array variable, or whatever).
 Storing the body of each MIME message in a persistently-open IO::Handle was
 a possibility, but it seemed like a bad idea, considering that a single
 multipart MIME message could easily suck up all the available file
-descriptors. This risk increases if the user application is processing more
-than one MIME entity at a time.
+descriptors on som OSes. This risk increases if the user application is
+processing more than one MIME entity at a time.
 
 
 <P>
@@ -391,6 +415,21 @@ than one MIME entity at a time.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="subclasses">SUBCLASSES</A></H2>
+Basically, we have the following classes:
+
+
+<P>
+
+<PRE>
+   Body                Stores body   When open()ed,     Someday soon
+   class:              data in:      returns:           will return:
+   ----------------------------------------------------------------------
+   MIME::Body::File    disk file     MIME::IO::Handle   IO::Handle
+   MIME::Body::Scalar  scalar        MIME::IO::Scalar   IO::????
+</PRE>
+
+<P>
+
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="mimebodyfile">MIME::Body::File;</A></H3>
@@ -440,6 +479,14 @@ is created to hold the data, even though that file can't be used directly.
  All of the usual caveats related to shell commands apply! To make sure you
 won't accidentally do something you'll regret, use taint-checking (<STRONG>perl -T</STRONG>
 ) in your application.
+
+
+<P>
+
+<STRONG>Note:</STRONG>
+ I would have had <A HREF="Body.html">MIME::Body::File</A> return a
+FileHandle, except that there are some methods that FileHandle does not
+support in 5.002, and it was too soon to require IO::Handle.
 
 
 <P>
@@ -512,19 +559,10 @@ FileHandles.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 1.9 $ $Date: 1996/10/28 06:51:47 $
+$Revision: 1.11 $ $Date: 1997/01/13 00:21:47 $
 
 
 <P>
 
-    <P>
-    <HR>       
-    <FONT COLOR=#F00000>*</FONT>
-    <FONT SIZE=-1>
-    Artwork and slogan from Warner Bros' "Animaniacs". 
-    Neither this code nor its author are connected with or
-    endorsed by Warner Bros. in any way. Narf. Poit. 
-    </FONT>
-    </BODY>
-
-    </HTML>
+</BODY>
+</HTML>

@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+mimesend - send a multipart MIME message to a user
+
+=head1 USAGE
+
+Pretty basic:
+
+    mimesend <-t to> <-s subject> (-f <file> <type>)+
+
+For example:
+
+    mimesend you@yourhost.com -s Hi \
+          -f greetings.htm text/html \
+          -f foo.gif       image/gif 
+
+=head1 AUTHOR
+
+Eryq, 8 Jan 1997
+
+=cut
+
+use MIME::Entity;
+
+# Start with entity:
+my $top =  build MIME::Entity Type=>"multipart/mixed";
+
+# Get args:
+while (@ARGV) {
+    $_ = shift @ARGV;
+    if (/^-t$/) {
+	$to = shift @ARGV;
+    }
+    elsif (/^-s$/) {
+	$subj = shift @ARGV;
+    }
+    elsif (/^-f$/) {
+	my $path = shift @ARGV;
+	my $type = shift @ARGV;
+	$top->attach(Type=>$type, 
+		     Path=>$path,
+		     Encoding=>(($type =~ m{^(text|message)/}i) 
+				? '7bit' : 'base64'));
+    }
+    else {
+	die "Bad usage: <$_>.";
+    }
+}
+
+$to or die "missing [-t to]\n";
+$top->head->add('To',$to);
+
+$subj or die "missing [-s subject]\n";
+$top->head->add('Subject',$subj);
+
+# Launch mailer and send message:
+open SENDMAIL, "|/usr/lib/sendmail -t -oi -oem" or die "open sendmail: $!";
+$top->print(\*SENDMAIL);
+close SENDMAIL;
+die "sendmail failed" if ($? >> 255);
+
+1;
+
+

@@ -3,12 +3,82 @@ BEGIN {
 }
 use MIME::ToolUtils;
 use Checker;
+use strict;
 MIME::ToolUtils->debugging(0);
 
 use MIME::Parser;
 print STDERR "\n";
 
-# simple_output_path -- sample hook function, for testing
+# Set the counter:
+my $Counter = 0;
+
+# Messages we know about:
+my %MESSAGES = 
+    (
+     'ak-0696.msg' => {
+	 Type=>'multipart/mixed',
+	 Parts => [
+		   { Type=>'text/plain',
+		     Enc=>'7bit'},	
+		   { Type=>'message/rfc822',
+		     Enc=>'7bit'}
+		   ],
+     },
+     'german.msg' => {
+	 Type=>'text/plain',
+	 Enc=>'quoted-printable',
+     },
+     'multi-2gifs.msg' => {
+	 Type=>'multipart/mixed',
+	 Parts => [
+		   { Type=>'text/plain',
+		     Enc=>'7bit'},	
+		   { Type=>'image/gif',
+		     Enc=>'base64',
+		     File=>'3d-compress.gif',
+		     Size=>419},
+		   { Type=>'image/gif',
+		     Enc=>'base64',
+		     File=>'3d-eye.gif',
+		     Size=>357},
+		   ],
+     },
+     'simple.msg' => {
+	 Type=>'text/plain',
+     },
+     );
+
+#------------------------------------------------------------
+# Check an entity for sanity:
+
+sub check_entity {
+    my ($name, $ent, $info) = @_;
+    my ($type, $enc, $i);
+
+    my $t_type = ($info->{Type} || 'text/plain');
+    my $t_enc  = ($info->{Enc}  || '7bit');
+
+    check($ent => "$name parsed");
+    check(($type = $ent->head->mime_type) eq $t_type =>
+	  "$name: got type $type");
+    check(($enc = $ent->head->mime_encoding) eq $t_enc =>
+	  "$name: got encoding $enc");
+    check((-s "testout/$info->{File}") =>
+	  "$name: nonzero output file $info->{File}")
+	if $info->{File};
+    check(((-s "testout/$info->{File}") == $info->{Size}) =>
+	  "$name: expected size of $info->{Size}")
+	if $info->{Size};
+
+    for ($i = 0; $i < int(@{$info->{Parts} || []}); $i++) {
+	my $part = ($ent->parts)[$i];
+	check_entity("$name.$i", $part, $info->{Parts}[$i]);
+    }
+}
+
+#------------------------------------------------------------
+# Simple_output_path -- sample hook function, for testing
+
 sub simple_output_path {
     my ($parser, $head) = @_;
 
@@ -28,11 +98,8 @@ sub simple_output_path {
     "$outdir/$filename";
 }
 
-# Set the counter:
-$Counter = 0;
-
 # Check and clear the output directory:
-$DIR = "./testout";
+my $DIR = "./testout";
 ((-d $DIR) && (-w $DIR)) or die "no output directory $DIR";
 unlink <$DIR/[a-z]*>;
 
@@ -76,68 +143,6 @@ check($entity => "parsed CRLF-terminated message okay");
 #------------------------------------------------------------
 my $parser = new MIME::Parser;
 $parser->output_dir($DIR);
-my %MESSAGES = 
-    (
-     'ak-0696.msg' => {
-	 Type=>'multipart/mixed',
-	 Parts => [
-		   { Type=>'text/plain',
-		     Enc=>'7bit'},	
-		   { Type=>'message/rfc822',
-		     Enc=>'7bit'}
-		   ],
-     },
-     'german.msg' => {
-	 Type=>'text/plain',
-	 Enc=>'quoted-printable',
-     },
-     'multi-2gifs.msg' => {
-	 Type=>'multipart/mixed',
-	 Parts => [
-		   { Type=>'text/plain',
-		     Enc=>'7bit'},	
-		   { Type=>'image/gif',
-		     Enc=>'base64',
-		     File=>'3d-compress.gif',
-		     Size=>419},
-		   { Type=>'image/gif',
-		     Enc=>'base64',
-		     File=>'3d-eye.gif',
-		     Size=>357},
-		   ],
-     },
-     'simple.msg' => {
-	 Type=>'text/plain',
-     },
-     );
-
-#------------------------------------------------------------
-sub check_entity {
-    my ($name, $ent, $info) = @_;
-    my ($type, $enc, $i);
-
-    my $t_type = ($info->{Type} || 'text/plain');
-    my $t_enc  = ($info->{Enc}  || '7bit');
-
-    check($ent => "$name parsed");
-    check(($type = $ent->head->mime_type) eq $t_type =>
-	  "$name: got type $type");
-    check(($enc = $ent->head->mime_encoding) eq $t_enc =>
-	  "$name: got encoding $enc");
-    check((-s "testout/$info->{File}") =>
-	  "$name: nonzero output file $info->{File}")
-	if $info->{File};
-    check(((-s "testout/$info->{File}") == $info->{Size}) =>
-	  "$name: expected size of $info->{Size}")
-	if $info->{Size};
-
-    for ($i = 0; $i < int(@{$info->{Parts} || []}); $i++) {
-	my $part = ($ent->parts)[$i];
-	check_entity("$name.$i", $part, $info->{Parts}[$i]);
-    }
-}
-#------------------------------------------------------------
-
 my $infile;
 my ($type, $enc);
 foreach $infile (sort keys %MESSAGES) {

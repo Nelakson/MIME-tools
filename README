@@ -1,544 +1,180 @@
+NAME
+
+    MIME-tools - modules for parsing (and creating!) MIME entities
+
+SYNOPSIS
+
+    Here's some pretty basic code for parsing a MIME message, and outputting
+    its decoded components to a given directory:
 
+        use MIME::Parser;
+         
+        # Create parser, and set the output directory:
+        my $parser = new MIME::Parser;
+        $parser->output_dir("$ENV{HOME}/mimemail");
+         
+        # Parse input:
+        $entity = $parser->read(\*STDIN) or die "couldn't parse MIME stream";
+        
+        # Take a look at the top-level entity (and any parts it has):
+        $entity->dump_skeleton; 
 
-=head1 NAME
+
+    Here's some code which composes and sends a MIME message containing
+    three parts: a text file, an attached GIF, and some more text:
 
-MIME-tools - modules for parsing (and creating!) MIME entities
-
-
-=head1 DESCRIPTION
+        use MIME::Entity;
 
-MIME-tools is a collection of Perl5 MIME:: modules for parsing 
-and decoding single- or multipart (even nested multipart) MIME 
-messages.
-
-=head2 Parsing, in a nutshell
+        # Create the top-level, and set up the mail headers:
+        $top = build MIME::Entity Type   =>"multipart/mixed",
+                                  -From    => "me\@myhost.com",
+                                  -To      => "you\@yourhost.com",
+                                  -Subject => "Hello, nurse!";
+        
+        # Attachment #1: a simple text document: 
+        attach $top  Path=>"./testin/short.txt";
+        
+        # Attachment #2: a GIF file:
+        attach $top  Path        => "./docs/mime-sm.gif",
+                     Type        => "image/gif",
+                     Encoding    => "base64";
+            
+        # Attachment #3: some literal text:
+        attach $top  Data=>$message;
+        
+        # Send it:
+        open MAIL, "| /usr/lib/sendmail -t -i" or die "open: $!";
+        $top->print(\*MAIL);
+        close MAIL;
+
+
+DESCRIPTION
+
+    MIME-tools is a collection of Perl5 MIME:: modules for parsing,
+    decoding, *and generating* single- or multipart (even nested multipart)
+    MIME messages. (Yes, kids, that means you can send messages with
+    attached GIF files).
 
-You usually start by creating an instance of B<MIME::Parser> (a subclass
-of the abstract B<MIME::ParserBase>), and setting up
-certain parsing parameters: what directory to save extracted files 
-to, how to name the files, etc.
+CONTENTS
+
+  Modules in this toolkit
 
-You then give that instance a readable filehandle on which waits a
-MIME message.  If all goes well, you will get back a B<MIME::Entity>
-object (a subclass of B<Mail::Internet>), which consists of...
-
-=over
-
-=item *
-
-A B<MIME::Head> (a subclass of B<Mail::Header>) which holds the MIME 
-header data.
+        Module       DSLI   Description                                  Info
+        ----------   ----   ------------------------------------------   ----
+        MIME::
+        ::Body       adpO   Abstract message holder (file, scalar, etc.) ERYQ
+        ::Decoder    bdpO   OO interface for decoding MIME messages      ERYQ
+        ::Entity     bdpO   An extracted and decoded MIME entity         ERYQ
+        ::Field::*   bdpO   Mail::Field subclasses for parsing fields    ERYQ
+        ::Head       bdpO   A parsed MIME header (Mail::Header subclass) ERYQ
+        ::IO         adpO   Simple I/O handles for filehandles/scalars   ERYQ
+        ::Latin1     adpO   Encoding 8-bit Latin-1 as 7-bit ASCII        ERYQ
+        ::Parser     bdpO   Parses streams to create MIME entities       ERYQ
+        ::ParserBase bdpO   For building your own MIME parser            ERYQ
+        ::ToolUtils  adpO   For tweaking the MIME-tools library          ERYQ
 
-=item *
 
-A B<MIME::Body>, which is a object that knows where the body data is.
-You ask this object to "open" itself for reading, and it
-will hand you back an "I/O handle" for reading the data: this is
-a FileHandle-like object, and could be of any class, so long as it
-conforms to a subset of the B<IO::Handle> interface.  
-Most of the MIME:: modules will automatically wrap 
-raw (unblessed) filehandles inside B<MIME::IO> objects, so that
-they conform to this interface.
-
-=back
+  Programs in this toolkit
 
-Here's a simple example, which reads a MIME stream from STDIN
-and outputs all extracted parts to files in the given directory
-(and yes, you no longer I<have> to output to files!):
+        mimedump    - dump out a summary of the contents of a MIME message
+        mimeexplode - parse/decode a MIME message into its component files
+        mimesend    - send a message with attachments from the command line
 
-    use MIME::Parser;
-     
-    # Create parser, and set the output directory:
-    my $parser = new MIME::Parser;
-    $parser->output_dir("$ENV{HOME}/mimemail");
-     
-    # Parse input:
-    $entity = $parser->read(\*STDIN) or die "couldn't parse MIME stream";
-    
-    # Take a look at the top-level entity (and any parts it has):
-    $entity->dump_skeleton; 
 
-If the original message was a multipart document, the MIME::Entity
-object will have a non-empty list of "parts", each of which is in 
-turn a MIME::Entity (which might also be a multipart entity, etc, 
-etc...).
+REQUIREMENTS
 
-Internally, the parser (in MIME::ParserBase) asks for instances 
-of B<MIME::Decoder> whenever it needs to decode an encoded file.  
-MIME::Decoder has a mapping from supported encodings (e.g., 'base64') 
-to classes whose instances can decode them.  You can add to this mapping 
-to try out new/experiment encodings.  You can also use 
-MIME::Decoder by itself.  
+    You'll need Perl5.002 or better.
 
-If you want to tweak the way this toolkit works (for example, to 
-turn on debugging), use the routines in the B<MIME::ToolUtils> module.
+    You'll need to obtain and install the following kits from the CPAN:
 
+    MIME::(QuotedPrint, Base64)
+        These perform the low-level MIME decoding. Get these from Gisle Aas'
+        author directory. They are also reported to be in the LWP
+        distribution.
 
-=head2 Composing, in a nutshell
+    MailTools (1.06 or higher)
+        This is Graham Barr's revamped set of Mail:: modules. Many of them
+        are now superclasses of the MIME:: modules, and perform the core
+        functionality of manipulating headers and fields.
 
-On a small scale, the MIME::Decoder can be used to I<encode> as well.
-When encoding an 8-bit document as a 7-bit mail message 
-(a no-no, but allowed), the 8-bit characters are escaped for you
-into reasonable ASCII sequences, by the B<MIME::Latin1> module.
 
-Here's an example, which composes and sends a MIME 
-message containing two parts: a text file, and an attached GIF:
+    For your convenience, possibly-old copies of the MIME:: modules are
+    provided in the ./etc directory, of the distribution, but they are NOT
+    installed for you during the installation procedure.
 
-    use MIME::Entity;
+CHANGES
 
-    # Create the top-level, and set up the mail headers:
-    $top = build MIME::Entity Type=>"multipart/mixed";
-    $top->head->add('from',    "me\@myhost.com");
-    $top->head->add('to',      "you\@yourhost.com");
-    $top->head->add('subject', "Hello, nurse!");
-    
-    # Attachment #1: a simple text document: 
-    attach $top  Path=>"./testin/short.txt";
-    
-    # Attachment #2: a GIF file:
-    attach $top  Path        => "./docs/mime-sm.gif",
-                 Type        => "image/gif",
-                 Encoding    => "base64";
-    
-    # Send it:
-    open MAIL, "| /usr/lib/sendmail -t -i" or die "open: $!";
-    $top->print(\*MAIL);
-    close MAIL;
+  Version 2.13
 
-I'm working on making this even easier (in particular, to make it
-easier for you to set up the data for each attachment, and to
-test the interface with Mail::Send).
-I'd also like to make it so that the content-type and encoding
-can be automatically inferred from the file's path.
+    New features
+        Added RFC-1522-style decoding of encoded header fields. Header
+        decoding can now be done automatically during parsing via the new
+        `decode()' method in MIME::Head... just tell your parser object that
+        you want to `decode_headers()'. I<Thanks to Kent Boortz for
+        providing the idea, and the baseline RFC-1522-decoding code!>
 
+        Building MIME messages is even easier. Now, when you use
+        MIME::Entity's `build()' or `attach()', you can also supply
+        individual mail headers to set (e.g., `-Subject', `-From', `-To').
 
-=head1 CPAN SPECIFICATIONS
+        Added `Disposition' to MIME::Entity's `build()' method. *Thanks to
+        Kurt Freytag for suggesting this feature.*
 
-    Module       DSLI   Description                                 Info
-    ----------   ----   ----------------------------------------    ----
-    MIME::
-    ::Decoder    adpO   OO interface for decoding MIME messages     ERYQ
-    ::Entity     adpO   An extracted and decoded MIME entity        ERYQ
-    ::Head       adpO   A parsed MIME header                        ERYQ
-    ::IO         adpO   Simple I/O handles for filehandles/scalars  ERYQ
-    ::Latin1     adpO   Encoding 8-bit Latin-1 as 7-bit ASCII       ERYQ
-    ::Parser     adpO   Parses streams to create MIME entities      ERYQ
-    ::ParserBase adpO   For building your own MIME parser           ERYQ
+        An `X-Mailer' header is now output by default in all MIME-Entity-
+        prepared messages, so any bad MIME we generate can be traced back to
+        this toolkit.
 
+        Added `purge()' method to MIME::Entity for deleteing leftover files.
+        *Thanks to Jason L. Tibbitts III for suggesting this feature.*
 
-=head1 KIT CONTENTS 
+        Added `seek()' and `tell()' methods to built-in MIME::IO classes.
+        Only guaranteed to work when reading! *Thanks to Jason L. Tibbitts
+        III for suggesting this feature.*
 
-    ./MIME/*.pm         the MIME-tools classes
-    ./Makefile.PL       the input to MakeMaker
-    ./COPYING           terms and conditions for copying/using the software
-    ./README            this file
-    ./docs/             HTMLized documentation
-    ./etc/              convenient copies of other modules you may need
-    ./testin/           files you can use for testing (as in "make test")
-    ./testout/          the output of "make test"
+        When parsing a multipart message with apparently no boundaries, the
+        error message you get has been improved. *Thanks to Andreas Koenig
+        for suggesting this.*
 
+    Bug fixes
+        B<Patched over a Perl 5.002 (and maybe earlier and later) bug
+        involving FileHandle::new_tmpfile.> It seems that the underlying
+        filehandles were not being closed when the FileHandle objects went
+        out of scope! There is now an internal routine that creates true
+        FileHandle objects for anonymous temp files. I<Thanks to Dragomir R.
+        Radev and Zyx for reporting the weird behavior that led to the
+        discovery of this bug.>
 
-=head1 REQUIREMENTS
+        MIME::Entity's `build()' method now warns you if you give it an
+        illegal boundary string, and substitutes one of its own.
 
-You'll need B<Perl5.002> or better.
+        MIME::Entity's `build()' method now generates safer, fully-RFC-1521-
+        compliant boundary strings.
 
-=over 
+        Bug in MIME::Decoder's `install()' method was fixed. *Thanks to Rolf
+        Nelson and Nickolay Saukh for finding this.*
 
-=item *
+        Changed FileHandle::new_tmpfile to FileHandle->new_tmpfile, so some
+        Perl installations will be happier. *Thanks to Larry W. Virden for
+        finding this bug.*
 
-It I<might> work with 5.001m+, but you'll need to get ahold of the "vars" 
-module.  For this reason, I don't yet "require 5.002" in my modules.
+        Gave `=over' an arg of 4 in all PODs. *Thanks to Larry W. Virden for
+        pointing out the problems of bare =over's*
 
-=back
 
-Obtain and install the following kits from the CPAN:
+SUPPORT
 
-    MIME::QuotedPrint 
-    
-    MIME::Base64
-    
-    MailTools:             (1.06 or higher)  
-        Mail::Header
-        Mail::Internet
-        etc...
+    Please email me directly with questions/problems (see AUTHOR below).
 
-For your convenience, possibly-old copies are provided in the ./etc
-directory, of the distribution, but they are NOT installed for you 
-during the installation procedure.
+AUTHOR
 
+    MIME-tools was created by:
 
-=head1 INSTALLATION
+        ___  _ _ _   _  ___ _     
+       / _ \| '_| | | |/ _ ' /    Eryq
+      |  __/| | | |_| | |_| |     http://www.mcs.net/~eryq
+       \___||_|  \__, |\__, |__   eryq@enteract.com
+                 |___/    |___/   eryq@rhine.gsfc.nasa.gov 
 
-Pretty simple:
 
-    1. Gunzip and de-tar the distribution, and cd to the top level.
-    2. Type:      perl Makefile.PL
-    3. Type:      make                    # this step is optional
-    4. Type:      make test               # this step is optional
-    5. Type:      make install
-
-Other interesting targets in the Makefile are:
-
-    make config     # to check if the Makefile is up-to-date
-    make clean      # delete local temp files (Makefile gets renamed)
-    make realclean  # delete derived files (including ./blib)
-
-
-
-=head1 COMPATIBILITY
-
-If you're installing this as a replacement for the MIME-parser 1.x
-release, and you really don't want to break existing code, you should
-do this at any point before the code is invoked:
-
-    use MIME::ToolUtils;
-    
-    MIME::ToolUtils->emulate_version(1.0);
-
-Try not to get too attached to this, though.  Instead, plan on upgrading
-your code ASAP to the 2.0 style.
-
-
-
-=head1 DESIGN ISSUES
-
-=over
-
-=item Why assume that MIME objects are email objects?
-
-I quote from Achim Bohnet, who gave feedback on v.1.9 (I think
-he's using the word I<header> where I would use I<field>; e.g.,
-to refer to "Subject:", "Content-type:", etc.):
-
-    There is also IMHO no requirement [for] MIME::Heads to look 
-    like [email] headers; so to speak, the MIME::Head [simply stores] 
-    the attributes of a complex object, e.g.:
-
-        new MIME::Head type => "text/plain",
-                       charset => ...,
-                       disposition => ..., ... ;
-
-I agree in principle, but (alas and dammit) RFC-1521 says otherwise.
-RFC-1521 [MIME] headers are a syntactic subset of RFC-822 [email] headers.
-Perhaps a better name for these modules would be RFC1521:: instead of
-MIME::, but we're a little beyond that stage now.
-
-However, in my mind's eye, I see an abstract class, call it MIME::Attrs, 
-which does what Achim suggests... so you could say:
-
-     my $attrs = new MIME::Attrs type => "text/plain",
-				 charset => ...,
-                                 disposition => ..., ... ;
-
-We could even make it a superclass of MIME::Head: that way, MIME::Head
-would have to implement its interface, I<and> allow itself to be
-initiallized from a MIME::Attrs object.
-
-
-=item To subclass or not to subclass?
-
-When I originally wrote this module for the CPAN, I agonized for a long
-time about whether or not it really should just be a subclass
-of B<Mail::Internet> (then at version 1.17).  There were plusses:
-
-=over 4
-
-=item *
-
-Software reuse.
-
-=item *
-
-Inheritance of the mail-sending utilities.
-
-=back
-
-And, unfortunately, minuses:
-
-=over 4
-
-=item *
-
-The Mail::Internet 1.17 model of messages as being short enough to fit into
-in-core arrays is excellent for most email applications; however, it
-seemed ill-suited for generic MIME applications, where MIME streams 
-could be megabytes long.
-
-=item *
-
-The implementation of Mail::Internet 1.17 was excellent for certain 
-kinds of header manipulation, but the implementation
-of C<get()> was less-efficient than I would have liked for MIME applications.
-
-=item * 
-
-In my heart of hearts, I honestly felt that the head should be encapsulated
-as a first-class object, and in Mail::Internet 1.17 it was not.
-
-=back
-
-
-So I chose to make MIME::Head and MIME::Entity their own standalone modules.
-
-Since that time, I worked with Graham Barr (author of most of the 
-MailTools package, and a darn nice guy to "work" with over email),
-and he has graciously evolved the MailTools modules into a direction
-that addressed a lot of these issues.
-
-With MailTools now its 1.06 release, it was finally time to finish
-what I started, and release MIME-tools 2.0.
-
-=back
-
-
-
-=head1 QUESTIONABLE PRACTICES
-
-=over 4
-
-=item Fuzzing of CRLF and newline on input
-
-RFC-1521 dictates that MIME streams have lines terminated by CRLF
-(C<"\r\n">).  However, it is extremely likely that folks will want to 
-parse MIME streams where each line ends in the local newline 
-character C<"\n"> instead. 
-
-An attempt has been made to allow the parser to handle both CRLF 
-and newline-terminated input.
-
-=item Fuzzing of CRLF and newline when decoding
-
-The C<"7bit"> and C<"8bit"> decoders will decode both
-a C<"\n"> and a C<"\r\n"> end-of-line sequence into a C<"\n">.
-
-The C<"binary"> decoder (default if no encoding specified) 
-still outputs stuff verbatim... so a MIME message with CRLFs 
-and no explicit encoding will be output as a text file 
-that, on many systems, will have an annoying ^M at the end of
-each line... I<but this is as it should be>.
-
-=item Fuzzing of CRLF and newline when encoding/composing
-
-All encoders currently output the end-of-line sequence as a C<"\n">,
-with the assumption that the local mail agent will perform
-the conversion from newline to CRLF when sending the mail.
-
-However, there probably should be an option to output CRLF as per RFC-1521.
-I'm currently working on a good mechanism for this.
-
-=back
-
-
-
- 
-=head1 CHANGE LOG
-
-=head2 Current events
-
-=over
-
-=item Version 2.04
-
-A bug in MIME::Entity's output method was corrected.
-MIME::Entity::print now outputs everything to the desired filehandle
-explicitly.  Thanks to Jake Morrison for pointing out the
-incompatibility with Mail::Header.
-
-=item Version 2.03
-
-Fixed transposed "if" statement, removing spurious printing of header 
-from MIME::Parser, and fixing bug in autogenerated filenames.
-(Annoyingly, this bug is invisible if debugging is turned on!)
-Thanks to Andreas Koenig for bringing this to my attention.
-
-Fixed bug in MIME::Entity::body() where it was using the bodyhandle
-completely incorrectly.  Thanks to Joel Noble for bringing this to my
-attention.
-
-Fixed MIME::Head::VERSION so CPAN:: is happier.
-Thanks to Larry Virden for bringing this to my attention.
-
-Fixed undefined-variable warnings when dumping skeleton
-(happened when there was no Subject: line)
-Thanks to Joel Noble for bringing this to my attention.
-
-
-=item Version 2.02
-
-Stupid, stupid bugs in both BASE64 encoding and decoding.
-Thanks to Phil Abercrombie for locating them.
-
-
-=item Version 2.01
-
-Modules now inherit from the new Mail:: modules!
-This means big changes in behavior.
-
-Added option to parse C<"message/rfc822"> as a pseduo-multipart document.
-Thanks to Andreas Koenig for suggesting this.
-
-MIME::Parser can now store message data in-core.
-There were a I<lot> of requestes for this feature.
-
-MIME::Entity can now compose messages.
-There were a I<lot> of requestes for this feature.
-
-=back
-
-
-=head2 Ancient history
-
-=over
-
-=item Version 1.13 	
-
-MIME::Head now no longer requires space after ":", although
-either a space or a tab after the ":" will be swallowed
-if there.  Thanks to Igor Starovoitov for pointing out this 
-shortcoming.
-
-=item Version 1.12	
-
-Fixed bugs in parser where CRLF-terminated lines were 
-blowing out the handling of preambles/epilogues.
-Thanks to Russell Sutherland for reporting this bug.
-
-Fixed idiotic is_multipart() bug.  Thanks to Andreas Koenig for noticing it.
-
-Added untested binmode() calls to parser for DOS, etc.
-systems.  No idea if this will work...
-
-Reorganized the output_path() methods to allow easy use
-of inheritance, as per Achim Bohnet's suggestion.
-
-Changed MIME::Head to report mime_type more accurately.
-
-POSIX module no longer loaded by Parser if perl >= 5.002.
-Hey, 5.001'ers: let me know if this breaks stuff, okay?
-
-Added unsupported ./examples directory.
-
-=item Version 1.11	
-
-Converted over to using Makefile.PL.  Thanks to
-Andreas Koenig for the much-needed kick in the pants...
-
-Added t/*.t files for testing.  Eeeeeeeeeeeh...it's a start.
-
-Fixed bug in default parsing routine for generating 
-output paths; it was warning about evil filenames if
-there simply *were* no recommended filenames.  D'oh!
-
-Fixed redefined parts() method in Entity.
-
-Fixed bugs in Head where field name wasn't being case folded.
-
-=item Version 1.10	
-
-A typo was causing the epilogue of an inner multipart
-message to be swallowed to the end of the OUTER multipart
-message; this has now been fixed.  Thanks to Igor Starovoitov 
-for reporting this bug.
-
-A bad regexp for parameter names was causing 
-some parameters to be parsed incorrectly; this has also
-been fixed.  Thanks again to Igor Starovoitov for reporting 
-this bug.
-	
-It is now possible to get full control of the filenaming
-algorithm before output files are generated, and the default
-algorithm is safer.  Thanks to Laurent Amon for pointing
-out the problems, and suggesting some solutions. 
-
-Fixed illegal "simple" multipart test file.  D'OH!
-
-=item Version 1.9	
-
-No changes: 1.8 failed CPAN registration
-
-=item Version 1.8.	
-
-Fixed incompatibility with 5.001 and FileHandle::new_tmpfile
-Added COPYING file, and improved README.
-
-=back
-
-
-=head2 Future plans
-
-=over
-
-=item *
-
-Dress up mimedump and mimeexplode utilities to take cmd line options
-for directory, environment vars (MIMEDUMP_OUTPUT, etc.).
-
-=item *
-
-Make it even easier to compose and send MIME messages.
-
-=item *
-
-Make VERSION a bit more sensible (2.8, 2.9, 2.10 effective goes
-backwards...).
-
-=back
-
-
-
-
-=head1 TERMS AND CONDITIONS
-
-Copyright (c) 1996 by Eryq.  All rights reserved.  This program is free
-software; you can redistribute it and/or modify it under the same terms as
-Perl itself. 
-
-See the COPYING file in the distribution for details.
-
-
-=head1 SEE ALSO
-
-The MIME format is documented in RFC 1521.  
-
-The MIME header format is documented in RFC 822.
-
-
-
-=head1 AUTHOR AND CREDITS
-
-B<MIME-tools was created by:>
-
-Eryq, eryq@rhine.gsfc.nasa.gov
-
-Initial release (1.0): 28 April 1996.
-Re-release (2.0): Halloween 1996.
-
-B<This kit would not have been possible> but for the direct 
-contributions of the following:
-
-	Gisle Aas           The MIME encoding/decoding modules
-	Laurent Amon        Bug reports and suggestions
-	Graham Barr         The new MailTools
-	Achim Bohnet        Numerous good suggestions, including the I/O model
-	Andreas Koenig      Numerous good ideas, tons of beta testing,
-       	                    and help with CPAN-friendly packaging
-	Igor Starovoitov    Bug reports and suggestions
-
-Not to mention the Accidental Beta Test Team, whose bug reports have been
-invaluable in improving the whole:
-
-	Phil Abercrombie
-	Jake Morrison
-	Joel Noble    
-	Andrew Pimlott
-	Russell Sutherland
-	Larry Virden
-
-Please forgive me if I've left you out.  Or email me.
-
-=cut
-
-
-
-
+    Initial release (1.0): 28 April 1996. Re-release (2.0): Halloween 1996.
 
