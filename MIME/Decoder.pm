@@ -98,7 +98,7 @@ use MIME::IO;
 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.7 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 
@@ -404,9 +404,17 @@ The name was chosen to jibe with the pre-existing MIME::Base64
 utility package, which this class actually uses to translate each line.
 
 When B<decoding>, the input is read one line at a time.
+The input accumulates in an internal buffer, which is decoded in
+multiple-of-4-sized chunks (plus a possible "leftover" input chunk,
+of course).
 
-When B<encoding>, the input is read 60 bytes at a time: this ensures
-that the output lines are not too long.
+When B<encoding>, the input is read 45 bytes at a time: this ensures
+that the output lines are not too long.   We chose 45 since it is
+a multiple of 3 and produces lines under 76 characters, as RFC-1521 
+specifies.
+
+I<Thanks to Phil Abercrombie for locating one idiotic bug in this
+module, which led me to discover another.>
 
 =cut
 
@@ -417,15 +425,45 @@ use MIME::Base64;
 
 @ISA = qw(MIME::Decoder);
 
+# How many bytes to encode at a time (must be a multiple of 3, and
+# less than (76 * 0.75)!
+my $EncodeChunkLength = 45;
+
+
 #------------------------------------------------------------
 # decode_it
 #------------------------------------------------------------
 sub decode_it {
     my ($self, $in, $out) = @_;
+    my $buffer = '';
+    my ($len_4xN, $encoded);
 
+    # Get lines until done:
     while (defined($_ = $in->getline)) {
-	my $decoded = decode_base64($_);
-	$out->print($decoded);
+	s{[^A-Za-z0-9+/]}{}g;         # get rid of non-base64 chars
+
+	# Concat any new input onto any leftover from the last round:
+	$buffer .= $_;
+	
+    	# Extract substring with highest multiple of 4 bytes:
+	#   0 means not enough to work with... get more data!
+	($len_4xN = ((length($buffer) >> 2) << 2)) or next;
+	$encoded = substr($buffer, 0, $len_4xN);
+	$buffer  = substr($buffer, $len_4xN);
+
+	# NOW, we can decode it!
+	$out->print(decode_base64($encoded));
+    }
+    
+    # No more input remains.  Dispose of anything left in buffer:
+    if (length($buffer)) {
+
+	# Pad to 4-byte multiple:
+	$buffer .= "===";            # need no more than 3 pad chars
+	$encoded = substr($buffer, 0, ((length($buffer) >> 2) << 2));
+
+	# Decode it!
+	$out->print(decode_base64($encoded));
     }
     1;
 }
@@ -435,11 +473,13 @@ sub decode_it {
 #------------------------------------------------------------
 sub encode_it {
     my ($self, $in, $out) = @_;
+    my $encoded;
 
     my $nread;
     my $buf = '';
-    while ($nread = $in->read($buf, 40)) {
-	my $encoded = encode_base64($buf);
+    while ($nread = $in->read($buf, $EncodeChunkLength)) {
+	$encoded = encode_base64($buf);
+	$encoded .= "\n" unless ($encoded =~ /\n\Z/);     # ensure newline!
 	$out->print($encoded);
     }
     1;
@@ -513,7 +553,11 @@ The B<decoder> does a line-by-line translation from input to output.
 
 The B<encoder> does a line-by-line translation, breaking lines
 so that they fall under the standard 76-character limit for this
-encoding.
+encoding.  
+
+B<Note:> just like MIME::QuotedPrint, we currently use the 
+native C<"\n"> for line breaks, and not C<CRLF>.  This may
+need to change in future versions.
 
 =cut
 
@@ -776,20 +820,21 @@ more encodings like this:
 
 =back
 
-To illustrate, here's a custom decoder class for the C<base64> encoding:
+To illustrate, here's a custom decoder class for the C<quoted-printable> 
+encoding:
 
-    package MyBase64Decoder;
+    package MyQPDecoder;
 
     @ISA = qw(MIME::Decoder);    
     use MIME::Decoder;
-    use MIME::Base64;
+    use MIME::QuotedPrint;
     
     # decode_it - the private decoding method
     sub decode_it {
         my ($self, $in, $out) = @_;
         
         while (defined($_ = $in->getline())) {
-            my $decoded = decode_base64($_);
+            my $decoded = decode_qp($_);
 	    $out->print($decoded);
         }
         1;
@@ -801,7 +846,7 @@ To illustrate, here's a custom decoder class for the C<base64> encoding:
         
         my ($buf, $nread) = ('', 0); 
         while ($in->read($buf, 60)) {
-            my $encoded = encode_base64($buf);
+            my $encoded = encode_qp($buf);
 	    $out->print($encoded);
         }
         1;
@@ -809,9 +854,9 @@ To illustrate, here's a custom decoder class for the C<base64> encoding:
 
 That's it.
 
-The task was pretty simple because the C<"base64"> encoding can easily 
-and efficiently be parsed line-by-line... as can C<"quoted-printable">,
-and even C<"7bit"> and C<"8bit"> (since all these encodings guarantee 
+The task was pretty simple because the C<"quoted-printable"> 
+encoding can easily be converted line-by-line... as can
+even C<"7bit"> and C<"8bit"> (since all these encodings guarantee 
 short lines, with a max of 1000 characters).
 The good news is: it is very likely that it will be similarly-easy to 
 write a MIME::Decoder for any future standard encodings.
@@ -837,7 +882,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.6 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 2.7 $ $Date: 1996/10/23 17:03:49 $
 
 =cut
 

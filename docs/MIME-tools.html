@@ -33,18 +33,16 @@
 	<LI><A HREF="#installation">INSTALLATION</A>
 	<LI><A HREF="#compatibility">COMPATIBILITY</A>
 	<LI><A HREF="#design_issues">DESIGN ISSUES</A>
-	<UL>
-		<LI><A HREF="#why_assume_that_mime_objects_are">Why assume that MIME objects are email objects?</A>
-		<LI><A HREF="#to_subclass_or_not_to_subclass">To subclass or not to subclass?</A>
-		</UL>
+	<LI><A HREF="#questionable_practices">QUESTIONABLE PRACTICES</A>
 	<LI><A HREF="#change_log">CHANGE LOG</A>
 	<UL>
+		<LI><A HREF="#current_events">Current events</A>
 		<LI><A HREF="#ancient_history">Ancient history</A>
 		<LI><A HREF="#future_plans">Future plans</A>
 		</UL>
 	<LI><A HREF="#terms_and_conditions">TERMS AND CONDITIONS</A>
 	<LI><A HREF="#see_also">SEE ALSO</A>
-	<LI><A HREF="#author">AUTHOR</A>
+	<LI><A HREF="#author_and_credits">AUTHOR AND CREDITS</A>
 </UL>
 <!-- INDEX END -->
 
@@ -178,11 +176,22 @@ debugging), use the routines in the <STRONG><A HREF="ToolUtils.html">MIME::ToolU
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="requirements">REQUIREMENTS</A></H2>
-You'll need Perl5.001m or better... aw, heck: let's call it 5.002.
+You'll need <STRONG>Perl5.002</STRONG>
+ or better.
 
 
 <P>
 
+<UL>
+<LI><STRONG></STRONG>
+It <EM>might</EM>
+ work with 5.001m+, but you'll need to get ahold of the ``vars'' module. For
+this reason, I don't yet ``require 5.002'' in my modules.
+
+
+<P>
+
+</UL>
 Obtain and install the following kits from the CPAN:
 
 
@@ -250,9 +259,9 @@ point before the code is invoked:
 <P>
 
 <PRE>
-    use MIME::ParserUtil;
+    use MIME::ToolUtils;
     
-    MIME::ParserUtil-&gt;emulate_version(1.0);
+    MIME::ToolUtils-&gt;emulate_version(1.0);
 </PRE>
 
 <P>
@@ -266,9 +275,10 @@ your code ASAP to the 2.0 style.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="design_issues">DESIGN ISSUES</A></H2>
-<P>
-<HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="why_assume_that_mime_objects_are">Why assume that MIME objects are email objects?</A></H3>
+<DL>
+<DT><STRONG><A NAME="item_why_assume_that_mime_objects_are">Why assume that MIME objects are email objects?
+
+</A></STRONG><DD>
 I quote from Achim Bohnet, who gave feedback on v.1.9 (I think he's using
 the word <EM>header</EM>
  where I would use <EM>field</EM>
@@ -301,7 +311,7 @@ MIME::, but we're a little beyond that stage now.
 
 <P>
 
-In my mind's eye, I see an abstract class, call it <A
+However, in my mind's eye, I see an abstract class, call it <A
 HREF="Attrs.html">MIME::Attrs,</A> which does what Achim suggests... so you
 could say:
 
@@ -325,18 +335,9 @@ object.
 
 <P>
 
-However, when you read RFC-1521, you begin to see how much MIME information
-is organized by its presence in particular fields. I imagine that we'd
-begin to mirror the structure of RFC-1521 fields and subfields to such a
-degree that this might not give us a tremendous gain over just having <A
-HREF="Head.html">MIME::Head.</A>
+<DT><STRONG><A NAME="item_to_subclass_or_not_to_subclass">To subclass or not to subclass?
 
-
-<P>
-
-<P>
-<HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="to_subclass_or_not_to_subclass">To subclass or not to subclass?</A></H3>
+</A></STRONG><DD>
 When I originally wrote this module for the CPAN, I agonized for a long
 time about whether or not it really should just be a subclass of <STRONG>Mail::Internet</STRONG>
  (then at version 1.17). There were plusses:
@@ -408,14 +409,76 @@ started, and release MIME-tools 2.0.
 
 <P>
 
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=100%>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="questionable_practices">QUESTIONABLE PRACTICES</A></H2>
+<DL>
+<DT><STRONG><A NAME="item_fuzzing_of_crlf_and_newline_on_i">Fuzzing of CRLF and newline on input
+
+</A></STRONG><DD>
+RFC-1521 dictates that MIME streams have lines terminated by CRLF (<CODE>"\r\n"</CODE>). However, it is extremely likely that folks will want to parse MIME
+streams where each line ends in the local newline character <CODE>"\n"</CODE> instead. 
+
+
+<P>
+
+An attempt has been made to allow the parser to handle both CRLF and
+newline-terminated input.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_fuzzing_of_crlf_and_newline_when">Fuzzing of CRLF and newline when decoding
+
+</A></STRONG><DD>
+The <CODE>"7bit"</CODE> and <CODE>"8bit"</CODE> decoders will decode both a <CODE>"\n"</CODE> and a <CODE>"\r\n"</CODE> end-of-line sequence into a <CODE>"\n"</CODE>.
+
+
+<P>
+
+The <CODE>"binary"</CODE> decoder (default if no encoding specified) still outputs stuff verbatim...
+so a MIME message with CRLFs and no explicit encoding will be output as a
+text file that, on many systems, will have an annoying ^M at the end of
+each line... <EM>but this is as it should be</EM>
+.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_fuzzing_of_crlf_and_newline_when">Fuzzing of CRLF and newline when encoding/composing
+
+</A></STRONG><DD>
+All encoders currently output the end-of-line sequence as a <CODE>"\n"</CODE>, with the assumption that the local mail agent will perform the conversion
+from newline to CRLF when sending the mail.
+
+
+<P>
+
+However, there probably should be an option to output CRLF as per RFC-1521.
+I'm currently working on a good mechanism for this.
+
+
+<P>
+
+</DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="change_log">CHANGE LOG</A></H2>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
-<H3><A NAME="ancient_history">Ancient history</A></H3>
+<H3><A NAME="current_events">Current events</A></H3>
 <DL>
-<DT><STRONG><A NAME="item_version_20">Version 2.0
+<DT><STRONG><A NAME="item_version_202">Version 2.02
+
+</A></STRONG><DD>
+Stupid, stupid bugs in both BASE64 encoding and decoding. Thanks to Phil
+Abercrombie for locating them.
+
+
+<P>
+
+<DT><STRONG><A NAME="item_version_201">Version 2.01
 
 </A></STRONG><DD>
 Modules now inherit from the new Mail:: modules! This means big changes in
@@ -424,6 +487,31 @@ behavior.
 
 <P>
 
+Added option to parse <CODE>"message/rfc822"</CODE> as a pseduo-multipart document. Thanks to Andreas Koenig for suggesting
+this.
+
+
+<P>
+
+<A HREF="Parser.html">MIME::Parser</A> can now store message data in-core.
+There were a <EM>lot</EM>
+ of requestes for this feature.
+
+
+<P>
+
+<A HREF="Entity.html">MIME::Entity</A> can now compose messages. There were
+a <EM>lot</EM>
+ of requestes for this feature.
+
+
+<P>
+
+</DL>
+<P>
+<HR ALIGN=LEFT WIDTH=75%>
+<H3><A NAME="ancient_history">Ancient history</A></H3>
+<DL>
 <DT><STRONG><A NAME="item_version_113">Version 1.13 	
 
 </A></STRONG><DD>
@@ -558,27 +646,8 @@ file, and improved README.
 <H3><A NAME="future_plans">Future plans</A></H3>
 <UL>
 <LI><STRONG></STRONG>
-Add option to parse message/rfc822 as a pseduo multipart document.
-
-
-<P>
-
-<LI><STRONG></STRONG>
 Dress up mimedump and mimeexplode utilities to take cmd line options for
 directory, environment vars (MIMEDUMP_OUTPUT, etc.).
-
-
-<P>
-
-<LI><STRONG></STRONG>
-Allow you to specify a <CODE>cutoff()</CODE> method that will determine
-whether decoded message is stored on disk or in a scalar. Default will
-probably keep messages <10-20K in core. In such a case, the
-<CODE>body()</CODE> method will return undef; we'll need a new way of
-accessing the data transparently. Too bad <CODE>setvbuf()</CODE> isn't
-guaranteed... we could just ``open'' a filehandle on the scalar... hmmm...
-maybe I'll provide an <CODE>open_body()</CODE> for those lucky few that
-have it... :-)
 
 
 <P>
@@ -614,14 +683,47 @@ The MIME header format is documented in RFC 822.
 
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
-<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author">AUTHOR</A></H2>
+<H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="author_and_credits">AUTHOR AND CREDITS</A></H2>
+<STRONG>MIME-tools was created by:</STRONG>
+
+
+
+
+
+<P>
+
 Eryq, <A
-HREF="MAILTO:eryq@rhine.gsfc.nasa.gov.">eryq@rhine.gsfc.nasa.gov.</A>  
+HREF="MAILTO:eryq@rhine.gsfc.nasa.gov">eryq@rhine.gsfc.nasa.gov</A>
 
 
 <P>
 
 Initial release (1.0): 28 April 1996. Re-release (2.0): Halloween 1996.
+
+
+<P>
+
+<STRONG>This kit would not have been possible</STRONG>
+ but for the direct contributions of the following:
+
+
+<P>
+
+<PRE>
+	Gisle Aas           the MIME encoding/decoding modules
+	Phil Abercrombie    bug reports
+	Laurent Amon        bug reports and suggestions
+	Graham Barr         the new MailTools
+	Achim Bohnet        numerous good suggestions, including the I/O model
+	Andreas Koenig      numerous good ideas, and help with the packaging
+	Andrew Pimlott      bug reports
+	Igor Starovoitov    bug reports and suggestions
+	Russell Sutherland  bug reports
+</PRE>
+
+<P>
+
+Please forgive me if I've left you out.
 
 
 <P>

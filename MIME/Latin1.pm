@@ -33,7 +33,7 @@ require Exporter;
 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.1 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 1.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # The map:
 @Map = (
@@ -158,7 +158,7 @@ tweaked by the OPTS string:
 B<If no OPTS string is given,> only 8-bit characters are affected,
 and their output is of the form C<\xy>:
 
-      \<<Fran\c,ois Mu\"ller\>>   c:\usr\games
+      \<<Fran\c,ois M\u"ller\>>   c:\usr\games
 
 B<If the OPTS string contains 'NOSLASH',> then the leading C<"\">
 is not output, and the output is more compact:
@@ -172,7 +172,7 @@ and turned back into the original 8-bit characters, so in a way it is
 its own full-fledged encoding... and given that C<"\"> is a rare-enough
 character, not much uglier that the normal output: 
 
-      \<<Fran\c,ois Mu\"ller\>>   c:\\usr\\games
+      \<<Fran\c,ois M\u"ller\>>   c:\\usr\\games
 
 =cut
 
@@ -203,7 +203,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.1 $ $Date: 1996/10/17 15:22:24 $
+$Revision: 1.2 $ $Date: 1996/10/18 21:32:56 $
 
 =cut
 

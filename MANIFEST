@@ -1,3 +1,5 @@
+#dtest#
+ALPHA-NNOUNCE
 ANNOUNCE
 COPYING
 MANIFEST
@@ -49,6 +51,8 @@ testin/crlf.hdr
 testin/first.hdr
 testin/fun.txt
 testin/german.msg
+testin/mime-lg.b64
+testin/mime-sm.b64
 testin/multi-2gifs.msg
 testin/multi-bad.msg
 testin/multi-clen.msg
@@ -58,6 +62,9 @@ testin/multi-nested.msg
 testin/multi-nested2.msg
 testin/multi-simple.msg
 testin/not-mime.msg
+testin/phil.b64
+testin/phil.bin
+testin/phil2.b64
 testin/quot-print.body
 testin/second.hdr
 testin/short.txt

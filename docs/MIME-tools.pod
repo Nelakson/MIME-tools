@@ -89,7 +89,16 @@ turn on debugging), use the routines in the B<MIME::ToolUtils> module.
 
 =head1 REQUIREMENTS
 
-You'll need Perl5.001m or better... aw, heck: let's call it 5.002.
+You'll need B<Perl5.002> or better.
+
+=over 
+
+=item *
+
+It I<might> work with 5.001m+, but you'll need to get ahold of the "vars" 
+module.  For this reason, I don't yet "require 5.002" in my modules.
+
+=back
 
 Obtain and install the following kits from the CPAN:
 
@@ -131,9 +140,9 @@ If you're installing this as a replacement for the MIME-parser 1.x
 release, and you really don't want to break existing code, you should
 do this at any point before the code is invoked:
 
-    use MIME::ParserUtil;
+    use MIME::ToolUtils;
     
-    MIME::ParserUtil->emulate_version(1.0);
+    MIME::ToolUtils->emulate_version(1.0);
 
 Try not to get too attached to this, though.  Instead, plan on upgrading
 your code ASAP to the 2.0 style.
@@ -142,7 +151,9 @@ your code ASAP to the 2.0 style.
 
 =head1 DESIGN ISSUES
 
-=head2 Why assume that MIME objects are email objects?
+=over
+
+=item Why assume that MIME objects are email objects?
 
 I quote from Achim Bohnet, who gave feedback on v.1.9 (I think
 he's using the word I<header> where I would use I<field>; e.g.,
@@ -161,8 +172,8 @@ RFC-1521 [MIME] headers are a syntactic subset of RFC-822 [email] headers.
 Perhaps a better name for these modules would be RFC1521:: instead of
 MIME::, but we're a little beyond that stage now.
 
-In my mind's eye, I see an abstract class, call it MIME::Attrs, which does
-what Achim suggests... so you could say:
+However, in my mind's eye, I see an abstract class, call it MIME::Attrs, 
+which does what Achim suggests... so you could say:
 
      my $attrs = new MIME::Attrs type => "text/plain",
 				 charset => ...,
@@ -172,14 +183,8 @@ We could even make it a superclass of MIME::Head: that way, MIME::Head
 would have to implement its interface, I<and> allow itself to be
 initiallized from a MIME::Attrs object.
 
-However, when you read RFC-1521, you begin to see how much MIME information
-is organized by its presence in particular fields.  I imagine that we'd
-begin to mirror the structure of RFC-1521 fields and subfields to such 
-a degree that this might not give us a tremendous gain over just
-having MIME::Head.
 
-
-=head2 To subclass or not to subclass?
+=item To subclass or not to subclass?
 
 When I originally wrote this module for the CPAN, I agonized for a long
 time about whether or not it really should just be a subclass
@@ -232,18 +237,81 @@ that addressed a lot of these issues.
 With MailTools now its 1.06 release, it was finally time to finish
 what I started, and release MIME-tools 2.0.
 
+=back
+
+
+
+=head1 QUESTIONABLE PRACTICES
+
+=over 4
+
+=item Fuzzing of CRLF and newline on input
+
+RFC-1521 dictates that MIME streams have lines terminated by CRLF
+(C<"\r\n">).  However, it is extremely likely that folks will want to 
+parse MIME streams where each line ends in the local newline 
+character C<"\n"> instead. 
+
+An attempt has been made to allow the parser to handle both CRLF 
+and newline-terminated input.
+
+=item Fuzzing of CRLF and newline when decoding
+
+The C<"7bit"> and C<"8bit"> decoders will decode both
+a C<"\n"> and a C<"\r\n"> end-of-line sequence into a C<"\n">.
+
+The C<"binary"> decoder (default if no encoding specified) 
+still outputs stuff verbatim... so a MIME message with CRLFs 
+and no explicit encoding will be output as a text file 
+that, on many systems, will have an annoying ^M at the end of
+each line... I<but this is as it should be>.
+
+=item Fuzzing of CRLF and newline when encoding/composing
+
+All encoders currently output the end-of-line sequence as a C<"\n">,
+with the assumption that the local mail agent will perform
+the conversion from newline to CRLF when sending the mail.
+
+However, there probably should be an option to output CRLF as per RFC-1521.
+I'm currently working on a good mechanism for this.
+
+=back
+
+
 
  
 =head1 CHANGE LOG
 
-=head2 Ancient history
+=head2 Current events
 
 =over
 
-=item Version 2.0
+=item Version 2.02
+
+Stupid, stupid bugs in both BASE64 encoding and decoding.
+Thanks to Phil Abercrombie for locating them.
+
+
+=item Version 2.01
 
 Modules now inherit from the new Mail:: modules!
 This means big changes in behavior.
+
+Added option to parse C<"message/rfc822"> as a pseduo-multipart document.
+Thanks to Andreas Koenig for suggesting this.
+
+MIME::Parser can now store message data in-core.
+There were a I<lot> of requestes for this feature.
+
+MIME::Entity can now compose messages.
+There were a I<lot> of requestes for this feature.
+
+=back
+
+
+=head2 Ancient history
+
+=over
 
 =item Version 1.13 	
 
@@ -325,22 +393,8 @@ Added COPYING file, and improved README.
 
 =item *
 
-Add option to parse message/rfc822 as a pseduo multipart document.
-
-=item *
-
 Dress up mimedump and mimeexplode utilities to take cmd line options
 for directory, environment vars (MIMEDUMP_OUTPUT, etc.).
-
-=item *
-
-Allow you to specify a cutoff() method that will determine whether
-decoded message is stored on disk or in a scalar.  Default will
-probably keep messages <10-20K in core.  In such a case, the
-body() method will return undef; we'll need a new way of accessing
-the data transparently.  Too bad setvbuf() isn't guaranteed...
-we could just "open" a filehandle on the scalar... hmmm... maybe
-I'll provide an open_body() for those lucky few that have it...  :-)
 
 =back
 
@@ -364,11 +418,33 @@ The MIME header format is documented in RFC 822.
 
 
 
-=head1 AUTHOR
+=head1 AUTHOR AND CREDITS
 
-Eryq, eryq@rhine.gsfc.nasa.gov.  
+B<MIME-tools was created by:>
+
+Eryq, eryq@rhine.gsfc.nasa.gov
 
 Initial release (1.0): 28 April 1996.
 Re-release (2.0): Halloween 1996.
 
+B<This kit would not have been possible> but for the direct 
+contributions of the following:
+
+	Gisle Aas           the MIME encoding/decoding modules
+	Phil Abercrombie    bug reports
+	Laurent Amon        bug reports and suggestions
+	Graham Barr         the new MailTools
+	Achim Bohnet        numerous good suggestions, including the I/O model
+	Andreas Koenig      numerous good ideas, and help with the packaging
+	Andrew Pimlott      bug reports
+	Igor Starovoitov    bug reports and suggestions
+	Russell Sutherland  bug reports
+
+Please forgive me if I've left you out.
+
 =cut
+
+
+
+
+

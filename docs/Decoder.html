@@ -404,14 +404,26 @@ actually uses to translate each line.
 <P>
 
 When <STRONG>decoding</STRONG>
-, the input is read one line at a time.
+, the input is read one line at a time. The input accumulates in an
+internal buffer, which is decoded in multiple-of-4-sized chunks (plus a
+possible ``leftover'' input chunk, of course).
 
 
 <P>
 
 When <STRONG>encoding</STRONG>
-, the input is read 60 bytes at a time: this ensures that the output lines
-are not too long.
+, the input is read 45 bytes at a time: this ensures that the output lines
+are not too long. We chose 45 since it is a multiple of 3 and produces
+lines under 76 characters, as RFC-1521 specifies.
+
+
+<P>
+
+<EM>Thanks to Phil Abercrombie for locating one idiotic bug in this module,
+which led me to discover another.</EM>
+
+
+
 
 
 <P>
@@ -462,7 +474,14 @@ The <STRONG>decoder</STRONG>
 
 The <STRONG>encoder</STRONG>
  does a line-by-line translation, breaking lines so that they fall under the
-standard 76-character limit for this encoding.
+standard 76-character limit for this encoding.  
+
+
+<P>
+
+<STRONG>Note:</STRONG>
+ just like <A HREF="QuotedPrint.html">MIME::QuotedPrint,</A> we currently
+use the native <CODE>"\n"</CODE> for line breaks, and not <CODE>CRLF</CODE>. This may need to change in future versions.
 
 
 <P>
@@ -647,13 +666,14 @@ encodings like this:
 <P>
 
 </OL>
-To illustrate, here's a custom decoder class for the <CODE>base64</CODE> encoding:
+To illustrate, here's a custom decoder class for the <CODE>quoted-printable</CODE> 
+encoding:
 
 
 <P>
 
 <PRE>
-    package MyBase64Decoder;
+    package MyQPDecoder;
 </PRE>
 
 <P>
@@ -661,14 +681,14 @@ To illustrate, here's a custom decoder class for the <CODE>base64</CODE> encodin
 <PRE>
     @ISA = qw(MIME::Decoder);    
     use MIME::Decoder;
-    use MIME::Base64;
+    use MIME::QuotedPrint;
     
     # decode_it - the private decoding method
     sub decode_it {
         my ($self, $in, $out) = @_;
         
         while (defined($_ = $in-&gt;getline())) {
-            my $decoded = decode_base64($_);
+            my $decoded = decode_qp($_);
 	    $out-&gt;print($decoded);
         }
         1;
@@ -680,7 +700,7 @@ To illustrate, here's a custom decoder class for the <CODE>base64</CODE> encodin
         
         my ($buf, $nread) = ('', 0); 
         while ($in-&gt;read($buf, 60)) {
-            my $encoded = encode_base64($buf);
+            my $encoded = encode_qp($buf);
 	    $out-&gt;print($encoded);
         }
         1;
@@ -694,7 +714,8 @@ That's it.
 
 <P>
 
-The task was pretty simple because the <CODE>"base64"</CODE> encoding can easily and efficiently be parsed line-by-line... as can <CODE>"quoted-printable"</CODE>, and even <CODE>"7bit"</CODE> and <CODE>"8bit"</CODE> (since all these encodings guarantee short lines, with a max of 1000
+The task was pretty simple because the <CODE>"quoted-printable"</CODE> 
+encoding can easily be converted line-by-line... as can even <CODE>"7bit"</CODE> and <CODE>"8bit"</CODE> (since all these encodings guarantee short lines, with a max of 1000
 characters). The good news is: it is very likely that it will be
 similarly-easy to write a <A HREF="Decoder.html">MIME::Decoder</A> for any
 future standard encodings.
@@ -736,7 +757,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.6 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 2.7 $ $Date: 1996/10/23 17:03:49 $
 
 
 <P>

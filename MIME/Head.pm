@@ -127,7 +127,7 @@ $Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.7 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 
@@ -931,7 +931,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 2.6 $ $Date: 1996/10/18 06:52:01 $
+$Revision: 2.7 $ $Date: 1996/10/18 07:43:08 $
 
 =cut
 
