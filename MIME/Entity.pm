@@ -197,13 +197,30 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 3.202 $, 10;
+$VERSION = substr q$Revision: 3.204 $, 10;
 
 # Boundary counter:
 my $BCount = 0;
 
 # Standard "Content-" MIME fields, for scrub():
 my $StandardFields = 'Description|Disposition|Id|Type|Transfer-Encoding';
+
+
+
+
+#------------------------------------------------------------
+# make_boundary
+#------------------------------------------------------------
+# Return a unique boundary string.
+# This is used both internally and by MIME::ParserBase, but it is NOT in
+# the public interface!  Do not use it!
+#
+# We generate one containing a "=_", as RFC1521 suggests.
+
+sub make_boundary {
+    return "----------=_".scalar(time)."-$$-".$BCount++;
+}
+
 
 
 #------------------------------
@@ -397,12 +414,14 @@ sub build {
     $filename = $params{Filename} || $params{Path} || '';
     $filename =~ s{^.*/}{}g;        # nuke path info    
 
+    # Type-check sanity:
+    if ($type =~ m{^(multipart|message)/}) {
+	($encoding =~ /^(|7bit|8bit|binary)$/i) 
+	    or croak "can't have encoding $encoding for message type $type!";
+    }
+
     # Multipart or not? Do sanity check and fixup:
     if ($is_multipart) {      # multipart...
-	
-	# Check encoding:
-	($encoding =~ /^(|7bit|8bit|binary)$/i) 
-	    or die "multipart message with illegal encoding: $encoding!";
 	
 	# Get any supplied boundary, and check it:
 	if (defined($boundary = $params{Boundary})) {  # they gave us one...
@@ -417,11 +436,8 @@ sub build {
 	    }
 	}
 	
-	# If we have to roll our own boundary, we choose one containing 
-	# a "=_", as RFC1521 suggests:
-	if (!defined($boundary)) {
-	    $boundary = "----------=_".scalar(time)."-".$BCount++;
-	}
+	# If we have to roll our own boundary, do so:
+	defined($boundary) or $boundary = make_boundary();
     }
     else {                    # single part...
 	# Create body:
@@ -510,8 +526,11 @@ sub build {
 
 I<Instance method.>
 Assuming we are a multipart message, add a body part (a MIME::Entity)
-to the array of body parts.  Do B<not> call this for single-part messages;
-i.e., don't call it unless the header has a C<"multipart"> content-type.
+to the array of body parts.
+
+B<Warning:> in the future, it may be a fatal error to attempt to 
+attach a part to anything but a multipart entity (one with a content-type 
+of C<multipart/*>).
 
 Returns the part that was just added.
 
@@ -519,14 +538,15 @@ Returns the part that was just added.
 
 sub add_part {
     my ($self, $part) = @_;
+
+    # Add it:
     push @{$self->{ME_Parts}}, $part;
     $part;
 }
 
 #------------------------------------------------------------
-# all_parts -- PLANNED
+# all_parts -- REMOVED
 #------------------------------------------------------------
-#
 # =item all_parts
 #
 # Like C<parts()>, except that for multipart messages, the preamble and
@@ -551,7 +571,7 @@ sub all_parts {
 # attach
 #------------------------------------------------------------
 
-=item attach PARAMHASH
+=item attach [PART|PARAMHASH]
 
 I<Instance method.>
 The real quick-and-easy way to create multipart messages.
@@ -561,10 +581,14 @@ Basically equivalent to:
 
 Except that it's a lot nicer to look at.
 
+It is a fatal error to attempt to attach a part to anything
+but a multipart entity (one with a content-type of C<multipart/*>).
+
 =cut 
 
 sub attach {
     my $self = shift;
+    ($self->is_multipart) or croak "can only add parts to multipart messages!";
     $self->add_part(ref($self)->build(@_, Top=>0));
 }
 
@@ -940,8 +964,8 @@ sub print_body {
     my $decoder = new MIME::Decoder $encoding;
 
     # Output the body:
-    my $body = $self->bodyhandle;
-    my $IO = $body->open("r") || die "open body: $!";
+    my $body = $self->bodyhandle || return error "no body to output!";
+    my $IO = $body->open("r")    || die "open body: $!";
     $decoder->encode($IO, $fh);      # encode it
     $IO->close;
     1;
@@ -1415,7 +1439,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 3.202 $ $Date: 1997/01/19 07:10:41 $
+$Revision: 3.204 $ $Date: 1997/01/22 08:38:36 $
 
 =cut
 

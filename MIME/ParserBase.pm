@@ -24,6 +24,10 @@ I<concrete subclasses> is used:
 
 There are also some convenience methods:
 
+    # Parse an in-core MIME message:
+    $entity = $parser->parse_data($message)
+          || die "couldn't parse MIME message";
+    
     # Parse already-split input (as "deliver" would give it to you):
     $entity = $parser->parse_two("msg.head", "msg.body")
           || die "couldn't parse MIME files";
@@ -39,7 +43,7 @@ In case a parse fails, it's nice to know who sent it to us.  So...
 You can also alter the behavior of the parser:    
 
     # Parse contained "message/rfc822" objects as nested MIME streams:
-    $parser->parse_nested_messages(1);
+    $parser->parse_nested_messages('REPLACE');
      
     # Automatically attempt to RFC-1522-decode the MIME headers:
     $parser->decode_headers(1);
@@ -98,7 +102,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 3.202 $, 10;
+$VERSION = substr q$Revision: 3.203 $, 10;
 
 # How to catenate:
 $CAT = '/bin/cat';
@@ -122,6 +126,7 @@ sub textlike {
     my ($type, $subtype) = split('/', $head->mime_type);
     return (($type eq 'text') || ($type eq 'message'));
 }
+
 
 
 #------------------------------------------------------------
@@ -259,15 +264,15 @@ sub last_head {
 
 I<Instance method.>
 Some MIME messages will contain a part of type C<message/rfc822>:
-literally, the text of an embedded mail message.  The normal behavior 
-is to save such a message just as if it were a C<text/plain> 
-document.  However, you can change this: before parsing, invoke 
-this method with the OPTION you want:
+literally, the text of an embedded mail/news/whatever message.  
+The normal behavior is to save such a message just as if it were a 
+C<text/plain> document, without attempting to decode it.  However, you can 
+change this: before parsing, invoke this method with the OPTION you want:
 
 B<If OPTION is false,> the normal behavior will be used.
 
 B<If OPTION is true,> the body of the C<message/rfc822> part
-is decoded (after all, it might be encoded!) into a temporary file, 
+is decoded (after all, it might be encoded!) into a temporary filehandle, 
 which is then rewound and parsed by this parser, creating an 
 entity object.  What happens then is determined by the OPTION:
 
@@ -277,14 +282,26 @@ entity object.  What happens then is determined by the OPTION:
 
 The contained message becomes a "part" of the C<message/rfc822> entity,
 as though the C<message/rfc822> were a special kind of C<multipart> entity.
-This is the default behavior if the generic true value of "1" is given.
+However, the C<message/rfc822> header (and the content-type) I<is retained.>
+
+B<Warning:> since it is not legal MIME for anything but C<multipart>
+to have a "part", the C<message/rfc822> message I<will appear to 
+have no content> if you simply C<print()> it out.  You will have to have to 
+get at the reparsed body manually, by the C<MIME::Entity::parts()> method.
+
+IMHO, this option is probably only useful if you're I<processing> messages,
+but I<not> saving or re-sending them.  In such cases, it is best to I<not>
+use "parse nested" at all.
 
 =item REPLACE
 
 The contained message replaces the C<message/rfc822> entity, as though
-the C<message/rfc822> "envelope" never existed.  Notice that, with 
-this option, all the header information in the C<message/rfc822>
-header is lost, so this option is I<not> recommended.
+the C<message/rfc822> "envelope" never existed.  
+
+B<Warning:> notice that, with this option, all the header information 
+in the C<message/rfc822> header is lost.  This might seriously bother
+you if you're dealing with a top-level message, and you've just lost
+the sender's address and the subject line.  C<:-/>.
 
 =back
 
@@ -574,6 +591,8 @@ sub parse_part {
 		$entity = $subentity;
 	    }
 	    else {          # "NEST" or generic 1:
+		# KLUDGE... in the future, may need to coerce entity 
+		# to "multipart" type, or just make a fake MP.
 		$entity->add_part($subentity);
 	    }
 	}
@@ -623,11 +642,12 @@ to produce a scalar; no newlines are inserted!
 Returns a MIME::Entity, which may be a single entity, or an 
 arbitrarily-nested multipart entity.  Returns undef on failure.
 
-B<Note:> the storage of the body parts is not determined by this class,
-but by the subclass you use to do the actual parsing.  For efficiency,
-if you know you'll be parsing a small amount of data, it is probably
-best to tell the parser to store the parsed parts in core. 
-For example, here's a short test program, using MIME::Parser:
+B<Note:> where the parsed body parts are stored (e.g., in-core vs. on-disk)
+is not determined by this class, but by the subclass you use to do the 
+actual parsing (e.g., MIME::Parser).  For efficiency, if you know you'll 
+be parsing a small amount of data, it is probably best to tell the parser 
+to store the parsed parts in core.  For example, here's a short test 
+program, using MIME::Parser:
 
         use MIME::Parser;
         
@@ -803,7 +823,7 @@ sub init {
     $self->{MPB_Interface} = {};
     $self->interface(ENTITY_CLASS => 'MIME::Entity');
     $self->interface(HEAD_CLASS   => 'MIME::Head');
-    $self->decode_headers(1);
+    $self->decode_headers(0);
     $self;
 }
 
@@ -1091,7 +1111,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 3.202 $ $Date: 1997/01/19 01:34:53 $
+$Revision: 3.203 $ $Date: 1997/01/22 08:40:01 $
 
 =cut
 

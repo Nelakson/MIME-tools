@@ -589,9 +589,14 @@ as per RFC-1521.  <EM>Do yourself a favor: put it in.</EM>
 <EM>Instance method.</EM>
 
 Assuming we are a multipart message, add a body part (a <A
-HREF="Entity.html">MIME::Entity)</A> to the array of body parts. Do <STRONG>not</STRONG>
- call this for single-part messages; i.e., don't call it unless the header
-has a <CODE>"multipart"</CODE> content-type.
+HREF="Entity.html">MIME::Entity)</A> to the array of body parts.
+
+
+<P>
+
+<STRONG>Warning:</STRONG>
+ in the future, it may be a fatal error to attempt to attach a part to
+anything but a multipart entity (one with a content-type of <CODE>multipart/*</CODE>).
 
 
 <P>
@@ -601,7 +606,7 @@ Returns the part that was just added.
 
 <P>
 
-<DT><STRONG><A NAME="item_attach_paramhash">attach PARAMHASH
+<DT><STRONG><A NAME="item_attach_partparamhash">attach [PART|PARAMHASH]
 
 </A></STRONG><DD>
 <EM>Instance method.</EM>
@@ -619,6 +624,12 @@ equivalent to:
 <P>
 
 Except that it's a lot nicer to look at.
+
+
+<P>
+
+It is a fatal error to attempt to attach a part to anything but a multipart
+entity (one with a content-type of <CODE>multipart/*</CODE>).
 
 
 <P>
@@ -1320,7 +1331,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 3.202 $ $Date: 1997/01/19 07:10:41 $
+$Revision: 3.204 $ $Date: 1997/01/22 08:38:36 $
 
 
 <P>

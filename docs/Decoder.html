@@ -541,7 +541,10 @@ Really. Use a more-appropriate encoding, like quoted-printable.
 </A></STRONG><DD>
 Approximate the appearance of the Latin-1 character via Internet
 conventions; e.g., <CODE>"\c,"</CODE>, <CODE>"\n~"</CODE>, etc. This is the default behavior of this class. It will pull in the <A
-HREF="Latin1.html">MIME::Latin1</A> module to do the translation.
+HREF="Latin1.html">MIME::Latin1</A> module to do the translation.  <EM>This will be useless to you if your 8-bit characters are not Latin-1 text.</EM>
+
+
+
 
 
 <P>
@@ -551,7 +554,8 @@ HREF="Latin1.html">MIME::Latin1</A> module to do the translation.
 </A></STRONG><DD>
 Strip out any 8-bit characters. Nice if you're <EM>really</EM>
  sure that any such characters in your input are mistakes to be deleted, but
-it'll transform non-English documents into an abbreviated mess.
+it'll transform non-English documents into an abbreviated mess. But then,
+you should be using <CODE>quoted-printable</CODE> for those...
 
 
 <P>
@@ -561,12 +565,34 @@ it'll transform non-English documents into an abbreviated mess.
 </A></STRONG><DD>
 Encode them as though we were doing a quoted-printable encoding; e.g.,
 ``=A0''. This won't help the mail viewing software, but some humans may get
-the gist...
+the gist, and at least the original data might be recoverable...
 
 
 <P>
 
 </DL>
+To affect the default scheme, use the class method:
+
+
+<P>
+
+<PRE>
+    MIME::Decoder::Xbit-&gt;map_8_to_7_by('STRIP');
+</PRE>
+
+<P>
+
+To affect just one decoder object:
+
+
+<P>
+
+<PRE>
+    $decoder-&gt;map_8_to_7_by('STRIP');
+</PRE>
+
+<P>
+
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
@@ -747,7 +773,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
+$Revision: 3.202 $ $Date: 1997/01/22 08:32:42 $
 
 
 <P>

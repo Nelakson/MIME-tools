@@ -132,7 +132,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 3.201 $, 10;
+$VERSION = substr q$Revision: 3.202 $, 10;
 
 # Sanity (we put this test after our own version, for CPAN::):
 $Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
@@ -596,21 +596,18 @@ Recover the original text that was read() in to create this object:
 
 B<WARNING:> does no such thing now.  Just returns a reasonable
 approximation of that text.  Think of it as nothing more than a poorly-named
-C<as_string()> method.  Provided for backwards-compatibility only.
+C<as_string()> method, which outputs the header fields in the order received.
+Provided for backwards-compatibility only.
+
+This method depends on Mail::Header::header returning the information in 
+the proper order.
 
 =cut
     
 sub original_text {
-    my $self = shift;
-    my ($tag, $value);
-    my $text = '';
-    foreach $tag (sort $self->tags()) {
-	foreach $value ($self->get_all($tag)) {
-	    $value =~ s/\r?\n\Z//;
-	    $text .= "\u$tag: $value\n";
-	}
-    }
-    $text;
+    my $self = shift;    
+    # Be real careful, here... we must have newlines!  
+    join('', map { /\n$/ ? $_ : "$_\n" } @{$self->header});
 }
 
 
@@ -1071,7 +1068,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
+$Revision: 3.202 $ $Date: 1997/01/22 05:00:29 $
 
 =cut
 

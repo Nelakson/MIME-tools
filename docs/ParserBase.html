@@ -84,6 +84,10 @@ There are also some convenience methods:
 <P>
 
 <PRE>
+    # Parse an in-core MIME message:
+    $entity = $parser-&gt;parse_data($message)
+          || die &quot;couldn't parse MIME message&quot;;
+    
     # Parse already-split input (as &quot;deliver&quot; would give it to you):
     $entity = $parser-&gt;parse_two(&quot;msg.head&quot;, &quot;msg.body&quot;)
           || die &quot;couldn't parse MIME files&quot;;
@@ -113,7 +117,7 @@ You can also alter the behavior of the parser:
 
 <PRE>
     # Parse contained &quot;message/rfc822&quot; objects as nested MIME streams:
-    $parser-&gt;parse_nested_messages(1);
+    $parser-&gt;parse_nested_messages('REPLACE');
      
     # Automatically attempt to RFC-1522-decode the MIME headers:
     $parser-&gt;decode_headers(1);
@@ -279,10 +283,10 @@ This is useful for replying to people who sent us bad MIME messages.
 </A></STRONG><DD>
 <EM>Instance method.</EM>
 
-Some MIME messages will contain a part of type <CODE>message/rfc822</CODE>: literally, the text of an embedded mail message. The normal behavior is
-to save such a message just as if it were a <CODE>text/plain</CODE> 
-document. However, you can change this: before parsing, invoke this method
-with the OPTION you want:
+Some MIME messages will contain a part of type <CODE>message/rfc822</CODE>: literally, the text of an embedded mail/news/whatever message. The normal
+behavior is to save such a message just as if it were a 
+<CODE>text/plain</CODE> document, without attempting to decode it. However, you can change this:
+before parsing, invoke this method with the OPTION you want:
 
 
 <P>
@@ -294,9 +298,9 @@ with the OPTION you want:
 <P>
 
 <STRONG>If OPTION is true,</STRONG>
- the body of the <CODE>message/rfc822</CODE> part is decoded (after all, it might be encoded!) into a temporary file,
-which is then rewound and parsed by this parser, creating an entity object.
-What happens then is determined by the OPTION:
+ the body of the <CODE>message/rfc822</CODE> part is decoded (after all, it might be encoded!) into a temporary
+filehandle, which is then rewound and parsed by this parser, creating an
+entity object. What happens then is determined by the OPTION:
 
 
 <P>
@@ -305,8 +309,27 @@ What happens then is determined by the OPTION:
 <DT><STRONG><A NAME="item_nest_or_1">NEST or 1
 
 </A></STRONG><DD>
-The contained message becomes a ``part'' of the <CODE>message/rfc822</CODE> entity, as though the <CODE>message/rfc822</CODE> were a special kind of <CODE>multipart</CODE> entity. This is the default behavior if the generic true value of ``1'' is
-given.
+The contained message becomes a ``part'' of the <CODE>message/rfc822</CODE> entity, as though the <CODE>message/rfc822</CODE> were a special kind of <CODE>multipart</CODE> entity. However, the <CODE>message/rfc822</CODE> header (and the content-type) <EM>is retained.</EM>
+
+
+
+
+
+<P>
+
+<STRONG>Warning:</STRONG>
+ since it is not legal MIME for anything but <CODE>multipart</CODE>
+to have a ``part'', the <CODE>message/rfc822</CODE> message <EM>will appear to have no content</EM>
+ if you simply <CODE>print()</CODE> it out. You will have to have to get at the reparsed body manually, by the <CODE>MIME::Entity::parts()</CODE> method.
+
+
+<P>
+
+IMHO, this option is probably only useful if you're <EM>processing</EM>
+ messages, but <EM>not</EM>
+ saving or re-sending them. In such cases, it is best to <EM>not</EM>
+
+use ``parse nested'' at all.
 
 
 <P>
@@ -314,10 +337,15 @@ given.
 <DT><STRONG><A NAME="item_replace">REPLACE
 
 </A></STRONG><DD>
-The contained message replaces the <CODE>message/rfc822</CODE> entity, as though the <CODE>message/rfc822</CODE> ``envelope'' never existed. Notice that, with this option, all the header
-information in the <CODE>message/rfc822</CODE>
-header is lost, so this option is <EM>not</EM>
- recommended.
+The contained message replaces the <CODE>message/rfc822</CODE> entity, as though the <CODE>message/rfc822</CODE> ``envelope'' never existed.  
+
+
+<P>
+
+<STRONG>Warning:</STRONG>
+ notice that, with this option, all the header information in the <CODE>message/rfc822</CODE> header is lost. This might seriously bother you if you're dealing with a
+top-level message, and you've just lost the sender's address and the
+subject line.  <CODE>:-/</CODE>.
 
 
 <P>
@@ -379,11 +407,12 @@ failure.
 <P>
 
 <STRONG>Note:</STRONG>
- the storage of the body parts is not determined by this class, but by the
-subclass you use to do the actual parsing. For efficiency, if you know
-you'll be parsing a small amount of data, it is probably best to tell the
-parser to store the parsed parts in core. For example, here's a short test
-program, using <A HREF="Parser.html">MIME::Parser:</A>
+ where the parsed body parts are stored (e.g., in-core vs. on-disk) is not
+determined by this class, but by the subclass you use to do the actual
+parsing (e.g., <A HREF="Parser.html">MIME::Parser).</A> For efficiency, if
+you know you'll be parsing a small amount of data, it is probably best to
+tell the parser to store the parsed parts in core. For example, here's a
+short test program, using <A HREF="Parser.html">MIME::Parser:</A>
 
 
 <P>
@@ -928,7 +957,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 3.202 $ $Date: 1997/01/19 01:34:53 $
+$Revision: 3.203 $ $Date: 1997/01/22 08:40:01 $
 
 
 <P>

@@ -668,6 +668,77 @@ mail like this, regard it as syntactically incorrect, which it is.
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A HREF="#__top"><IMG SRC="h2bullet.gif" ALT="*" BORDER=0></A> <A NAME="current_events">Current events</A></H3>
 <DL>
+<DT><STRONG><A NAME="item_version_3204">Version 3.204
+
+</A></STRONG><DD>
+<STRONG>Bug in <A HREF="Head.html">MIME::Head::original_text</A> fixed.</STRONG>
+
+Well, it took a while, but another bug surfaced from my transition from 1.x
+to 2.x. This method was, quite idiotically, sorting the header fields.
+<EM>Thanks, as usual, to Andreas Koenig for spotting this one.</EM>
+
+
+
+
+
+<P>
+
+<STRONG><A HREF="ParserBase.html">MIME::ParserBase</A> no longer defaults to
+RFC-1522-decoding headers.</STRONG>
+
+The documentation correctly stated that the default setting was to <EM>not</EM>
+
+RFC-1522-decode the headers. The code, on the other hand, was init'ing this
+parser option in the ``on'' position. This has been fixed.
+
+
+<P>
+
+<STRONG><A HREF="ParserBase.html">MIME::ParserBase::parse_nested_messages</A>
+reexamined.</STRONG>
+
+If you use this feature, please re-read the documentation. It explains a
+little more precisely what the ramifications are.
+
+
+<P>
+
+<STRONG><A HREF="Entity.html">MIME::Entity</A> tries harder to ensure MIME
+compliance.</STRONG>
+
+It is now a fatal error to use certain bad combinations of content type and
+encoding when ``building'', or to attempt to ``attach'' to anything that is
+not a multipart document. My apologies if this inconveniences anyone, but
+it was just too darn easy before for folks to create bad MIME, and gosh
+darn it, good libraries should at least <EM>try</EM>
+ to protect you from mistakes.
+
+
+<P>
+
+<STRONG>The ``make'' now halts if you don't have the right stuff,</STRONG>
+ provided your MakeMaker supports PREREQ_PM. See the <A HREF="#requirements">REQUIREMENTS</A>
+ section for what you need to install this package. I still provide old
+courtesy copies of the MIME:: decoding modules.
+<EM>Thanks to Hugo van der Sanden for suggesting this.</EM>
+
+
+
+
+
+<P>
+
+<STRONG>The ``make test'' is far less chatty.</STRONG>
+
+Okay, okay, STDERR is evil. Now a <CODE>"make test"</CODE> will just give you the important stuff: do a <CODE>"make test TEST_VERBOSE=1"</CODE> if you want the gory details (advisable if sending me a bug report).
+<EM>Thanks to Andreas Koenig for suggesting this.</EM>
+
+
+
+
+
+<P>
+
 <DT><STRONG><A NAME="item_version_3203">Version 3.203
 
 </A></STRONG><DD>
@@ -1218,6 +1289,16 @@ See the COPYING file in the distribution for details.
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="support">SUPPORT</A></H2>
 Please email me directly with questions/problems (see AUTHOR below).
+
+
+<P>
+
+If you want to be placed on an email distribution list (not a mailing
+list!) for MIME-tools, and receive bug reports, patches, and updates as to
+when new MIME-tools releases are planned, just email me and say so. If your
+project is using MIME-tools, it might not be a bad idea to find out about
+those bugs <EM>before</EM>
+ they become problems...
 
 
 <P>

@@ -90,7 +90,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 3.202 $, 10;
+$VERSION = substr q$Revision: 3.203 $, 10;
 
 # Count of fake filenames generated:
 my $G_output_path = 0;
@@ -492,6 +492,7 @@ sub output_prefix {
     $self->{MP_Prefix};
 }
 
+
 #------------------------------------------------------------
 
 =back
@@ -547,7 +548,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 3.202 $ $Date: 1997/01/19 03:48:32 $
+$Revision: 3.203 $ $Date: 1997/01/22 08:39:25 $
 
 =cut
 
@@ -564,7 +565,7 @@ $Revision: 3.202 $ $Date: 1997/01/19 03:48:32 $
 __END__
 
 BEGIN {unshift @INC, ".", "./etc"}
-MIME::ToolUtils->debugging(1);
+MIME::ToolUtils->debugging(0);
 $Counter = 0;
 $^W = 1;
 
@@ -585,7 +586,8 @@ $DIR = "./testout";
 my $parser = new MIME::Parser;
 $parser->output_dir($DIR);
 $parser->output_to_core(512);       # 512 bytes or less goes to core
-$parser->parse_nested_messages('REPLACE');
+#$parser->parse_nested_messages('REPLACE');
+#$parser->parse_nested_messages('NEST');
 $parser->decode_headers(1);
 
 # Uncomment me to see path hooks in action...
@@ -595,11 +597,14 @@ print "* Waiting for a MIME message from STDIN...\n";
 my $entity = $parser->read(\*STDIN);
 $entity or die "parse failed";
 
+print "=" x 60, "\n\n";
+$entity->print(\*STDOUT);
 print "=" x 60, "\n";
 $entity->dump_skeleton;
 print "=" x 60, "\n\n";
 $entity->purge;
 $entity->dump_skeleton;
+
 
 #------------------------------------------------------------
 1;

@@ -4,10 +4,9 @@ BEGIN {
 use MIME::ToolUtils;
 use Checker;
 use strict;
-MIME::ToolUtils->debugging(0);
+config MIME::ToolUtils DEBUGGING=>0;
 
 use MIME::Parser;
-print STDERR "\n";
 
 # Set the counter:
 my $Counter = 0;
@@ -15,8 +14,11 @@ my $Counter = 0;
 # Messages we know about:
 my %MESSAGES = 
     (
-     'ak-0696.msg' => {
-	 Type=>'multipart/mixed',
+
+     'ak-0696.msg, try 0 (no nesting)' => {
+	 Infile=>'ak-0696.msg',
+ 	 Nested=>0,	
+	 Type  =>'multipart/mixed',
 	 Parts => [
 		   { Type=>'text/plain',
 		     Enc=>'7bit'},	
@@ -24,12 +26,42 @@ my %MESSAGES =
 		     Enc=>'7bit'}
 		   ],
      },
-     'german.msg' => {
-	 Type=>'text/plain',
-	 Enc=>'quoted-printable',
+
+     'ak-0696.msg, try 1 (nesting=NEST)' => {
+	 Infile=>'ak-0696.msg',
+ 	 Nested=>'NEST',
+	 Type  =>'multipart/mixed',
+	 Parts => [
+		   { Type=>'text/plain',
+		     Enc=>'7bit'},	
+		   { Type=>'message/rfc822',
+		     Enc=>'7bit'}
+		   ],
      },
+
+     'ak-0696.msg, try 2 (nesting=REPLACE)' => {
+	 Infile=>'ak-0696.msg',
+ 	 Nested=>'REPLACE',
+	 Type  =>'multipart/mixed',
+	 Parts => [
+		   { Type=>'text/plain',
+		     Enc=>'7bit'},	
+		   { Type=>'text/plain',
+		     Enc=>'quoted-printable'}
+		   ],
+     },
+
+     'german.msg' => {
+	 Infile=>'german.msg',
+ 	 Nested=>0,
+	 Type  =>'text/plain',
+	 Enc   =>'quoted-printable',
+     },
+
      'multi-2gifs.msg' => {
-	 Type=>'multipart/mixed',
+	 Infile=>'multi-2gifs.msg',
+ 	 Nested=>0,
+	 Type  =>'multipart/mixed',
 	 Parts => [
 		   { Type=>'text/plain',
 		     Enc=>'7bit'},	
@@ -43,9 +75,13 @@ my %MESSAGES =
 		     Size=>357},
 		   ],
      },
+
      'simple.msg' => {
-	 Type=>'text/plain',
+	 Infile=>'simple.msg',
+ 	 Nested=>0,
+	 Type  =>'text/plain',
      },
+
      );
 
 #------------------------------------------------------------
@@ -59,20 +95,24 @@ sub check_entity {
     my $t_enc  = ($info->{Enc}  || '7bit');
 
     check($ent => "$name parsed");
-    check(($type = $ent->head->mime_type) eq $t_type =>
-	  "$name: got type $type");
-    check(($enc = $ent->head->mime_encoding) eq $t_enc =>
-	  "$name: got encoding $enc");
+    check((($type = $ent->head->mime_type || '') eq $t_type) =>
+	  "$name: verified type $t_type?")
+	if $ent;
+    check((($enc = $ent->head->mime_encoding || '') eq $t_enc) =>
+	  "$name: verified encoding $t_enc?")
+	if $ent;
     check((-s "testout/$info->{File}") =>
-	  "$name: nonzero output file $info->{File}")
-	if $info->{File};
+	  "$name: nonzero output file $info->{File}?")
+	if ($ent and $info->{File});
     check(((-s "testout/$info->{File}") == $info->{Size}) =>
-	  "$name: expected size of $info->{Size}")
-	if $info->{Size};
+	  "$name: got expected size of $info->{Size}?")
+	if ($ent and $info->{Size});
 
-    for ($i = 0; $i < int(@{$info->{Parts} || []}); $i++) {
-	my $part = ($ent->parts)[$i];
-	check_entity("$name.$i", $part, $info->{Parts}[$i]);
+    if ($type =~ /multipart/) {
+	for ($i = 0; $i < int(@{$info->{Parts} || []}); $i++) {
+	    my $part = ($ent ? ($ent->parts)[$i] : undef);
+	    check_entity("$name.$i", $part, $info->{Parts}[$i]);
+	}
     }
 }
 
@@ -85,7 +125,7 @@ sub simple_output_path {
     # Get the recommended filename:
     my $filename = $head->recommended_filename;
     if (defined($filename) && MIME::Parser::evil_name($filename)) {
-	warn "Parser.t: ignoring an evil recommended filename ($filename)\n";
+	note "Parser.t: ignoring an evil recommended filename ($filename)";
 	$filename = undef;      # forget it: it was evil
     }
     if (!defined($filename)) {  # either no name or an evil name
@@ -107,7 +147,7 @@ unlink <$DIR/[a-z]*>;
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
-print "1..43\n";
+print "1..61\n";
 
 my $parser;
 my $entity;
@@ -122,7 +162,10 @@ note "Create a parser";
 #------------------------------------------------------------
 $parser = new MIME::Parser;
 $parser->output_dir($DIR);
-$parser->output_path_hook(\&simple_output_path);
+{
+    local($^W) = 0;
+    $parser->output_path_hook(\&simple_output_path);
+}
 
 #------------------------------------------------------------
 note "Read a nested multipart MIME message";
@@ -183,17 +226,21 @@ check($entity => "parse of 2-part simple message");
 #------------------------------------------------------------
 $parser = new MIME::Parser;
 $parser->output_dir($DIR);
-foreach $infile (sort keys %MESSAGES) {
+my $message;
+foreach $message (sort keys %MESSAGES) {
     my $ent;  
+ 
+    # Set options:
+    $parser->parse_nested_messages($MESSAGES{$message}{Nested});
 
-    note "Parsing $infile (and checking results)...";
-    open IN, "./testin/$infile" or die "open: $!";
-    $ent = $parser->read(\*IN);
+    # Parse:
+    note "Parsing/checking $message...";
+    open IN, "./testin/$MESSAGES{$message}{Infile}" or die "open: $!";
+    $ent = eval { $parser->read(\*IN) };
     close IN;
-    check_entity($infile, $ent, $MESSAGES{$infile});
+    check_entity($MESSAGES{$message}{Infile}, $ent, $MESSAGES{$message});
 }
 
 # Done!
 exit(0);
 1;
-

@@ -97,7 +97,7 @@ use MIME::IO;
 );
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 3.201 $, 10;
+$VERSION = substr q$Revision: 3.202 $, 10;
 
 
 
@@ -660,41 +660,55 @@ Really.  Use a more-appropriate encoding, like quoted-printable.
 Approximate the appearance of the Latin-1 character via Internet
 conventions; e.g., C<"\c,">, C<"\n~">, etc.  This is the default
 behavior of this class.  It will pull in the MIME::Latin1 module
-to do the translation.
+to do the translation.  I<This will be useless to you if your
+8-bit characters are not Latin-1 text.>
 
 =item STRIP
 
 Strip out any 8-bit characters.  Nice if you're I<really> sure that any
 such characters in your input are mistakes to be deleted, but it'll
-transform non-English documents into an abbreviated mess.
+transform non-English documents into an abbreviated mess.  But then,
+you should be using C<quoted-printable> for those...
 
 =item QP
 
 Encode them as though we were doing a quoted-printable encoding;
 e.g., "=A0".  This won't help the mail viewing software, but some 
-humans may get the gist...
+humans may get the gist, and at least the original data might
+be recoverable...
 
 =back
+
+To affect the default scheme, use the class method:
+
+    MIME::Decoder::Xbit->map_8_to_7_by('STRIP');
+
+To affect just one decoder object:
+
+    $decoder->map_8_to_7_by('STRIP');
 
 =cut
 
 package MIME::Decoder::Xbit;
 
 use vars qw(@ISA);
+use MIME::ToolUtils qw(:msgs);
 
 @ISA = qw(MIME::Decoder);
 
-use MIME::ToolUtils qw(:msgs);
+my $Encode8 = 'APPROX';
+
 
 #------------------------------------------------------------
-# encode_8bit 
+# map_8_to_7 
 #------------------------------------------------------------
 # We just read a line of the file that we're trying to 7-bit encode.  
 # Clean out any 8-bit characters.
 
-sub encode_8bit {
+sub map_8_to_7 {
     my ($self, $line) = @_;
-    my $opt = ($self->{MD_Xbit_Encode8} || 'APPROX');
+    my $opt = ($self->{MD_Xbit_Encode8} || $Encode8 || 'APPROX');
+
     if ($opt eq    'CLEARBIT8') {                # just clear 8th bit
 	usage "option CLEARBIT8 is deprecated as of MIME-tools 2.13";
 	$line =~ tr[\200-\377][\000-\177];
@@ -740,7 +754,7 @@ sub encode_it {
     while (defined($line = $in->getline)) {
 
 	# First, make it 8-bit clean:
-	$line = $self->encode_8bit($line) if $seven_bit;  
+	$line = $self->map_8_to_7($line) if $seven_bit;  
 
 	# Split long lines:
 	$lines = '';
@@ -758,11 +772,20 @@ sub encode_it {
 }
 
 #------------------------------------------------------------
-# encode_8bit_by
+# map_8_to_7_by
 #------------------------------------------------------------
-sub encode_8bit_by {
+# Set the scheme by which 8-bit characters are coerced into 7-bit ones.
+# As an instance method, affects just this decoder.
+# As a class method, affects the library-wide default!
+
+sub map_8_to_7_by {
     my ($self, $opt) = @_;
-    $self->{MD_Xbit_Encode8} = $opt if (@_ > 1);
+    if (ref($self)) {
+	$self->{MD_Xbit_Encode8} = $opt if (@_ > 1);
+    }
+    else {
+	$Encode8 = $opt if (@_ > 1);
+    }
     $opt;
 }
 
@@ -879,7 +902,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
+$Revision: 3.202 $ $Date: 1997/01/22 08:32:42 $
 
 =cut
 

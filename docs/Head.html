@@ -658,7 +658,14 @@ object:
 <STRONG>WARNING:</STRONG>
  does no such thing now. Just returns a reasonable approximation of that
 text. Think of it as nothing more than a poorly-named
-<CODE>as_string()</CODE> method. Provided for backwards-compatibility only.
+<CODE>as_string()</CODE> method, which outputs the header fields in the order received. Provided for
+backwards-compatibility only.
+
+
+<P>
+
+This method depends on Mail::Header::header returning the information in
+the proper order.
 
 
 <P>
@@ -1197,7 +1204,7 @@ Advanced Data Solutions.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="h1bullet.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 3.201 $ $Date: 1997/01/19 00:52:58 $
+$Revision: 3.202 $ $Date: 1997/01/22 05:00:29 $
 
 
 <P>

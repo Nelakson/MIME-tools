@@ -1,21 +1,19 @@
 NAME
-
     MIME-tools - modules for parsing (and creating!) MIME entities
 
 SYNOPSIS
-
     Here's some pretty basic code for parsing a MIME message, and outputting
     its decoded components to a given directory:
 
         use MIME::Parser;
-         
+
         # Create parser, and set the output directory:
         my $parser = new MIME::Parser;
         $parser->output_dir("$ENV{HOME}/mimemail");
-         
+
         # Parse input:
         $entity = $parser->read(\*STDIN) or die "couldn't parse MIME stream";
-        
+
         # Take a look at the top-level entity (and any parts it has):
         $entity->dump_skeleton; 
 
@@ -28,20 +26,20 @@ SYNOPSIS
         # Create the top-level, and set up the mail headers:
         $top = build MIME::Entity Type   =>"multipart/mixed",
                                   -From    => "me\@myhost.com",
-                                  -To      => "you\@yourhost.com",
+    	                      -To      => "you\@yourhost.com",
                                   -Subject => "Hello, nurse!";
-        
+
         # Attachment #1: a simple text document: 
         attach $top  Path=>"./testin/short.txt";
-        
+
         # Attachment #2: a GIF file:
         attach $top  Path        => "./docs/mime-sm.gif",
                      Type        => "image/gif",
                      Encoding    => "base64";
-            
+
         # Attachment #3: some literal text:
         attach $top  Data=>$message;
-        
+
         # Send it:
         open MAIL, "| /usr/lib/sendmail -t -i" or die "open: $!";
         $top->print(\*MAIL);
@@ -49,14 +47,12 @@ SYNOPSIS
 
 
 DESCRIPTION
-
     MIME-tools is a collection of Perl5 MIME:: modules for parsing,
     decoding, *and generating* single- or multipart (even nested multipart)
     MIME messages. (Yes, kids, that means you can send messages with
     attached GIF files).
 
 CONTENTS
-
   Modules in this toolkit
 
         Module       DSLI   Description                                  Info
@@ -82,7 +78,6 @@ CONTENTS
 
 
 REQUIREMENTS
-
     You'll need Perl5.002 or better.
 
     You'll need to obtain and install the following kits from the CPAN:
@@ -103,55 +98,51 @@ REQUIREMENTS
     installed for you during the installation procedure.
 
 CHANGES
+  Version 3.204
 
-  Version 3.203
+    Bug in MIME::Head::original_text fixed. Well, it took a while, but
+    another bug surfaced from my transition from 1.x to 2.x. This method
+    was, quite idiotically, sorting the header fields. *Thanks, as usual, to
+    Andreas Koenig for spotting this one.*
 
-    No, there haven't been any major changes between 2.x and 3.x. The major-
-    version increase was from a few more tweaks to get $VERSION to be
-    calculated better and more efficiently (I had been using RCS version
-    numbers in a way which created problems for users of CPAN::). After a
-    couple of false starts, all modules have been upgraded to RCS 3.201 or
-    higher.
+    MIME::ParserBase no longer defaults to RFC-1522-decoding headers. The
+    documentation correctly stated that the default setting was to *not*
+    RFC-1522-decode the headers. The code, on the other hand, was init'ing
+    this parser option in the "on" position. This has been fixed.
 
-    You can now parse a MIME message from a scalar, an array-of-scalars, or
-    any MIME::IO-compliant object (including IO:: objects.) Take a look at
-    parse_data() in MIME::ParserBase. The parser code has been modified to
-    support the MIME::IO interface. *Thanks to fellow Chicagoan Tim Pierce
-    (and countless others) for asking.*
+    MIME::ParserBase::parse_nested_messages reexamined. If you use this
+    feature, please re-read the documentation. It explains a little more
+    precisely what the ramifications are.
 
-    More sensible toolkit configuration. A new config() method in
-    MIME::ToolUtils makes a lot of toolkit-wide configuration cleaner. Your
-    old calls will still work, but with deprecation warnings.
+    MIME::Entity tries harder to ensure MIME compliance. It is now a fatal
+    error to use certain bad combinations of content type and encoding when
+    "building", or to attempt to "attach" to anything that is not a
+    multipart document. My apologies if this inconveniences anyone, but it
+    was just too darn easy before for folks to create bad MIME, and gosh
+    darn it, good libraries should at least *try* to protect you from
+    mistakes.
 
-    You can now sign messages just like in Mail::Internet. See MIME::Entity
-    for the interface.
+    The "make" now halts if you don't have the right stuff, provided your
+    MakeMaker supports PREREQ_PM. See the the section on "REQUIREMENTS"
+    section for what you need to install this package. I still provide old
+    courtesy copies of the MIME:: decoding modules. *Thanks to Hugo van der
+    Sanden for suggesting this.*
 
-    You can now remove signatures from messages just like in Mail::Internet.
-    See MIME::Entity for the interface.
-
-    You can now compute/strip content lengths and other non-standard MIME
-    fields. See sync_headers() in MIME::Entity. *Thanks to Tim Pierce for
-    bringing the basic problem to my attention.*
-
-    Many warnings are now silent unless $^W is true. That means unless you
-    run your Perl with -w, you won't see deprecation warnings, non-fatal-
-    error messages, etc. But of course you run with -w, so this doesn't
-    affect you. `:-)'
-
-    Completed the 7-bit encodings in MIME::Latin1. We hadn't had complete
-    coverage in the conversion from 8- to 7-bit; now we do. *Thanks to Rolf
-    Nelson for bringing this to my attention.*
-
-    Fixed broken parse_two() in MIME::ParserBase. BTW, if your code worked
-    with the "broken" code, it should *still* work. *Thanks again to Tim
-    Pierce for bringing this to my attention.*
+    The "make test" is far less chatty. Okay, okay, STDERR is evil. Now a
+    `"make test"' will just give you the important stuff: do a `"make test
+    TEST_VERBOSE=1"' if you want the gory details (advisable if sending me a
+    bug report). *Thanks to Andreas Koenig for suggesting this.*
 
 SUPPORT
-
     Please email me directly with questions/problems (see AUTHOR below).
 
-AUTHOR
+    If you want to be placed on an email distribution list (not a mailing
+    list!) for MIME-tools, and receive bug reports, patches, and updates as
+    to when new MIME-tools releases are planned, just email me and say so.
+    If your project is using MIME-tools, it might not be a bad idea to find
+    out about those bugs *before* they become problems...
 
+AUTHOR
     MIME-tools was created by:
 
         ___  _ _ _   _  ___ _     

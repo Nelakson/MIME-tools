@@ -29,7 +29,7 @@ use Carp;
 
 use Mail::Header;
 
-use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION));
+use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION)); 
 use strict;
 
 @ISA = qw(Exporter);
@@ -50,7 +50,7 @@ Exporter::export_ok_tags('config', 'msgs', 'utils');
 #------------------------------ 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 3.203 $, 10;
+$VERSION = substr q$Revision: 3.204 $, 10;
 
 # Configuration (do NOT alter this directly):
 %CONFIG = 
@@ -451,7 +451,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 3.203 $ $Date: 1997/01/19 07:40:14 $
+$Revision: 3.204 $ $Date: 1997/01/22 07:43:19 $
 
 I<Note: this file is used to set the version of the entire MIME-tools 
 distribution.>

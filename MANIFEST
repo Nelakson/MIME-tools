@@ -32,7 +32,6 @@ docs/h1bullet.gif
 docs/h2bullet.gif
 docs/mime-lg.gif
 docs/mime-sm.gif
-etc/Checker.pm
 etc/MIME/Base64.pm
 etc/MIME/QuotedPrint.pm
 etc/README

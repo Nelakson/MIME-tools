@@ -398,6 +398,42 @@ B<See MIME::ParserBase for details.>
 =over 4
 
 
+=item Version 3.204
+
+B<Bug in MIME::Head::original_text fixed.>
+Well, it took a while, but another bug surfaced from my transition from
+1.x to 2.x.  This method was, quite idiotically, sorting the header fields.
+I<Thanks, as usual, to Andreas Koenig for spotting this one.>
+
+B<MIME::ParserBase no longer defaults to RFC-1522-decoding headers.>
+The documentation correctly stated that the default setting was to I<not>
+RFC-1522-decode the headers.  The code, on the other hand, was init'ing
+this parser option in the "on" position.  This has been fixed.
+
+B<MIME::ParserBase::parse_nested_messages reexamined.>
+If you use this feature, please re-read the documentation.
+It explains a little more precisely what the ramifications are.
+
+B<MIME::Entity tries harder to ensure MIME compliance.>
+It is now a fatal error to use certain bad combinations of content type and 
+encoding when "building", or to attempt to "attach" to anything that is not 
+a multipart document.  My apologies if this inconveniences anyone, but it 
+was just too darn easy before for folks to create bad MIME, and gosh darn
+it, good libraries should at least I<try> to protect you from mistakes.
+
+B<The "make" now halts if you don't have the right stuff,> provided
+your MakeMaker supports PREREQ_PM.
+See the L<"REQUIREMENTS"> section for what you need to install this package.
+I still provide old courtesy copies of the MIME:: decoding modules.
+I<Thanks to Hugo van der Sanden for suggesting this.>
+
+B<The "make test" is far less chatty.>
+Okay, okay, STDERR is evil.  Now a C<"make test"> will just give you the
+important stuff: do a C<"make test TEST_VERBOSE=1"> if you want the gory
+details (advisable if sending me a bug report).
+I<Thanks to Andreas Koenig for suggesting this.>
+
+
 =item Version 3.203
 
 B<No, there haven't been any major changes between 2.x and 3.x.>
@@ -678,6 +714,12 @@ See the COPYING file in the distribution for details.
 =head1 SUPPORT
 
 Please email me directly with questions/problems (see AUTHOR below).
+
+If you want to be placed on an email distribution list (not a mailing list!)
+for MIME-tools, and receive bug reports, patches, and updates as to when new 
+MIME-tools releases are planned, just email me and say so.  If your project
+is using MIME-tools, it might not be a bad idea to find out about those
+bugs I<before> they become problems...
 
 
 =head1 AUTHOR 
