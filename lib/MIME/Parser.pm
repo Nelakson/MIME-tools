@@ -143,7 +143,7 @@ use Config qw(%Config);
 use Carp;
 
 ### Kit modules:
-use MIME::Tools qw(:config :utils :msgtypes usage);
+use MIME::Tools qw(:config :utils :msgtypes usage tmpopen );
 use MIME::Head;
 use MIME::Body;
 use MIME::Entity;
@@ -182,7 +182,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.404 $, 10;
+$VERSION = substr q$Revision: 5.406 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -485,9 +485,11 @@ sub ignore_errors {
 #
 sub debug {
     my $self = shift;
-    unshift @_, $self->results->indent;
-    $self->results->msg($M_DEBUG, @_);     ### record it
-    MIME::Tools::debug(@_);               ### say it
+    if (my $r = $self->{MP5_Results}) {
+	unshift @_, $r->indent;
+	$r->msg($M_DEBUG, @_);
+    }
+    &MIME::Tools::debug(@_); 
 }
 
 #------------------------------
@@ -496,9 +498,11 @@ sub debug {
 #
 sub whine {
     my $self = shift;
-    unshift @_, $self->results->indent;
-    $self->results->msg($M_WARNING, @_);   ### record it
-    &MIME::Tools::whine(@_);              ### say it
+    if (my $r = $self->{MP5_Results}) {
+	unshift @_, $r->indent;
+	$r->msg($M_WARNING, @_);
+    }
+    &MIME::Tools::whine(@_);
 }
 
 #------------------------------
@@ -510,9 +514,11 @@ sub whine {
 #
 sub error {
     my $self = shift;
-    unshift @_, $self->results->indent;
-    $self->results->msg($M_ERROR, @_);     ### record it
-    &MIME::Tools::error(@_);              ### say it
+    if (my $r = $self->{MP5_Results}) {
+	unshift @_, $r->indent;
+	$r->msg($M_ERROR, @_); 
+    }
+    &MIME::Tools::error(@_); 
     $self->{MP5_IgnoreErrors} ? return undef : die @_;
 }
 
@@ -1574,7 +1580,7 @@ sub new_tmpfile {
 	    truncate($io, 0);
 	}
 	else {                                 ### Return a new one:
-	    $io = IO::File->new_tmpfile || die "$ME: can't open tmpfile: $!\n";
+	    $io = tmpopen() || die "$ME: can't open tmpfile: $!\n";
 	    binmode($io);
 	}
     }
@@ -1772,7 +1778,7 @@ Optimum settings:
     tmp_to_core()              1 
     use_inner_files()          1
 
-B<If we can use them, inner files avoid most tmpfiles.>`<
+B<If we can use them, inner files avoid most tmpfiles.>
 If you parse from a seekable-and-tellable filehandle, then the internal 
 process_to_bound() doesn't need to extract each part into a temporary 
 buffer; it can use IO::InnerFile (B<warning:> this will slow down 
@@ -1922,7 +1928,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.404 $ $Date: 2000/11/06 11:58:53 $
+$Revision: 5.406 $ $Date: 2000/11/12 05:55:11 $
 
 =cut
 

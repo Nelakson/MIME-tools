@@ -36,13 +36,13 @@ See <A HREF="#DESCRIPTION">DESCRIPTION</A> for how this class works.
     use MIME::WordDecoder;
      
     
-    ### Get the default decoder:
+    ### Get the default word-decoder (used by unmime()):
     $wd = default MIME::WordDecoder;
       
-    ### Get a decoder which maps to ISO-8859-1 (Latin1):
-    $wd = new MIME::WordDecoder::ISO_8859 '1';
+    ### Get a word-decoder which maps to ISO-8859-1 (Latin1):
+    $wd = supported MIME::WordDecoder &quot;ISO-8859-1&quot;;
     
-     
+       
     ### Decode a MIME string (e.g., into Latin1) via the default decoder:
     $str = $wd-&gt;decode('To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= &lt;keld&gt;');
       
@@ -107,6 +107,26 @@ the given character set), and CHARSET (the upcased character set name).
 <DD>
 <I>Class method.</I>
 Get/set the default DECODER object.
+
+<P><DT><B><A NAME="item:supported">supported CHARSET, [DECODER]</A></B></DT>
+<DD>
+<I>Class method.</I>
+If just CHARSET is given, returns a decoder object which maps
+data into that character set (the character set is forced to
+all-uppercase).  
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $wd = supported MIME::WordDecoder &quot;ISO-8859-1&quot;;
+</PRE></FONT>
+
+<P>If DECODER is given, installs such an object:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    MIME::WordDecoder-&gt;supported(&quot;ISO-8859-1&quot; =&gt; 
+				 (new MIME::WordDecoder::ISO_8859 &quot;1&quot;));
+</PRE></FONT>
+
+<P>You should not override this method.
 
 <P><DT><B><A NAME="item:new">new [\@HANDLERS]</A></B></DT>
 <DD>
@@ -223,6 +243,11 @@ already offered a major improvement over the plain 7bit US-ASCII.
 positions 128 to 159 hold some less used control characters: the
 so-called C1 set from ISO 6429.
 
+<P><DT><B><A NAME="item:MIME_WordDecoder_US_ASCII">MIME::WordDecoder::US_ASCII</A></B></DT>
+<DD>
+A subclass of the ISO-8859-1 decoder which discards 8-bit characters.  
+You're probably better off using ISO-8859-1.
+
 </DL>
 
 
@@ -239,11 +264,11 @@ so-called C1 set from ISO 6429.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.401 $ $Date: 2000/11/10 16:47:10 $
+<P>$Revision: 5.402 $ $Date: 2000/11/12 05:44:57 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Fri Nov 10 11:59:49 2000 by cvu_pod2html
+Generated Sun Nov 12 00:56:45 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

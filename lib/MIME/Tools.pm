@@ -7,7 +7,8 @@ package MIME::Tools;
 
 use strict;
 use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION $ME
-	     $M_DEBUG $M_WARNING $M_ERROR));
+	     $M_DEBUG $M_WARNING $M_ERROR
+	     $Tmpopen ));
 
 require Exporter;
 use FileHandle;
@@ -28,7 +29,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.408 $, 10;
+$VERSION = substr q$Revision: 5.409 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -218,9 +219,10 @@ sub textual_type {
 #
 #
 sub tmpopen {
-    return IO::File->new_tmpfile;
+    &$Tmpopen();
 }
 
+$Tmpopen = sub { IO::File->new_tmpfile; };
 
 
 
@@ -1041,12 +1043,21 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.408 $
+$Revision: 5.409 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.409   (2000/11/12)
+
+B<Added more functionality to MIME::WordDecoder,> 
+including support for plain US-ASCII. 
+
+B<Made MIME::Tools::tmpopen() more flexible.>
+You can now override the tmpfile-opening behavior.
+
 
 =item Version 5.408   (2000/11/10)
 
@@ -1965,7 +1976,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date: 2000/11/10 16:47:55 $), the MIME-tools homepage was
+At the time of this writing ($Date: 2000/11/12 05:44:56 $), the MIME-tools homepage was
 F<http://www.zeegee.com/code/perl/MIME-tools>.
 Check there for updates and support.
 

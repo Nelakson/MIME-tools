@@ -14,13 +14,13 @@ See L<"DESCRIPTION"> for how this class works.
     use MIME::WordDecoder;
      
     
-    ### Get the default decoder:
+    ### Get the default word-decoder (used by unmime()):
     $wd = default MIME::WordDecoder;
       
-    ### Get a decoder which maps to ISO-8859-1 (Latin1):
-    $wd = new MIME::WordDecoder::ISO_8859 '1';
+    ### Get a word-decoder which maps to ISO-8859-1 (Latin1):
+    $wd = supported MIME::WordDecoder "ISO-8859-1";
     
-     
+       
     ### Decode a MIME string (e.g., into Latin1) via the default decoder:
     $str = $wd->decode('To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld>');
       
@@ -81,6 +81,17 @@ use vars qw(@ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw( unmime );
 
+
+
+#------------------------------
+#
+# Globals
+# 
+#------------------------------
+
+### Decoders.
+my %DecoderFor = ();
+
 ### Standard handlers.
 my %Handler = 
 (
@@ -109,6 +120,32 @@ sub default {
 	$Default = shift;
     }
     $Default;
+}
+
+#------------------------------
+
+=item supported CHARSET, [DECODER]
+
+I<Class method.>
+If just CHARSET is given, returns a decoder object which maps
+data into that character set (the character set is forced to
+all-uppercase).  
+
+    $wd = supported MIME::WordDecoder "ISO-8859-1";
+
+If DECODER is given, installs such an object:
+
+    MIME::WordDecoder->supported("ISO-8859-1" => 
+				 (new MIME::WordDecoder::ISO_8859 "1"));
+
+You should not override this method.
+
+=cut
+
+sub supported {
+    my ($class, $charset, $decoder) = @_;
+    $DecoderFor{uc($charset)} = $decoder if (@_ > 2);
+    $DecoderFor{uc($charset)};
 }
 
 #------------------------------
@@ -351,38 +388,60 @@ sub h_keep7bit {
     $_;
 }
 
+### Note: should use Unicode::String, converting/manipulating 
+### everything into full Unicode form.
+
 ### Keep 7bit UTF8 characters (ASCII).
+### Keep ISO-8859-1 if this decoder is for Latin-1.
 ### Turn all else to the special \x00.
 sub h_utf8 {  
     local $_    = $_[0];
 #   my $unknown = $_[2]->{MWDI_Unknown};
+    my $latin1 = ($_[2]->{MWDI_Num} == 1);
+    print STDERR "UTF8 in:  <$_>\n"; 
 
-    my $ascii = '';
+    my $tgt = '';
     while (m{\G(
-		([\x00-\x7F])       |  # 0xxxxxxx
-		([\xC0-\xDF] .)     |  # 110yyyyy 10xxxxxx
-		([\xE0-\xEF] . .)   |  # 1110zzzz 10yyyyyy 10xxxxxx
-		([\xF0-\xF7] . . .)    # 11110uuu 10uuzzzz 10yyyyyy 10xxxxxx
-	   )}gcsx) {   
-	$ascii .= (defined($2) ? $2 : "\x00");
+          ([\x00-\x7F])                | # 0xxxxxxx
+	  ([\xC0-\xDF] [\x80-\xBF])    | # 110yyyyy 10xxxxxx
+	  ([\xE0-\xEF] [\x80-\xBF]{2}) | # 1110zzzz 10yyyyyy 10xxxxxx
+	  ([\xF0-\xF7] [\x80-\xBF]{3}) | # 11110uuu 10uuzzzz 10yyyyyy 10xxxxxx
+	  .                              # error; synch
+	  )}gcsx and ($1 ne '')) {   
+
+	if    (defined($2))            { $tgt .= $2 }
+	elsif (defined($3) && $latin1) { $tgt .= "\x00" }
+        else                           { $tgt .= "\x00" }
     }
-    $ascii;
+
+    print STDERR "UTF8 out: <$tgt>\n"; 
+    $tgt;
 }
 
 ### Keep characters which are 7bit in UTF8 (ASCII).
+### Keep ISO-8859-1 if this decoder is for Latin-1.
 ### Turn all else to the special \x00.
 sub h_utf16 {  
     local $_    = $_[0];
 #   my $unknown = $_[2]->{MWDI_Unknown};
+    my $latin1 = ($_[2]->{MWDI_Num} == 1);
+    print STDERR "UTF16 in:  <$_>\n"; 
 
-    my $ascii = '';
+    my $tgt = '';
     while (m{\G(
-		(  \x00  ([\x00-\x7F]))  |  # 00000000 0xxxxxxx
-		([^\x00]      .       )  |  # etc
-	   )}gcsx) {   
-	$ascii .= (defined($2) ? $3 : "\x00");
+		(  \x00  ([\x00-\x7F])) |  # 00000000 0xxxxxxx
+		(  \x00  ([\x80-\xFF])) |  # 00000000 1xxxxxxx
+		( [^\x00] [\x00-\xFF])  |  # etc
+		)
+	     }gcsx and ($1 ne '')) {
+
+	if    (defined($2))            { $tgt .= $3 }
+	elsif (defined($4) && $latin1) { $tgt .= $5 }
+        else                           { $tgt .= "\x00" }
     }
-    $ascii;
+
+    print STDERR "UTF16 out: <$tgt>\n"; 
+    $tgt;
 }
 
 
@@ -460,10 +519,43 @@ sub decode {
     $basic;
 }
 
-=back
+#------------------------------------------------------------
+#------------------------------------------------------------
+
+=item MIME::WordDecoder::US_ASCII
+
+A subclass of the ISO-8859-1 decoder which discards 8-bit characters.  
+You're probably better off using ISO-8859-1.
 
 =cut
 
+package MIME::WordDecoder::US_ASCII;
+
+use strict;
+use vars qw(@ISA);
+@ISA = qw( MIME::WordDecoder::ISO_8859 );
+
+sub new {
+    my ($class) = @_;
+    return $class->SUPER::new("1");
+}
+
+sub decode {
+    my $self = shift;
+
+    ### Do inherited action:
+    my $basic = $self->SUPER::decode(@_);
+    defined($basic) or return undef;
+
+    ### Translate/consolidate 8-bit characters:
+    $basic =~ tr{\x80-\xFF}{}c     if $self->{MWDI_Collapse};
+    $basic =~ s{[\x80-\xFF]}{$self->{MWDI_Unknown}}g;
+    $basic;
+}
+
+=back
+
+=cut
 
 #------------------------------------------------------------
 #------------------------------------------------------------
@@ -473,9 +565,21 @@ package MIME::WordDecoder;
 ### Now we can init the default handler.
 $Default = (MIME::WordDecoder::ISO_8859->new('1'));
 
-1;
-__END__
+### Add US-ASCII handler:
+$DecoderFor{"US-ASCII"} = MIME::WordDecoder::US_ASCII->new;
 
+### Add ISO-8859-{1..15} handlers:
+for (1..15) { 
+    $DecoderFor{"ISO-8859-$_"} = MIME::WordDecoder::ISO_8859->new($_);
+}
+
+{ 
+  package main; no strict; local $^W = 0;
+  my @x = <::DATA>;
+  eval join('',<::DATA>) || die $@ unless caller();
+}
+1;           # end the module
+__END__
 
 
 =head1 AUTHOR
@@ -485,6 +589,29 @@ Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 =head1 VERSION
 
-$Revision: 5.401 $ $Date: 2000/11/10 16:47:10 $
+$Revision: 5.402 $ $Date: 2000/11/12 05:44:57 $
 
 =cut
+
+
+BEGIN { unshift @INC, ".", "./etc", "./lib" };
+import MIME::WordDecoder;
+
+### Decode a MIME string (e.g., into Latin1) via the default decoder:
+my $charset = $ARGV[0] || 'ISO-8859-1';
+my $wd = MIME::WordDecoder->supported($charset) || die "unsupported charset: $charset\n";
+
+$wd->unknown('#');
+my @encs = (
+	    'ASCII:  =?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>',
+	    'Latin1: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>',
+	    'Latin1: =?ISO-8859-1?Q?Andr=E9_?= Pirard <PIRARD@vm1.ulg.ac.be>',
+	    'Latin1: =?ISO-8859-1?Q?Andr=E9_?=Pirard <PIRARD@vm1.ulg.ac.be>',
+	    ' UTF-8: =?UTF-8?Q?Andr=E9_?=Pirard <PIRARD@vm1.ulg.ac.be>',
+	    'UTF-16: =?UTF-16?Q?=00A=00n=00d=00r=00=E9?= Pirard <PIRARD@vm1.ulg.ac.be>',
+	    ('=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?='.
+	     '=?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?='.
+	     '=?US-ASCII?Q?.._cool!?='));
+$str = $wd->decode(join "\n", @encs);
+print "$str\n";
+1;
