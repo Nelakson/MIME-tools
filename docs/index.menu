@@ -52,6 +52,9 @@ HREF MIME/Head.pm.html
 ITEM MIME::Parser
 HREF MIME/Parser.pm.html
 
+ITEM MIME::Parser::Filer
+HREF MIME/Parser/Filer.pm.html
+
 ITEM MIME::Parser::Reader
 HREF MIME/Parser/Reader.pm.html
 
@@ -74,6 +77,9 @@ HREF mimeencode.html
 
 ITEM mimeexplode
 HREF mimeexplode.html
+
+ITEM mimepostcard
+HREF mimepostcard.html
 
 ITEM mimeprint
 HREF mimeprint.html

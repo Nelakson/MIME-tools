@@ -21,6 +21,7 @@
   },
   "Part_2" => {
     "Filename" => "3d-compress.gif",
+    "BodyFilename" => "3d-compress.gif",
     "Size" => 419,
     "Disposition" => "inline",
     "Type" => "image/gif",
@@ -28,6 +29,7 @@
   },
   "Part_3" => {
     "Filename" => "3d-eye.gif",
+    "BodyFilename" => "3d-eye.gif",
     "Size" => 357,
     "Type" => "image/gif",
     "Encoding" => "base64"

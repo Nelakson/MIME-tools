@@ -113,10 +113,10 @@ Copy an entity (headers, parts... everything but external body data):
     ### Get the body, as a MIME::Body;
     $bodyh = $ent->bodyhandle;
     
-    ### Get the actual MIME type, in the header:
+    ### Get the intended MIME type (as declared in the header):
     $type = $ent->mime_type;
-
-    ### Get the effective MIME type (for nonstandard encodings):
+      
+    ### Get the effective MIME type (in case decoding failed):
     $eff_type = $ent->effective_type;
      
     ### Get preamble, parts, and epilogue:
@@ -243,7 +243,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.205 $, 10;
+$VERSION = substr q$Revision: 5.208 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -510,6 +510,11 @@ preferred (content-disposition) locations.  If you explicitly want to
 I<avoid> a recommended filename (even when Path is used), supply this 
 as empty or undef.
 
+=item Id
+
+I<Optional.>
+Set the content-id.
+
 =item Path
 
 I<Single-part entities only. Optional.>  
@@ -552,6 +557,7 @@ sub build {
     my $desc         = $params{Description};
     my $top          = exists($params{Top}) ? $params{Top} : 1;
     my $disposition  = $params{Disposition} || 'inline';
+    my $id           = $params{Id};
 
     ### Get recommended filename, allowing explicit no-value value:
     my ($path_fname) = (($params{Path}||'') =~ m{([^/]+)\Z});
@@ -573,7 +579,7 @@ sub build {
 		whine "empty string not a legal boundary: I'm ignoring it";
 		$boundary = undef;
 	    }
-	    elsif ($boundary =~ m{[^0-9a-zA-Z\'\(\)\+\_\,\.\/\:\=\?\- ]}) {
+	    elsif ($boundary =~ m{[^0-9a-zA-Z_\'\(\)\+\,\.\/\:\=\?\- ]}) {
 		whine "boundary ignored: illegal characters ($boundary)";
 		$boundary = undef;
 	    }
@@ -634,6 +640,7 @@ sub build {
     ### Add other MIME fields:
     $head->replace('Content-transfer-encoding', $encoding) if $encoding;
     $head->replace('Content-description', $desc)           if $desc;
+    $head->replace('Content-id', $id)                      if defined($id);
     $head->replace('MIME-Version', '1.0')                  if $top;
 
     ### Add the X-Mailer field, if top level (use default value if not given):
@@ -796,7 +803,7 @@ Such an entity, if parsed, would have its effective_type() set to
 C<"application/octet_stream">, although the mime_type() and the contents 
 of the header would remain the same.
 
-If there is no known effective type, the method just returns what 
+If there is no effective type, the method just returns what 
 mime_type() would.
 
 B<Warning:> the effective type is "sticky"; once set, that effective_type()
@@ -1004,25 +1011,58 @@ sub preamble {
 
 #------------------------------
 
-=item make_multipart [SUBTYPE]
+=item make_multipart [SUBTYPE], OPTSHASH...
 
 I<Instance method.>
 Force the entity to be a multipart, if it isn't already.
-The content headers from the top-level are bumped down to the demoted part.
-The actual type will be "multipart/SUBTYPE" (default SUBTYPE is "mixed").
+We do this by replacing the original [singlepart] entity with a new
+multipart that has the same non-MIME headers ("From", "Subject", etc.),
+but all-new MIME headers ("Content-type", etc.).  We then create
+a copy of the original singlepart, I<strip out> the non-MIME headers
+from that, and make it a part of the new multipart.  So this:
+
+    From: me
+    To: you
+    Content-type: text/plain
+    Content-length: 12
+    
+    Hello there!
+
+Becomes something like this:
+
+    From: me
+    To: you
+    Content-type: multipart/mixed; boundary="----abc----"
+         
+    ------abc----
+    Content-type: text/plain
+    Content-length: 12
+    
+    Hello there!
+    ------abc------
+
+The actual type of the new top-level multipart will be "multipart/SUBTYPE" 
+(default SUBTYPE is "mixed").
 
 Returns 'DONE'    if we really did inflate a singlepart to a multipart.
-Returns 'ALREADY' (and does nothing) if entity is I<already> multipart.
+Returns 'ALREADY' (and does nothing) if entity is I<already> multipart
+and Force was not chosen.
+
+If OPTSHASH contains Force=>1, then we I<always> bump the top-level's
+content and content-headers down to a subpart of this entity, even if 
+this entity is already a multipart.  This is apparently of use to 
+people who are tweaking messages after parsing them.
 
 =cut
 
 sub make_multipart {
-    my ($self, $subtype) = @_;
+    my ($self, $subtype, %opts) = @_;
     my $tag;
     $subtype ||= 'mixed';
+    my $force = $opts{Force};
 
-    ### Trap for simple case:
-    return 'ALREADY' if $self->is_multipart;       ### already a multipart?
+    ### Trap for simple case: already a multipart?
+    return 'ALREADY' if ($self->is_multipart and !$force); 
 
     ### Rip out our guts, and spew them into our future part:
     my $part = bless {%$self}, ref($self);         ### part is a shallow copy
@@ -2129,7 +2169,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.205 $ $Date: 2000/06/20 04:16:05 $
+$Revision: 5.208 $ $Date: 2000/07/06 05:31:50 $
 
 =cut
 

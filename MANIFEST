@@ -68,6 +68,7 @@ docs/icons/zeegee.gif
 docs/index-menu.html
 docs/index.html
 docs/index.menu
+docs/mime_postcard.html
 docs/mimeabuse.html
 docs/mimedump.html
 docs/mimeencode.html
@@ -82,6 +83,7 @@ examples/mimeabuse
 examples/mimedump
 examples/mimeencode
 examples/mimeexplode
+examples/mimepostcard
 examples/mimeprint
 examples/mimeref
 examples/mimesend
@@ -102,6 +104,7 @@ lib/MIME/Field/ContType.pm
 lib/MIME/Field/ParamVal.pm
 lib/MIME/Head.pm
 lib/MIME/Parser.pm
+lib/MIME/Parser/Filer.pm
 lib/MIME/Parser/Reader.pm
 lib/MIME/Parser/Results.pm
 lib/MIME/Tools.pm
@@ -123,6 +126,7 @@ testin/andreas-1296.txt
 testin/andreas-1296.uu
 testin/badbound.msg
 testin/badfile.msg
+testin/bluedot.jpg
 testin/crlf.hdr
 testin/encoded.hdr
 testin/first.hdr
@@ -171,6 +175,10 @@ testmsgs/ak-0696-nest.ref
 testmsgs/ak-0696-none.ref
 testmsgs/ak-0696-replace.ref
 testmsgs/ak-0696.msg
+testmsgs/bluedot-postcard.msg
+testmsgs/bluedot-postcard.ref
+testmsgs/bluedot-simple.msg
+testmsgs/bluedot-simple.ref
 testmsgs/frag.msg
 testmsgs/german.msg
 testmsgs/german.ref
@@ -205,3 +213,5 @@ testmsgs/uu-junk-extracted.ref
 testmsgs/uu-junk-target.msg
 testmsgs/uu-junk.msg
 testmsgs/uu-junk.ref
+testmsgs/uu-zeegee.msg
+testmsgs/uu-zeegee.ref

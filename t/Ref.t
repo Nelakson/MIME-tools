@@ -39,11 +39,10 @@ foreach my $refpath (@refpaths) {
 
     ### Get reference, as ref to array:
     my $ref = read_ref($refpath);
-    $msgpath = $ref->{Parser}{Message} if $ref->{Parser}{Message};
+    if ($ref->{Parser}{Message}) {
+	$msgpath = $T->catfile(".", (split /\//, $ref->{Parser}{Message}));
+    }
     $T->log("Trying $refpath [$msgpath]\n");
-
-    ### Prepare output directory:
-    (-d $output_dir) or mkpath($output_dir) or die "mkpath $output_dir: $!\n";
 
     ### Create parser which outputs to testout/scratch:
     my $parser = MIME::Parser->new;
@@ -52,13 +51,29 @@ foreach my $refpath (@refpaths) {
     $parser->extract_uuencode($ref->{Parser}{ExtractUuencode});
     $parser->output_to_core(0);
     $parser->ignore_errors(0);
-    
+
+    ### Pre-clean:    
+    rmtree($output_dir);
+    (-d $output_dir) or mkpath($output_dir) or die "mkpath $output_dir: $!\n";
+
     ### Parse:
     my $ent = eval { $parser->parse_open($msgpath) };
-    if ($@ || !$ent) {
+    my $parse_error = $@;
+
+    ### Output parse log:
+    $T->msg("PARSE LOG FOR $refpath [$msgpath]");
+    if ($parser->results) {
+	$T->msg($parser->results->msgs);
+    }
+    else {
+	$T->msg("Parse failed before results object was created");
+    }
+
+    ### Interpret results:
+    if ($parse_error || !$ent) {
 	$T->ok($ref->{Msg}{Fail},
 	       $refpath,
-	       Problem => $@);
+	       Problem => $parse_error);
     }
     else {
 	my $ok = eval { check_ref($msgpath, $ent, $ref) };
@@ -68,8 +83,6 @@ foreach my $refpath (@refpaths) {
 	       Message => $msgpath,
 	       Parser  => ($ref->{Parser}{Name} || 'default'));
     }
-    $T->msg($parser->results->warnings);
-    $T->msg($parser->results->errors);
 
     ### Cleanup:
     rmtree($output_dir);
@@ -119,24 +132,48 @@ sub check_ref {
 	foreach (sort keys %$msg_ref) {
 
 	    my $want = $msg_ref->{$_};
-	    my $got;
-	    if    (/^Boundary$/) { $got = $head->multipart_boundary }
-	    elsif (/^From$/)     { $got  = trim($head->get("From", 0)); 
-			           $want = trim($want); }
-	    elsif (/^To$/)       { $got  = trim($head->get("To", 0)); 
-			           $want = trim($want); }
-	    elsif (/^Subject$/)  { $got  = trim($head->get("Subject", 0));
-			           $want = trim($want); }
-	    elsif (/^Charset$/)  { $got = 
-				   $head->mime_attr("content-type.charset"); }
-	    elsif (/^Disposition$/) { $got = 
-				   $head->mime_attr("content-disposition"); }
-	    elsif (/^Type$/)     { $got = $head->mime_type }
-	    elsif (/^Encoding$/) { $got = $head->mime_encoding }
-	    elsif (/^Filename$/) { $got = $head->recommended_filename }
+	    my $got = undef;
+
+	    if    (/^Boundary$/) { 
+		$got = $head->multipart_boundary;
+	    }
+	    elsif (/^From$/)     { 
+		$got  = trim($head->get("From", 0)); 
+		$want = trim($want); 
+	    }
+	    elsif (/^To$/)       { 
+		$got  = trim($head->get("To", 0)); 
+		$want = trim($want); 
+	    }
+	    elsif (/^Subject$/)  { 
+		$got  = trim($head->get("Subject", 0));
+		$want = trim($want); 
+	    }
+	    elsif (/^Charset$/)  { 
+		$got = $head->mime_attr("content-type.charset"); 
+	    }
+	    elsif (/^Disposition$/) { 
+		$got = $head->mime_attr("content-disposition"); 
+	    }
+	    elsif (/^Type$/)     {
+		$got = $head->mime_type;
+	    }
+	    elsif (/^Encoding$/) {
+		$got = $head->mime_encoding;
+	    }
+	    elsif (/^Filename$/) {
+		$got = $head->recommended_filename; 
+	    }
+	    elsif (/^BodyFilename$/) {
+		$got = (($body and $body->path) 
+			? basename($body->path) 
+			: undef);
+	    }
 	    elsif (/^Size$/)     { 
 		if ($head->mime_type =~ m{^(text|message)}) {
-		    $T->log("Skipping Size evaluation in text message due to variations in local newline conventions\n\n");
+		    $T->log("Skipping Size evaluation in text message ".
+			    "due to variations in local newline ".
+			    "conventions\n\n");
 		    next ATTR;
 		}
 		if ($body and $body->path) { $got = (-s $body->path) }
@@ -145,7 +182,8 @@ sub check_ref {
 		die "$partname: unrecognized reference attribute: $_\n";
 	    }
 
-	    $T->log("Check $msgpath $partname $_:\n");
+	    ### Log this sub-test:
+	    $T->log("SUB-TEST: msg=$msgpath; part=$partname; attr=$_:\n");
 	    $T->log("  want: ". (defined($want) ? $want : '<<undef>>') . "\n");
 	    $T->log("  got:  ". (defined($got)  ? $got  : '<<undef>>') . "\n");
 	    $T->log("\n");

@@ -10,6 +10,7 @@ WriteMakefile(
 		       "MIME::QuotedPrint" => 2.03,
 	               "MIME::Base64"      => 2.04,
 		       "IO::Stringy"       => 1.211,
+		       "File::Spec"        => 0.8,
 		       },
       'dist'       => {
 	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools -A", 

@@ -177,11 +177,10 @@ No problem: you can &quot;attach&quot; to singleparts as well:
     ### Get the body, as a MIME::Body;
     $bodyh = $ent-&gt;bodyhandle;
     
-    ### Get the actual MIME type, in the header:
+    ### Get the intended MIME type (as declared in the header):
     $type = $ent-&gt;mime_type;
-</PRE>
-<PRE>
-    ### Get the effective MIME type (for nonstandard encodings):
+      
+    ### Get the effective MIME type (in case decoding failed):
     $eff_type = $ent-&gt;effective_type;
      
     ### Get preamble, parts, and epilogue:
@@ -485,6 +484,11 @@ preferred (content-disposition) locations.  If you explicitly want to
 <I>avoid</I> a recommended filename (even when Path is used), supply this 
 as empty or undef.
 
+<P><DT><B><A NAME="item:Id">Id</A></B></DT>
+<DD>
+<I>Optional.</I>
+Set the content-id.
+
 <P><DT><B><A NAME="item:Path">Path</A></B></DT>
 <DD>
 <I>Single-part entities only. Optional.</I>  
@@ -579,7 +583,7 @@ bytes -- in other words, an &quot;application/octet-stream&quot;.
 of the header would remain the same.
 
 
-<P>If there is no known effective type, the method just returns what 
+<P>If there is no effective type, the method just returns what 
 mime_type() would.
 
 
@@ -710,16 +714,53 @@ it to fallback to the default.
 
 
 <DL>
-<P><DT><B><A NAME="item:make_multipart">make_multipart [SUBTYPE]</A></B></DT>
+<P><DT><B><A NAME="item:make_multipart">make_multipart [SUBTYPE], OPTSHASH...</A></B></DT>
 <DD>
 <I>Instance method.</I>
 Force the entity to be a multipart, if it isn't already.
-The content headers from the top-level are bumped down to the demoted part.
-The actual type will be &quot;multipart/SUBTYPE&quot; (default SUBTYPE is &quot;mixed&quot;).
+We do this by replacing the original [singlepart] entity with a new
+multipart that has the same non-MIME headers (&quot;From&quot;, &quot;Subject&quot;, etc.),
+but all-new MIME headers (&quot;Content-type&quot;, etc.).  We then create
+a copy of the original singlepart, <I>strip out</I> the non-MIME headers
+from that, and make it a part of the new multipart.  So this:
+
+<PRE>
+    From: me
+    To: you
+    Content-type: text/plain
+    Content-length: 12
+    
+    Hello there!
+</PRE>
+
+<P>Becomes something like this:
+
+<PRE>
+    From: me
+    To: you
+    Content-type: multipart/mixed; boundary=&quot;----abc----&quot;
+         
+    ------abc----
+    Content-type: text/plain
+    Content-length: 12
+    
+    Hello there!
+    ------abc------
+</PRE>
+
+<P>The actual type of the new top-level multipart will be &quot;multipart/SUBTYPE&quot; 
+(default SUBTYPE is &quot;mixed&quot;).
 
 
 <P>Returns 'DONE'    if we really did inflate a singlepart to a multipart.
-Returns 'ALREADY' (and does nothing) if entity is <I>already</I> multipart.
+Returns 'ALREADY' (and does nothing) if entity is <I>already</I> multipart
+and Force was not chosen.
+
+
+<P>If OPTSHASH contains Force=&gt;1, then we <I>always</I> bump the top-level's
+content and content-headers down to a subpart of this entity, even if 
+this entity is already a multipart.  This is apparently of use to 
+people who are tweaking messages after parsing them.
 
 <P><DT><B><A NAME="item:make_singlepart">make_singlepart</A></B></DT>
 <DD>
@@ -1408,11 +1449,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.205 $ $Date: 2000/06/20 04:16:05 $
+<P>$Revision: 5.208 $ $Date: 2000/07/06 05:31:50 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sat Jun 24 02:37:07 2000 by cvu_pod2html
+Generated Fri Jul  7 02:23:01 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

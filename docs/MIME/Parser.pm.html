@@ -100,13 +100,13 @@
 <A NAME="Examples_of_output_control"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Examples of output control</H3></A>
 
 <PRE>
-    ### Keep parsed message components in core (default outputs to disk):
+    ### Keep parsed message bodies in core (default outputs to disk):
     $parser-&gt;output_to_core(1);
      
-    ### Output each message's components to a one-per-message directory:
+    ### Output each message body to a one-per-message directory:
     $parser-&gt;output_under(&quot;/tmp&quot;);
      
-    ### Output each message's components to the same directory:
+    ### Output each message body to the same directory:
     $parser-&gt;output_dir(&quot;/tmp&quot;);
     
     ### Change how nameless message-component files are named:
@@ -137,16 +137,16 @@
 
 <PRE>
     ### Automatically attempt to RFC-1522-decode the MIME headers?
-    $parser-&gt;decode_headers(1);              ### default is false [no decoding]
-    
+    $parser-&gt;decode_headers(1);             ### default is false
+          
     ### Parse contained &quot;message/rfc822&quot; objects as nested MIME streams?
-    $parser-&gt;extract_nested_messages(0);     ### default is true [extract them]
+    $parser-&gt;extract_nested_messages(0);    ### default is true 
      
     ### Look for uuencode in &quot;text&quot; messages, and extract it?
-    $parser-&gt;extract_uuencode(1);            ### default is false [no uudecode]
+    $parser-&gt;extract_uuencode(1);           ### default is false
           
     ### Should we forgive normally-fatal errors?
-    $parser-&gt;ignore_errors(0);               ### default is true [forgive errs]
+    $parser-&gt;ignore_errors(0);              ### default is true 
 </PRE>
 
 
@@ -340,9 +340,7 @@ Throws exception on failure.
 <P><DT><B><A NAME="item:parse">parse INSTREAM</A></B></DT>
 <DD>
 <I>Instance method.</I>
-Takes a MIME-stream and splits it into its component entities,
-each of which is decoded and placed in a separate file in the splitter's
-output_dir().  
+Takes a MIME-stream and splits it into its component entities.
 
 
 <P>The INSTREAM can be given as a readable FileHandle, an IO::File,
@@ -394,187 +392,48 @@ Throws exception on failure.
 <A NAME="Specifying_output_destination"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Specifying output destination</H3></A>
 
 
-
-<DL>
-<P><DT><B><A NAME="item:evil_filename">evil_filename FILENAME</A></B></DT>
-<DD>
-<I>Instance method.</I>
-Is this an evil filename?  It is if any of these are true:
-
-<PRE>
-    * it is empty
-    * it is a string of dots: &quot;.&quot;, &quot;..&quot;, etc.
-    * it contains a known &quot;path&quot; character: '/' '\' ':' '[' ']'
-</PRE>
-
-<P>Override this method in a subclass if you just want to change which 
-externally-provided filenames are allowed, and which are not.  Like this:
-
-<PRE>
-     package MIME::MyParser;
-     
-     use MIME::Parser;
-     @ISA = qw(MIME::Parser);
-     
-     sub evil_filename {
-         my ($self, $name) = @_;
-         return ($name !~ /^[a-z\d][a-z\d\._-]*$/i); 
-     }
-</PRE>
-
-<P><B>Note:</B> This method used to be a lot stricter, but it unnecessailry
-inconvenienced users on non-ASCII systems.  That has been changed in 4.x.
+<P><B>Warning:</B> in 5.212 and before, this was done by methods 
+of MIME::Parser.  However, since many users have requested 
+fine-tuned control over how this is done, the logic has been split
+off from the parser into its own class, MIME::Parser::Filer
+Every MIME::Parser maintains an instance of a concrete subclass of 
+MIME::Parser::Filer to manage disk output.
 
 
-<P><I>Thanks to Andrew Pimlott for finding a real dumb bug in the original
-version.  Thanks to Nickolay Saukh for noting that evil is in the 
-eye of the beholder.</I>
-
-<P><DT><B><A NAME="item:output_dir">output_dir [DIRECTORY]</A></B></DT>
-<DD>
-<I>Instance method.</I>
-Get/set the output directory for the parsing operation.
-This is the directory where the extracted and decoded body parts will go.
-The default is <CODE>&quot;.&quot;</CODE>.
+<P>The benefit to this is that the MIME::Parser code won't be 
+confounded with a lot of garbage related to disk output.
+The drawback is that the way you override the default behavior 
+will change.
 
 
-<P>If <CODE>DIRECTORY</CODE> <I>is not</I> given, the current output directory is returned.
-If <CODE>DIRECTORY</CODE> <I>is</I> given, the output directory is set to the new value,
-and the previous value is returned.
-
-
-<P><B>Note:</B> this is used by the <CODE>output_path()</CODE> method in this class.
-It should also be used by subclasses, but if a subclass decides to 
-output parts in some completely different manner, this method may 
-of course be completely ignored.
-
-<P><DT><B><A NAME="item:output_under">output_under BASEDIR, [OPTSHASH...]</A></B></DT>
-<DD>
-<I>Instance method.</I>
-An alternative to explicitly setting the <A HREF="#item:output_dir">output_dir()</A>.
-If used, then each parse begins by creating a new subdirectory of BASEDIR
-where the actual parts are placed.  OPTSHASH can contain the following:
+<P>For now, all the normal public-interface methods are still provided, 
+but many are only stubs which create or delegate to the underlying 
+MIME::Parser::Filer object.
 
 
 
 <DL>
-<P><DT><B><A NAME="item:DirName">DirName</A></B></DT>
-<DD>
-Explicitly set the name of the subdirectory which is created.
-The default is to use the time, process id, and a sequence number,
-but you might want a predictable directory.  
-
-<P><DT><B><A NAME="item:Purge">Purge</A></B></DT>
-<DD>
-Automatically purge the contents of the directory (including all
-subdirectories) before each parse.  This is really only needed if
-using an explicit DirName, and is provided as a convenience only.
-Currently we use the 1-arg form of File::Path::rmtree; you should
-familiarize yourself with the caveats therein.
-
-</DL>
-
-
-<P>The output_dir() will return the path to this message-specific directory 
-until the next parse is begun, so you can do this:
-
-<PRE>
-    use File::Path;
-     
-    $parser-&gt;output_under(&quot;/tmp&quot;);
-    $ent = eval { $parser-&gt;parse_open($msg); };   ### parse
-    if (!$ent) {	 ### parse failed
-	rmtree($parser-&gt;output_dir);
-	die &quot;parse failed: $@&quot;;
-    } 
-    else {               ### parse succeeded
-	...do stuff...
-    }
-</PRE>
-
-<P>With no argument, returns the current BASEDIR.
-
-<P><DT><B><A NAME="item:output_path">output_path HEAD</A></B></DT>
+<P><DT><B><A NAME="item:filer">filer [FILER]</A></B></DT>
 <DD>
 <I>Instance method.</I>
-Given a MIME head for a file to be extracted, come up with a good
-output pathname for the extracted file.
-The &quot;directory&quot; portion of the returned path will be the <CODE>output_dir()</CODE>, 
-and the &quot;filename&quot; portion will be determined as follows:
+Get/set the FILER object used to manage file-oriented output.
+This will be some subclass of <A HREF="../MIME/Parser/Filer.pm.html">MIME::Parser::Filer</A>.
 
-
-
-<UL>
-<P><LI>
-<P>If the MIME header contains a recommended filename, and it is
-<I>not</I> judged to be &quot;evil&quot; (evil filenames are ones which contain
-things like &quot;/&quot; or &quot;..&quot; or non-ASCII characters), then that 
-filename will be used.
-
-<P><LI>
-<P>If the MIME header contains a recommended filename, but it <I>is</I>
-judged to be &quot;evil&quot;, then a warning is issued and we pretend that
-there was no recommended filename.  In which case...
-
-<P><LI>
-<P>If the MIME header does not specify a recommended filename, then
-a simple temporary file name, starting with the <CODE>output_prefix()</CODE>, 
-will be used.
-
-</UL>
-
-
-<P><B>Note:</B> If you don't like the behavior of this function, you 
-can define your own subclass of MIME::Parser and override it there:
-
-<PRE>
-     package MIME::MyParser;
-     
-     require 5.002;                ### for SUPER
-     use package MIME::Parser;
-     
-     @MIME::MyParser::ISA = qw(MIME::Parser);
-     
-     sub output_path {
-         my ($self, $head) = @_;
-         
-         ### Your code here; FOR EXAMPLE...
-         if (i_have_a_preference) {
-	     return my_custom_path;
-         }
-	 else {                      ### return the default path:
-             return $self-&gt;SUPER::output_path($head);
-         }
-     }
-     1;
-</PRE>
-
-<P><B>Note:</B> Nickolay Saukh pointed out that, given the subjective nature of
-what is &quot;evil&quot;, this function really shouldn't <I>warn</I> about an evil
-filename, but maybe just issue a <I>debug</I> message.  I considered that, 
-but then I thought: if debugging were off, people wouldn't know why 
-(or even if) a given filename had been ignored.  In mail robots
-that depend on externally-provided filenames, this could cause 
-hard-to-diagnose problems.  So, the message is still a warning, but 
-now <B>it's only output if $^W is true.</B>
-
-
-<P><I>Thanks to Laurent Amon for pointing out problems with the original
-implementation, and for making some good suggestions.  Thanks also to
-Achim Bohnet for pointing out that there should be a hookless, OO way of 
-overriding the output_path.</I>
-
-<P><DT><B><A NAME="item:output_prefix">output_prefix [PREFIX]</A></B></DT>
+<P><DT><B><A NAME="item:output_dir">output_dir DIRECTORY</A></B></DT>
 <DD>
 <I>Instance method.</I>
-Get/set the short string that all filenames for extracted body-parts 
-will begin with (assuming that there is no better &quot;recommended filename&quot;).  
-The default is <I><FILE>&quot;msg&quot;</FILE></I>.
+Causes messages to be filed directly into the 
+given DIRECTORY.  It does this by setting the underlying 
+<A HREF="#item:filer">filer()</A> to a new instance of MIME::Parser::FileInto,
+and passing the arguments into that class' new() method.
 
-
-<P>If PREFIX <I>is not</I> given, the current output prefix is returned.
-If PREFIX <I>is</I> given, the output directory is set to the new value,
-and the previous value is returned.
+<P><DT><B><A NAME="item:output_under">output_under BASEDIR, OPTS...</A></B></DT>
+<DD>
+<I>Instance method.</I>
+Causes messages to be filed directly into subdirectories of the given
+BASEDIR, one subdirectory per message.  It does this by setting the 
+underlying <A HREF="#item:filer">filer()</A> to a new instance of MIME::Parser::FileUnder,
+and passing the arguments into that class' new() method.
 
 <P><DT><B><A NAME="item:output_to_core">output_to_core YESNO</A></B></DT>
 <DD>
@@ -692,10 +551,8 @@ receiving that part's data.
 
 
 <P>If you set the <CODE>output_to_core</CODE> option to false before parsing
-(the default), then we examine the HEAD for a recommended
-filename (generating a random one if none is available), 
-and create a new MIME::Body::File on that filename in the parser's 
-current <CODE>output_dir()</CODE>.
+(the default), then we call <CODE>output_path()</CODE> and create a
+new MIME::Body::File on that filename.
 
 
 <P>If you set the <CODE>output_to_core</CODE> option to true before parsing, 
@@ -786,8 +643,8 @@ This will be an instance of class
 <P>Optimum input mechanisms:
 
 <PRE>
-    parse()                    YES (if you give it a globref or a subclass 
-				    of IO::File)
+    parse()                    YES (if you give it a globref or a 
+				    subclass of IO::File)
     parse_open()               YES
     parse_data()               NO  (see below)
     parse_two()                NO  (see below)
@@ -796,12 +653,13 @@ Optimum settings:
 </PRE>
 <PRE>
     decode_headers()           *** (no real difference; 0 is slightly faster)
-    extract_nested_messages()  0   (may be slightly faster, but in general 
-                                    you want it set to 1)
+    extract_nested_messages()  0   (may be slightly faster, but in 
+                                    general you want it set to 1)
     output_to_core()           0   (will be MUCH faster)
     tmp_recycling()            1?  (probably, but should be investigated)
     tmp_to_core()              0   (will be MUCH faster)
-    use_inner_files()          0   (if tmp_to_core() is 0; use 1 otherwise)
+    use_inner_files()          0   (if tmp_to_core() is 0; 
+				    use 1 otherwise)
 </PRE>
 
 <P><B>File I/O is much faster than in-core I/O.</B>
@@ -854,7 +712,8 @@ Optimum settings:
     decode_headers()           *** (no real difference)
     extract_nested_messages()  *** (no real difference)
     output_to_core()           0   (will use MUCH less memory)
-    tmp_recycling()            0?  (promotes faster GC if tmp_to_core is 1)
+    tmp_recycling()            0?  (promotes faster GC if 
+                                    tmp_to_core is 1)
     tmp_to_core()              0   (will use MUCH less memory)
     use_inner_files()          *** (no real difference, but set it to 1 
 				    if you *must* have tmp_to_core set to 1,
@@ -1073,11 +932,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.209 $ $Date: 2000/06/24 06:32:39 $
+<P>$Revision: 5.214 $ $Date: 2000/07/07 05:55:19 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sat Jun 24 02:37:19 2000 by cvu_pod2html
+Generated Fri Jul  7 02:23:16 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

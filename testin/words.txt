@@ -36,3 +36,9 @@ GOOD
 	=?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=
 	=?US-ASCII?Q?.._cool!?=
 
+GOOD
+"_-_"
+=?ISO-8859-1?Q?=5F-=5F?=
+
+
+

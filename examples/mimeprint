@@ -66,8 +66,8 @@ else {
     $parser->output_to_core('ALL');
 }
 $parser->extract_nested_messages($opt_n) if defined($opt_n);
-$parser->extract_uuencode($opt_u);
-$parser->decode_headers($opt_h);
+$parser->extract_uuencode($opt_u || 0);
+$parser->decode_headers($opt_h || 0);
 $parser->ignore_errors(1);
 
 # Parse:

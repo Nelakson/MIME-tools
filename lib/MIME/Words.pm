@@ -86,7 +86,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.202 $, 10;
+$VERSION = substr q$Revision: 5.206 $, 10;
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -99,8 +99,8 @@ my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
 #     almost, but not exactly, quoted-printable.  :-P
 sub _decode_Q {
     my $str = shift;
-    $str =~ s/=([\da-fA-F]{2})/pack("C", hex($1))/ge;  # RFC-1522, Q rule 1
     $str =~ s/_/\x20/g;                                # RFC-1522, Q rule 2
+    $str =~ s/=([\da-fA-F]{2})/pack("C", hex($1))/ge;  # RFC-1522, Q rule 1
     $str;
 }
 
@@ -109,7 +109,7 @@ sub _decode_Q {
 #     almost, but not exactly, quoted-printable.  :-P
 sub _encode_Q {
     my $str = shift;
-    $str =~ s{([\?\=\_$NONPRINT])}{sprintf("=%02X", ord($1))}eog;
+    $str =~ s{([_\?\=$NONPRINT])}{sprintf("=%02X", ord($1))}eog;
     $str;
 }
 
@@ -146,9 +146,10 @@ CHARSET of C<undef>.
         print "", ($_[1] || 'US-ASCII'), ": ", $_[0], "\n";
     }
 
-B<In a scalar context,> joins the "data" elements of the above list together,
-and returns that.  This is information-lossy, but if you know that
-all charsets in the ENCODED string are identical, it might be useful to you.
+B<In a scalar context,> joins the "data" elements of the above 
+list together, and returns that.  I<Warning: this is information-lossy,>
+but if you know that all charsets in the ENCODED string are identical, 
+it might be useful to you.
 
 In the event of a syntax error, $@ will be set to a description 
 of the error, but parsing will continue as best as possible (so as to
@@ -230,14 +231,13 @@ sub decode_mimewords {
 =item encode_mimeword RAW, [ENCODING], [CHARSET]
 
 Encode a single RAW "word" that has unsafe characters.
+The "word" will be encoded in its entirety.
 
     ### Encode "<<Franc,ois>>":
     $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
 
 You may specify the ENCODING (C<"Q"> or C<"B">), which defaults to C<"Q">.
 You may specify the CHARSET, which defaults to C<iso-8859-1>.
-    
-The "word" will be encoded in its entirety.
 
 =cut
 
@@ -280,8 +280,11 @@ Name of the mail field this string will be used in.  I<Currently ignored.>
 =back
 
 B<Warning:> this is a quick-and-dirty solution, intended for character
-sets which overlap ASCII.  You may want to roll your own variant,
+sets which overlap ASCII.  B<It does not comply with the RFC-1522
+rules regarding the use of encoded words in message headers>.
+You may want to roll your own variant,
 using C<encoded_mimeword()>, for your application.
+I<Thanks to Jan Kasprzak for reminding me about this problem.>
 
 =cut
 
@@ -332,7 +335,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 5.202 $ $Date: 2000/06/05 13:37:55 $
+$Revision: 5.206 $ $Date: 2000/07/07 06:21:20 $
 
 =cut
 

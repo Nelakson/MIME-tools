@@ -103,9 +103,10 @@ CHARSET of <CODE>undef</CODE>.
     }
 </PRE>
 
-<P><B>In a scalar context,</B> joins the &quot;data&quot; elements of the above list together,
-and returns that.  This is information-lossy, but if you know that
-all charsets in the ENCODED string are identical, it might be useful to you.
+<P><B>In a scalar context,</B> joins the &quot;data&quot; elements of the above 
+list together, and returns that.  <I>Warning: this is information-lossy,</I>
+but if you know that all charsets in the ENCODED string are identical, 
+it might be useful to you.
 
 
 <P>In the event of a syntax error, $@ will be set to a description 
@@ -128,6 +129,7 @@ Name of the mail field this string came from.  <I>Currently ignored.</I>
 <P><DT><B><A NAME="item:encode_mimeword">encode_mimeword RAW, [ENCODING], [CHARSET]</A></B></DT>
 <DD>
 Encode a single RAW &quot;word&quot; that has unsafe characters.
+The &quot;word&quot; will be encoded in its entirety.
 
 <PRE>
     ### Encode &quot;&lt;&lt;Franc,ois&gt;&gt;&quot;:
@@ -136,8 +138,6 @@ Encode a single RAW &quot;word&quot; that has unsafe characters.
 
 <P>You may specify the ENCODING (<CODE>&quot;Q&quot;</CODE> or <CODE>&quot;B&quot;</CODE>), which defaults to <CODE>&quot;Q&quot;</CODE>.
 You may specify the CHARSET, which defaults to <CODE>iso-8859-1</CODE>.
-    
-The &quot;word&quot; will be encoded in its entirety.
 
 <P><DT><B><A NAME="item:encode_mimewords">encode_mimewords RAW, [OPTS]</A></B></DT>
 <DD>
@@ -172,8 +172,11 @@ Name of the mail field this string will be used in.  <I>Currently ignored.</I>
 
 
 <P><B>Warning:</B> this is a quick-and-dirty solution, intended for character
-sets which overlap ASCII.  You may want to roll your own variant,
+sets which overlap ASCII.  <B>It does not comply with the RFC-1522
+rules regarding the use of encoded words in message headers</B>.
+You may want to roll your own variant,
 using <CODE>encoded_mimeword()</CODE>, for your application.
+<I>Thanks to Jan Kasprzak for reminding me about this problem.</I>
 
 </DL>
 
@@ -214,11 +217,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.202 $ $Date: 2000/06/05 13:37:55 $
+<P>$Revision: 5.206 $ $Date: 2000/07/07 06:21:20 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sat Jun 24 02:37:36 2000 by cvu_pod2html
+Generated Fri Jul  7 02:23:37 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

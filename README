@@ -6,16 +6,16 @@ SYNOPSIS
     its decoded components to a given directory:
 
         use MIME::Parser;
-         
+
         ### Create parser, and set some parsing options:
         my $parser = new MIME::Parser;
         $parser->output_under("$ENV{HOME}/mimemail");
-         
+
         ### Parse input:
         $entity = $parser->parse(\*STDIN) or die "parse failed\n";
-        
+
         ### Take a look at the top-level entity (and any parts it has):
-        $entity->dump_skeleton; 
+        $entity->dump_skeleton;
 
     Here's some code which composes and sends a MIME message containing
     three parts: a text file, an attached GIF, and some more text:
@@ -27,18 +27,18 @@ SYNOPSIS
                                    From    => "me\@myhost.com",
                                    To      => "you\@yourhost.com",
                                    Subject => "Hello, nurse!");
-        
-        ### Part #1: a simple text document: 
+
+        ### Part #1: a simple text document:
         $top->attach(Path=>"./testin/short.txt");
-        
+
         ### Part #2: a GIF file:
         $top->attach(Path        => "./docs/mime-sm.gif",
                      Type        => "image/gif",
                      Encoding    => "base64");
-            
+
         ### Part #3: some literal text:
         $top->attach(Data=>$message);
-        
+
         ### Send it:
         open MAIL, "| /usr/lib/sendmail -t -oi -oem" or die "open: $!";
         $top->print(\*MAIL);
@@ -50,37 +50,54 @@ DESCRIPTION
     MIME messages. (Yes, kids, that means you can send messages with
     attached GIF files).
 
+REQUIREMENTS
+    You will need the following installed on your system:
+
+            File::Path
+            File::Spec
+            IPC::Open2              (optional)
+            IO::Scalar, ...         from the IO-stringy distribution
+            MIME::Base64
+            MIME::QuotedPrint
+            Net::SMTP
+            Mail::Internet, ...     from the MailTools distribution.
+
+    See the Makefile.PL in your distribution for the most-comprehensive list
+    of prerequisite modules and their version numbers.
+
 A QUICK TOUR
   Overview of the classes
 
     Here are the classes you'll generally be dealing with directly:
 
-               .------------.
-               | MIME::     |
-               | Parser     |
-               `------------'
-                  | parse()
-                  | returns a...
-                  |
-                  |
-                  |
-                  |    head()       .--------.
-                  |    returns...   | MIME:: | get()
-                  V       .-------->| Head   | etc... 
-               .--------./          `--------'      
-         .---> | MIME:: | 
-         `-----| Entity |           .--------. 
-       parts() `--------'\          | MIME:: | 
-       returns            `-------->| Body   |
+        (START HERE)            results() .-----------------.
+              \                 .-------->| MIME::          |
+               .-----------.   /          | Parser::Results |
+               | MIME::    |--'           `-----------------'
+               | Parser    |--.           .-----------------.
+               `-----------'   \ filer()  | MIME::          |
+                  | parse()     `-------->| Parser::Filer   |
+                  | gives you             `-----------------'
+                  | a...                                  | output_path() 
+                  |                                       | determines
+                  |                                       | path() of...
+                  |    head()       .--------.            |
+                  |    returns...   | MIME:: | get()      |
+                  V       .-------->| Head   | etc...     |
+               .--------./          `--------'            |
+         .---> | MIME:: |                                 |
+         `-----| Entity |           .--------.            |
+       parts() `--------'\          | MIME:: |           /
+       returns            `-------->| Body   |<---------'
        sub-entities    bodyhandle() `--------'
-       (if any)        returns...       | open() 
+       (if any)        returns...       | open()
                                         | returns...
-                                        | 
-                                        V  
-                                    .--------. read()    
-                                    | IO::   | getline()  
-                                    | Handle | print()          
-                                    `--------' etc...    
+                                        |
+                                        V
+                                    .--------. read()
+                                    | IO::   | getline()
+                                    | Handle | print()
+                                    `--------' etc...
 
     To illustrate, parsing works this way:
 
@@ -115,20 +132,20 @@ A QUICK TOUR
     each of which would have its own MIME::Head. Like this:
 
         .--------.
-        | MIME:: | Content-type: multipart/mixed 
+        | MIME:: | Content-type: multipart/mixed
         | Entity | Subject: Happy Samhaine!
         `--------'
              |
              `----.
             parts |
-                  |   .--------.   
+                  |   .--------.
                   |---| MIME:: | Content-type: text/plain; charset=us-ascii
                   |   | Entity | Content-transfer-encoding: 7bit
-                  |   `--------' 
-                  |   .--------.   
+                  |   `--------'
+                  |   .--------.
                   |---| MIME:: | Content-type: image/gif
                       | Entity | Content-transfer-encoding: base64
-                      `--------' Content-disposition: inline; 
+                      `--------' Content-disposition: inline;
                                    filename="hs.gif"
 
   Parsing, in a nutshell
@@ -461,17 +478,87 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.211 $
+    $Revision: 5.304 $
 
 CHANGE LOG
+    Version 5.303   (2000/07/07)
+        Fixed output bugs in new Filers. Scads of them: bad handling of
+        filename collisions, bad implementation of output_under(), bad
+        linking to results, POD errors, you name it. If this had gone to
+        CPAN, I'd have issued a factory recall. `:-('
+
+               Errors, like beetles,
+                  Multiply ferociously
+               In the small hours
+
+    Version 5.301   (2000/07/06)
+        READ ME BEFORE UPGRADING PAST THIS POINT! New MIME::Parser::Filer
+        class -- not fully backwards-compatible. In response to demand for
+        more-comprehensive file-output strategies, I have decided that the
+        best thing to do is to split all the file-output logic
+        (output_path(), evil_filename(), etc.) into its own separate class,
+        inheriting from the new MIME::Parser::Filer class. If you *override*
+        any of the following in a MIME::Parser subclass, you will need to
+        change your code accordingly:
+
+                evil_filename
+                output_dir
+                output_filename
+                output_path
+                output_prefix
+                output_under
+
+        My sincere apologies for any inconvenience this will cause, but it's
+        ultimately for the best, and is quite likely the last structural
+        change to 5.x. *Thanks to Tyson Ackland for all the ideas.*
+        Incidentally, the new code also fixes a bug where identically-named
+        files in the same message could clobber each other.
+
+               A message arrives:
+                   "Here are three files, all named 'Foo'"
+               Only one survives.  :-(
+
+        Fixed bug in MIME::Words header decoding. Underscores were not being
+        handled properly. *Thanks to Dominique Unruh and Doru Petrescu,* who
+        independently submitted the same fix within 2 hours of each other,
+        after this bug has lain dormant for months:
+
+               Two users, same bug,
+                  same patch -- mere hours apart:
+               Truly, life is odd.
+
+        Removed escaping of underscore in regexps. Escaping the underscore
+        (\_) in regexps was sloppy and wrong (escaped metacharacters may
+        include anything in \w), and the newest Perls warn about it. *Thanks
+        to David Dyck for bringing this to my attention.*
+
+               What, then, is a word?
+                  Some letters, digits, and, yes:
+               Underscores as well
+
+        Added Force option to MIME::Entity's make_multipart. *Thanks to Bob
+        Glickstein for suggesting this.*
+
+        Numerous fixlets to example code. *Thanks to Doru Petrescu for
+        these.*
+
+        Added REQUIREMENTS section in docs. Long-overdue. *Thanks to Ingo
+        Schmiegel for motivating this.*
+
     Version 5.211   (2000/06/24)
         Fixed auto-uudecode bug. Parser was failing with "part did not end
-        with expected boundary" error when uuencoded entity was in a
-        *singlepart* message.
+        with expected boundary" error when uuencoded entity was a
+        *singlepart* message (ironically, uuencoded parts of multiparts
+        worked fine). *Thanks to Michael Mohlere for testing uudecode and
+        finding this.*
 
                The hurrying bee
                   Flies far for nectar, missing
                The nearest flowers
+
+               Say ten thousand times:
+                  Complex cases may succeed
+               Where simple ones fail
 
         Parse errors now generate warnings. Parser errors now cause warn()s
         to be generated if they are not turned into fatal exceptions. This
@@ -479,8 +566,8 @@ CHANGE LOG
         "results", but parser-warnings already cause warn()s. I can always
         put in a "quiet" switch if people complain.
 
-        Misc. cleanup. Documentation of MIME::Parser improved slightly, and
-        a redundant warning was removed.
+        Miscellaneous cleanup. Documentation of MIME::Parser improved
+        slightly, and a redundant warning was removed.
 
     Version 5.210   (2000/06/20)
         Change in "evil" filename. Made MIME::Parser's evil_filename
@@ -489,7 +576,7 @@ CHANGE LOG
 
                Just as with beauty
                   The eye of the beholder
-               Is where "evil" lives. 
+               Is where "evil" lives.
 
         Documentation fixes. Corrected a number of docs in MIME::Entity
         which were obsoleted in the transition from 4.x to 5.x. *Thanks to
@@ -532,8 +619,8 @@ CHANGE LOG
         More documentation on toolkit configuration.
 
     Version 5.207   (2000/06/09)
-        Fixed bug in MIME::Parser where the "warning" method whine() was
-        called as a static function instead of invoked as an instance
+        Fixed whine() bug in MIME::Parser where the "warning" method whine()
+        was called as a static function instead of invoked as an instance
         method. *Thanks to Todd A. Bradfute for reporting this.*
 
                A simple warning
@@ -976,10 +1063,12 @@ CHANGE LOG
 
         A bad regexp for parameter names was causing some parameters to be
         parsed incorrectly; this has also been fixed. *Thanks again to Igor
-        Starovoitov for reporting this bug.* It is now possible to get full
-        control of the filenaming algorithm before output files are
-        generated, and the default algorithm is safer. *Thanks to Laurent
-        Amon for pointing out the problems, and suggesting some solutions.*
+        Starovoitov for reporting this bug.*
+
+        It is now possible to get full control of the filenaming algorithm
+        before output files are generated, and the default algorithm is
+        safer. *Thanks to Laurent Amon for pointing out the problems, and
+        suggesting some solutions.*
 
         Fixed illegal "simple" multipart test file. D'OH!
 
@@ -993,11 +1082,11 @@ CHANGE LOG
 AUTHOR
     MIME-tools was created by:
 
-        ___  _ _ _   _  ___ _     
+        ___  _ _ _   _  ___ _
        / _ \| '_| | | |/ _ ' /    Eryq, (eryq@zeegee.com)
       |  __/| | | |_| | |_| |     President, ZeeGee Software Inc.
        \___||_|  \__, |\__, |__   http://www.zeegee.com/
-                 |___/    |___/   
+                 |___/    |___/
 
     Released as MIME-parser (1.0): 28 April 1996. Released as MIME-tools
     (2.0): Halloween 1996. Released as MIME-tools (4.0): Christmas 1997.
@@ -1016,7 +1105,7 @@ ACKNOWLEDGMENTS
                                 and help with CPAN-friendly packaging.
         Igor Starovoitov      Bug reports and suggestions.
         Jason L Tibbitts III  Bug reports, suggestions, patches.
-     
+
     Not to mention the Accidental Beta Test Team, whose bug reports (and
     comments) have been invaluable in improving the whole:
 
@@ -1027,8 +1116,8 @@ ACKNOWLEDGMENTS
         Steve Kilbane
         Jake Morrison
         Rolf Nelson
-        Joel Noble    
-        Michael W. Normandin 
+        Joel Noble
+        Michael W. Normandin
         Tim Pierce
         Andrew Pimlott
         Dragomir R. Radev

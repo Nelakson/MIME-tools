@@ -1,10 +1,10 @@
 <HTML>
 <HEAD>
-  <TITLE>mimeencode</TITLE>
+  <TITLE>mime_postcard</TITLE>
 </HEAD>
 <BODY 
        bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
-<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>mimeencode</H1>
+<A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>mime_postcard</H1>
 </A>
 <P><B>This module is <FONT COLOR="#990000">ALPHA</FONT> code, which means that public interfaces are largely untested, and may change in future releases. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
 <LI> <A HREF="#NAME">NAME</A>
@@ -18,31 +18,31 @@
 <A NAME="NAME"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> NAME</H2></A>
 
 
-<P>mimeencode - encode a file
+<P>mime_postcard - send/output a multipart/alternative message
 
 
 
 <P><HR>
 <A NAME="SYNOPSIS"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SYNOPSIS</H2></A>
 
+
+<P>Usage:
+
 <PRE>
-    mimeencode
-        Give usage.
-     
-    mimeencode [-d] encoding &lt;infile &gt;outfile
-        Encode/decode stdin to stdout.
+    mime_postcard /path/to/some/graphic.jpg to@addr.com
 </PRE>
+
+<P>You can point it at a .gif file as well.
+The special address &quot;-&quot; just causes the message to go to STDOUT.
+
 
 
 <P><HR>
 <A NAME="DESCRIPTION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> DESCRIPTION</H2></A>
 
 
-<P>Encode (or, with -d, decode) stdin with the given encoding, 
-writing results to stdout.
- 
-This does not do MIME parsing; it merely exercises the decoder
-modules.
+<P>This sends a mesasge both as HTML and plain text.
+I use &quot;Data&quot;; you would probably use &quot;Path&quot;.
 
 
 
@@ -54,7 +54,7 @@ modules.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Fri Jul  7 02:23:44 2000 by cvu_pod2html
+Generated Sat Jun 24 15:11:36 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

@@ -12,7 +12,7 @@ use MIME::Words qw(decode_mimewords);
 
 # Create checker:
 my $T = typical ExtUtils::TBone;
-$T->begin(9);
+$T->begin(10);
 
 {
     local($/) = '';

@@ -224,6 +224,8 @@ my $parser = new MIME::Parser;
 $parser->output_dir("testout");
 open IN, "./testout/entity.msg1" or die "open: $!";
 $top = $parser->parse(\*IN);
+$T->msg($parser->results->msgs);
+
 #-----test------
 $T->ok($top, "parsed msg1 back in");
 
