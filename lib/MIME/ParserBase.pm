@@ -111,7 +111,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.107 $, 10;
+$VERSION = substr q$Revision: 4.109 $, 10;
 
 # How to catenate:
 $CAT = '/bin/cat';
@@ -313,8 +313,6 @@ sub parse_preamble {
     $ent->preamble(\@saved);
     while (defined($_ = $in->getline)) {
 	s/\r?\n$//o;        # chomps both \r and \r\n
-
-	debug "preamble: <$_>";
 	($_ eq $delim) and return 'DELIM';
 	($_ eq $close) and return error "multipart message has no parts";
 
@@ -353,9 +351,8 @@ sub parse_epilogue {
     while (defined($_ = $in->getline)) {
 	s/\r?\n$//o;        # chomps both \r and \r\n
 
-	### debug "epilogue: <$_>";
-	if (defined($outer_bound)) {    # if there's a boundary, look for it:
-	    debug "epilogue is ", length(join '', @saved), " bytes";
+	# If there's a boundary, look for it:
+	if (defined($outer_bound)) {    
 	    ($_ eq $delim) and return 'DELIM';
 	    ($_ eq $close) and return 'CLOSE';
 	}
@@ -363,7 +360,7 @@ sub parse_epilogue {
 	# A real line, and *not* a kind of outer bound... save it:
 	push @saved, "$_\n" if $self->{MPB_SaveBookends};
     }
-    debug "EOF: epilogue is ", length(join '', @saved), " bytes";
+    ### debug "EOF: epilogue is ", length(join '', @saved), " bytes";
     return 'EOF';       # the only way to get here!
 }
 
@@ -378,21 +375,25 @@ sub parse_epilogue {
 # Returns 'DELIM' or 'CLOSE' on success (to indicate the type of boundary
 # encountered, and undef on failure.
 #
+# NOTE: while parsing, we take care to remember the EXACT end-of-line
+# sequence.  This is because we *may* be handling 'binary' encoded data, and 
+# in that case we can't just massage \r\n into \n!  Don't worry... if the
+# data is styled as '7bit' or '8bit', the "decoder" will massage the CRLF
+# for us.  For now, we're just trying to chop up the data stream.
+#
 sub parse_to_bound {
     my ($self, $bound, $in, $out) = @_;    
-    my $eol;                 # EOL sequence of current line
-    my $held_eol = '';       # EOL sequence of previous line
 
     # Set up strings for faster checking:
-    my $delim = "--$bound";
-    my $close = "--$bound--";
+    my ($delim, $close) = ("--$bound", "--$bound--");
 
     # Read:
+    my $eol;                                 # EOL sequence of current line
+    my $held_eol = '';                       # EOL sequence of previous line
     while (defined($_ = $in->getline)) {
 
 	# Complicated chomp, to REMOVE AND REMEMBER end-of-line sequence:
-	($eol) = ($_ =~ m/($CRLF|\n)$/o);
-	if ($eol eq $CRLF) { chop; chop } else { chop };
+	($_, $eol) = m/^(.*?)($CRLF|\n)?\Z/o;    # break into line and eol
 	
 	# Now, look at what we've got:
 	($_ eq $delim) and return 'DELIM';   # done!
@@ -804,7 +805,7 @@ Should return the self object on success, and undef on failure.
 sub init {
     my $self = shift;
     $self->{MPB_Interface} = {};
-    $self->{MPB_SaveBookends} = 1;      # save premable and epilogue
+    $self->{MPB_SaveBookends} = 1;      # save preamble and epilogue
     $self->interface(ENTITY_CLASS => 'MIME::Entity');
     $self->interface(HEAD_CLASS   => 'MIME::Head');
     $self->decode_headers(0);
@@ -1093,7 +1094,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.107 $ $Date: 1998/01/17 06:31:12 $
+$Revision: 4.109 $ $Date: 1998/02/12 03:11:27 $
 
 =cut
 

@@ -101,12 +101,16 @@ use IO::Wrap;
   # Non-standard...
     'x-uu'       => 'MIME::Decoder::UU',
     'x-uuencode' => 'MIME::Decoder::UU',
-### 'x-gzip'     => 'MIME::Decoder::Gzip64', ### I now fear x-gzip != x-gzip64
-    'x-gzip64'   => 'MIME::Decoder::Gzip64',
+
+  # This was removed, since I fear that x-gzip != x-gzip64...
+### 'x-gzip'     => 'MIME::Decoder::Gzip64',
+
+  # This is no longer installed by default, since not all folks have gzip:
+### 'x-gzip64'   => 'MIME::Decoder::Gzip64',
 );
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.105 $, 10;
+$VERSION = substr q$Revision: 4.106 $, 10;
 
 
 
@@ -365,36 +369,6 @@ sub encode_it {
 
 #------------------------------
 
-=item init ARGS...
-
-I<Instance method.>
-Do any necessary initialization of the new instance,
-taking whatever arguments were given to C<new()>.
-Should return the self object on success, undef on failure.
-
-=cut
-
-sub init {
-    $_[0];
-}
-
-#------------------------------
-
-=item install ENCODING
-
-I<Class method>.  
-Install this class so that ENCODING is handled by it.
-You should not override this method.
-
-=cut
-
-sub install {
-    my ($class, $encoding) = @_;
-    $DecoderFor{lc($encoding)} = $class;
-}
-
-#------------------------------
-
 =item filter IN, OUT, COMMAND...
 
 I<Class method, utility.>
@@ -440,6 +414,59 @@ sub filter {
     1;
 }
 
+
+#------------------------------
+
+=item init ARGS...
+
+I<Instance method.>
+Do any necessary initialization of the new instance,
+taking whatever arguments were given to C<new()>.
+Should return the self object on success, undef on failure.
+
+=cut
+
+sub init {
+    $_[0];
+}
+
+#------------------------------
+
+=item install ENCODINGS...
+
+I<Class method>.  
+Install this class so that each encoding in ENCODINGS is handled by it:
+
+    install MyBase64Decoder 'base64', 'x-base64super';
+
+You should not override this method.
+
+=cut
+
+sub install {
+    my $class = shift;
+    $DecoderFor{lc(shift @_)} = $class while (@_);
+}
+
+#------------------------------
+
+=item uninstall ENCODINGS...
+
+I<Class method>.  
+Uninstall support for encodings.  This is a way to turn off the decoding
+of "experimental" encodings.  For safety, always use MIME::Decoder directly:
+
+    uninstall MIME::Decoder 'x-uu', 'x-uuencode';
+
+You should not override this method.
+
+=cut
+
+sub uninstall {
+    shift;
+    $DecoderFor{lc(shift @_)} = undef while (@_);
+}
+
 1;
 
 __END__
@@ -465,7 +492,7 @@ The following "non-standard" subclasses are also included:
      Class:                         Handles encodings:
      ------------------------------------------------------------
      MIME::Decoder::UU              x-uu, x-uuencode
-     MIME::Decoder::Gzip64          x-gzip64
+     MIME::Decoder::Gzip64          x-gzip64            ** requires gzip!
 
 
 
@@ -579,10 +606,8 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.105 $ $Date: 1998/01/10 04:23:12 $
+$Revision: 4.106 $ $Date: 1998/01/25 19:56:59 $
 
 =cut
 
 1;
-
-

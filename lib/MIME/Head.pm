@@ -133,7 +133,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.103 $, 10;
+$VERSION = substr q$Revision: 4.104 $, 10;
 
 # Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -661,7 +661,7 @@ I quote from RFC-1521 section 5:
 
 sub mime_encoding {
     my $self = shift;
-    $self->mime_attr('content-transfer-encoding') || '7bit';
+    lc($self->mime_attr('content-transfer-encoding') || '7bit');
 }
 
 #------------------------------
@@ -686,7 +686,9 @@ shouldn't: normally only the MIME parser uses this feature.
 sub mime_type {
     my ($self, $default) = @_;
     $self->{MIH_DefaultType} = $default if @_ > 1;
-    $self->mime_attr('content-type')|| $self->{MIH_DefaultType}|| 'text/plain';
+    lc($self->mime_attr('content-type') || 
+       $self->{MIH_DefaultType} || 
+       'text/plain');
 }
 
 #------------------------------
@@ -871,7 +873,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 4.103 $ $Date: 1997/12/14 03:03:49 $
+$Revision: 4.104 $ $Date: 1998/02/14 21:33:58 $
 
 =cut
 

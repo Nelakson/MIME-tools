@@ -3,7 +3,6 @@ MANIFEST
 Makefile.PL
 README
 README-OR-DIE
-docs/MIME-tools.pod
 docs/MIME/Body.pm.html
 docs/MIME/Decoder.pm.html
 docs/MIME/Entity.pm.html
@@ -21,6 +20,7 @@ docs/MIME/index.chc
 docs/MIME/mime-lg.gif
 docs/MIME/mime-sm.gif
 docs/Makefile
+docs/README.pod
 examples/README
 examples/mimeabuse
 examples/mimedump

@@ -6,7 +6,7 @@ X-Mailer: Mozilla 2.02 (WinNT; I)
 MIME-Version: 1.0
 To: andreas.koenig@mind.de, kun@pop.combox.de, 101762.2307@compuserve.com
 Subject: [Fwd: Re: 34Mbit/s Netz]
-Content-Type: multipart/mixed; boundary="------------70522FC73543"
+Content-Type: MULTIPART/MIXED; boundary="------------70522FC73543"
 X-Filter: mailagent [version 3.0 PL44] for k@.in-berlin.de
 
 This is a multi-part message in MIME format.

@@ -13,6 +13,10 @@ use Checker;
 
 # Is gzip available?  Quick and dirty test:
 my $has_gzip = which('gzip');
+if ($has_gzip) {
+   require MIME::Decoder::Gzip64;
+   install MIME::Decoder::Gzip64 'x-gzip64';
+}
 
 # Get list of encodings we think we provide:
 my @encodings = ('base64',

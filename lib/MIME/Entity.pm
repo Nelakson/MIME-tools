@@ -237,7 +237,7 @@ use IO::Wrap;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.113 $, 10;
+$VERSION = substr q$Revision: 4.114 $, 10;
 
 # Boundary counter:
 my $BCount = 0;
@@ -797,7 +797,7 @@ Get/set the text of the epilogue, as an array of newline-terminated LINES.
 Returns a reference to the array of lines, or undef if no epilogue exists.
 
 If there is a epilogue, it is output when printing this entity; otherwise,
-a default epilogue is used.  Setting the premable to undef (not []!) causes 
+a default epilogue is used.  Setting the epilogue to undef (not []!) causes 
 it to fallback to the default.
 
 =cut
@@ -941,7 +941,7 @@ Returns a reference to the array of lines, or undef if no preamble exists
 (e.g., if this is a single-part entity).
 
 If there is a preamble, it is output when printing this entity; otherwise,
-a default preamble is used.  Setting the premable to undef (not []!) causes 
+a default preamble is used.  Setting the preamble to undef (not []!) causes 
 it to fallback to the default.
 
 =cut
@@ -2036,7 +2036,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.113 $ $Date: 1998/01/17 21:54:10 $
+$Revision: 4.114 $ $Date: 1998/01/25 19:54:07 $
 
 =cut
 
