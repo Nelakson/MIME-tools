@@ -1,5 +1,6 @@
 use lib "./t";
 use MIME::Head;
+use MIME::Parser;
 
 use ExtUtils::TBone;
 
@@ -96,6 +97,19 @@ $T->begin(7);
     $T->ok_eqnum(int(@received), 
 		 4,	 
 		 "bug 970626-TS: header get_all() case problem fixed?");
+}
+
+#------------------------------
+# Bug 980430 from Jason L Tibbitts III <tibbs@hpc.uh.edu>
+#------------------------------
+# Boundary-parsing errors for this message.
+{
+    my $parser = new MIME::Parser;
+    $parser->output_to_core('ALL');
+#    my $e = eval { $parser->parse_in("testin/jt-0498.msg") };
+#    $T->ok_eqnum(($e and $e->parts), 
+#		 2,
+#		 "bug 980430-JT: did we get 2 parts?");
 }
 
 #------------------------------------------------------------

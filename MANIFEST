@@ -62,6 +62,7 @@ t/Head.t
 t/Misc.t
 t/Parser.t
 t/Tmpfile.t
+t/Words.t
 testin/ak-0696.msg
 testin/andreas-1296.txt
 testin/andreas-1296.uu
@@ -104,6 +105,7 @@ testin/simple.msg
 testin/simple.msgb
 testin/simple.msgh
 testin/third.hdr
+testin/words.txt
 testin/x-gzip64.body
 testin/x-gzip64.msg
 testout/KEEPME

@@ -12,7 +12,7 @@ use vars qw($VERSION);
 sub config { shift; MIME::ToolUtils->config(@_) }
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.119 $, 10;
+$VERSION = substr q$Revision: 4.121 $, 10;
 
 #------------------------------
 1;
@@ -633,6 +633,12 @@ Support for S/MIME and message/partial?
 
 =over 4
 
+=item Version 4.121
+
+B<Fixed MIME::Words infinite recursion.>
+        I<Thanks to several folks for this bug report.>
+
+
 =item Version 4.117
 
 B<Nicer MIME::Entity::build.> 
@@ -1093,7 +1099,7 @@ Release of 4.0: Christmas 1997.
 
 =head1 VERSION
 
-$Revision: 4.119 $ 
+$Revision: 4.121 $ 
 
 
 =head1 ACKNOWLEDGMENTS

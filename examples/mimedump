@@ -57,7 +57,7 @@ sub dump_entity {
 		$IO->close;
 	    }
 	    else {       # d'oh!
-		print "$0: couldn't find/open '$file': $!";
+		print "$0: couldn't find/open '$name': $!";
 	    }
 	}
 	else {                                 # binary: just summarize it...
@@ -75,7 +75,8 @@ sub dump_entity {
 # main
 #
 sub main {
-    
+    print STDERR "(reading from stdin)\n" if (-t STDIN);
+
     # Create a new MIME parser:
     my $parser = new MIME::Parser;
     

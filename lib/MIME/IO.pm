@@ -44,7 +44,7 @@ use strict;
 use vars qw($VERSION);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.103 $, 10;
+$VERSION = substr q$Revision: 4.104 $, 10;
 
 
 #============================================================
@@ -66,7 +66,7 @@ can now be written more properly as:
 =cut
 
 use IO::Wrap;
-use MIME::ToolUtils;
+use MIME::ToolUtils qw(:msgs);
 sub wrap {
     my ($class, $raw) = @_;
     whine "MIME::IO::Handle is obsolete; please use IO::Wrap instead";
@@ -111,7 +111,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.103 $ $Date: 1998/01/10 06:01:33 $
+$Revision: 4.104 $ $Date: 1998/05/14 02:00:42 $
 
 
 =cut

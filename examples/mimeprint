@@ -32,7 +32,7 @@ use lib "./lib";
 use strict;
 use Getopt::Std;
 
-use vars qw($opt_e $opt_h $opt_n);
+use vars qw($opt_e $opt_h $opt_n $opt_v $opt_s);
 use MIME::Parser;
 
 # Usage?
@@ -41,14 +41,17 @@ $ARGV[0] or die <<EOF;
 Usage:
     mimeprint [-options] infile
        Parse a MIME stream from infile, and print entity to stdout:
+          -v           Verbose output (debugging)
           -h           Decode headers
           -e ENCODING  Re-encode top-level entity (if not multipart)
           -n HOW       Parse nested messages [NEST or REPLACE]
+          -s           Just print the skeleton
 
 EOF
 
 # Args:
-getopts("he:n:");
+getopts("hsve:n:");
+MIME::ToolUtils->config('DEBUGGING' => $opt_v);
 
 # Set up parser:
 my $parser = new MIME::Parser;
@@ -63,7 +66,7 @@ if ($opt_e and !$ent->is_multipart) {
     supported MIME::Decoder $opt_e or die "unsupported encoding: $opt_e\n";
     $ent->head->mime_attr("Content-transfer-encoding" => $opt_e);
 }
-$ent->print(\*STDOUT);
+($opt_s ? $ent->dump_skeleton(\*STDOUT) : $ent->print(\*STDOUT));
 
 1;
 

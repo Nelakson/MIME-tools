@@ -86,13 +86,13 @@ use MIME::QuotedPrint;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.101 $, 10;
+$VERSION = substr q$Revision: 4.102 $, 10;
 
 # Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
 
 
-#------------------------------------------------------------
+#------------------------------
 
 # _decode_Q STRING
 #     Private: used by _decode_header() to decode "Q" encoding, which is
@@ -129,7 +129,7 @@ sub _encode_B {
 
 
 
-#------------------------------------------------------------
+#------------------------------
 
 =item decode_mimewords ENCODED, [OPTS...]
 
@@ -150,6 +150,11 @@ B<In a scalar context,> joins the "data" elements of the above list together,
 and returns that.  This is information-lossy, but if you know that
 all charsets in the ENCODED string are identical, it might be useful to you.
 
+In the event of a syntax error, $@ will be set to a description 
+of the error, but parsing will continue as best as possible (so as to
+get I<something> back when decoding headers).
+$@ will be false if no error was detected.
+
 Any arguments past the ENCODED string are taken to define a hash of options:
 
 =over 4
@@ -166,6 +171,7 @@ sub decode_mimewords {
     my $encstr = shift;
     my %params = @_;
     my @tokens;
+    $@ = '';           # error-return
 
     # Collapse boundaries between adjacent encoded words:
     $encstr =~ s{(\?\=)\r?\n[ \t](\=\?)}{$1$2}gs;
@@ -176,7 +182,9 @@ sub decode_mimewords {
     my ($charset, $encoding, $enc, $dec);
     while (1) {
 	last if (pos($encstr) >= length($encstr));
-	my $pos = pos($encstr);
+	my $pos = pos($encstr);               # save it
+
+	# Case 1: are we looking at "=?..?..?="?
 	if ($encstr =~    m{\G                # from where we left off..
 			    =\?([^?]+)        # "=?" + charset +
 			     \?([bq])         #  "?" + encoding +
@@ -186,25 +194,38 @@ sub decode_mimewords {
 	    ($charset, $encoding, $enc) = ($1, lc($2), $3);
 	    $dec = (($encoding eq 'q') ? _decode_Q($enc) : _decode_B($enc));
 	    push @tokens, [$dec, $charset];
+	    next;
 	}
-	elsif (pos($encstr) = $pos,           # set the pointer, and
-	       $encstr =~ m{\G                # from where we left off...
-			    ([\x00-\xFF]*?    #   shortest possible string,
-			     \n*)             #   followed by 0 or more NLs,
-			    (?=(\Z|=\?))      # terminated by "=?" or EOS
-			    }xg) {
+
+	# Case 2: are we looking at a bad "=?..." prefix? 
+	# We need this to detect problems for case 3, which stops at "=?":
+	pos($encstr) = $pos;               # reset the pointer.
+	if ($encstr =~ m{\G=\?}xg) {
+	    $@ .= qq|unterminated "=?..?..?=" in "$encstr" (pos $pos)\n|;
+	    push @tokens, ['=?'];
+	    next;
+	}
+
+	# Case 3: are we looking at ordinary text?
+	pos($encstr) = $pos;               # reset the pointer.
+	if ($encstr =~ m{\G                # from where we left off...
+			 ([\x00-\xFF]*?    #   shortest possible string,
+			  \n*)             #   followed by 0 or more NLs,
+		         (?=(\Z|=\?))      # terminated by "=?" or EOS
+			}xg) {
+	    length($1) or die "MIME::Words: internal logic err: empty token\n";
 	    push @tokens, [$1];
+	    next;
 	}
-	else {     # Uh?
-	    die "Unexpected mimewords case:\n($encstr)\n".
-	        "Please alert developer of MIME::Words.\n";
-	    last;
-	}
+
+	# Case 4: bug!
+	die "MIME::Words: unexpected case:\n($encstr) pos $pos\n\t".
+	    "Please alert developer.\n";
     }
     return (wantarray ? @tokens : join('',map {$_->[0]} @tokens));
 }
 
-#------------------------------------------------------------
+#------------------------------
 
 =item encode_mimeword RAW, [ENCODING], [CHARSET]
 
@@ -228,7 +249,7 @@ sub encode_mimeword {
     "=?$charset?$encoding?" . &$encfunc($word) . "?=";
 }
 
-#------------------------------------------------------------
+#------------------------------
 
 =item encode_mimewords RAW, [OPTS]
 
@@ -281,6 +302,8 @@ sub encode_mimewords {
     }xeg;
     $rawstr;
 }
+1;
+__END__
 
 
 =back
@@ -304,18 +327,19 @@ Thanks also to...
                          RFC-1522-decoding code!
       kjj@primenet.com   For requesting that this be split into
                          its own module.
+      Stephane Barizien  For reporting a nasty bug.
 
 
 =head1 VERSION
 
-$Revision: 4.101 $ $Date: 1997/12/09 06:37:39 $
+$Revision: 4.102 $ $Date: 1998/06/03 04:11:47 $
 
 =cut
 
 
-#------------------------------------------------------------
+#------------------------------
 # Execute simple test if run as a script.
-#------------------------------------------------------------
+#------------------------------
 { 
   package main; no strict;
   eval join('',<main::DATA>) || die "$@ $main::DATA" unless caller();

@@ -111,7 +111,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.109 $, 10;
+$VERSION = substr q$Revision: 4.110 $, 10;
 
 # How to catenate:
 $CAT = '/bin/cat';
@@ -308,7 +308,7 @@ sub parse_preamble {
     my ($delim, $close) = ("--$inner_bound", "--$inner_bound--");
 
     # Parse preamble:
-    ### debug "skip until\n\tdelim ($delim)\n\tclose ($close)";
+    debug "skip until\n\tdelim ($delim)\n\tclose ($close)";
     my @saved;
     $ent->preamble(\@saved);
     while (defined($_ = $in->getline)) {
@@ -345,7 +345,7 @@ sub parse_epilogue {
 	if defined($outer_bound);
 
     # Parse epilogue:
-    ### debug "skip until\n\tdelim <",$delim||'',">\n\tclose <",$close||'',">";
+    debug "skip until\n\tdelim <",$delim||'',">\n\tclose <",$close||'',">";
     my @saved;
     $ent->epilogue(\@saved);
     while (defined($_ = $in->getline)) {
@@ -360,7 +360,7 @@ sub parse_epilogue {
 	# A real line, and *not* a kind of outer bound... save it:
 	push @saved, "$_\n" if $self->{MPB_SaveBookends};
     }
-    ### debug "EOF: epilogue is ", length(join '', @saved), " bytes";
+    debug "EOF: epilogue is ", length(join '', @saved), " bytes";
     return 'EOF';       # the only way to get here!
 }
 
@@ -1094,7 +1094,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.109 $ $Date: 1998/02/12 03:11:27 $
+$Revision: 4.110 $ $Date: 1998/05/14 02:00:42 $
 
 =cut
 
