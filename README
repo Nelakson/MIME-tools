@@ -1,3 +1,8 @@
+WARNING
+    MIME-tools requires MIME::Base64 and MIME::QuotedPrint.  It will work
+    with versions as old as 2.20, but some tests (when you do "make test")
+    will fail for MIME::QuotedPrint older than 3.03.
+
 NAME
     MIME-tools - modules for parsing (and creating!) MIME entities
 
@@ -656,7 +661,7 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 1.4 $
+    $Revision: 1.5 $
 
 CHANGE LOG
     Version 5.411
@@ -1424,7 +1429,7 @@ ACKNOWLEDGMENTS
     me, and I'll put you in.
 
 SEE ALSO
-    At the time of this writing ($Date: 2005/01/03 15:38:55 $), the MIME-
+    At the time of this writing ($Date: 2005/01/05 02:46:45 $), the MIME-
     tools homepage was http://www.mimedefang.org/static/mime-tools.php.
     Check there for updates and support.
 

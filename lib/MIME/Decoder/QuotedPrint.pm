@@ -47,7 +47,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.15 $ $Date: 2004/12/29 17:50:40 $
+$Revision: 1.17 $ $Date: 2005/01/13 19:23:15 $
 
 
 =cut
@@ -59,10 +59,10 @@ use MIME::QuotedPrint;
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.416";
+$VERSION = "5.417";
 
 #------------------------------
-# If we have MIME::QuotedPrint 3.01 or later, use the three-argument
+# If we have MIME::QuotedPrint 3.03 or later, use the three-argument
 # version.  If we have an earlier version of MIME::QuotedPrint, we
 # may get the wrong results.  However, on some systems (RH Linux,
 # for example), MIME::QuotedPrint is part of the Perl package and
@@ -74,7 +74,7 @@ $VERSION = "5.416";
 # The following code is horrible.  I know.  Beat me up. --dfs
 BEGIN {
     if (!defined(&encode_qp_threearg)) {
-        if ($::MIME::QuotedPrint::VERSION >= 3.01) {
+        if ($::MIME::QuotedPrint::VERSION >= 3.03) {
             eval 'sub encode_qp_threearg ( $$$ ) { encode_qp(shift, shift, shift); }';
         } else {
             eval 'sub encode_qp_threearg ( $$$ ) { encode_qp(shift); }';

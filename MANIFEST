@@ -100,6 +100,7 @@ testin/simple.msg
 testin/simple.msgb
 testin/simple.msgh
 testin/third.hdr
+testin/twopart.msg
 testin/up.gif.uu
 testin/words.txt
 testin/x-gzip64.body

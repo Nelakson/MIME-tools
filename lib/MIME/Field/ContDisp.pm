@@ -45,7 +45,7 @@ use vars qw($VERSION @ISA);
 @ISA = qw(MIME::Field::ParamVal);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.416";
+$VERSION = "5.417";
 
 # Install it: 
 bless([])->register('Content-disposition');

@@ -6,7 +6,7 @@ use ExtUtils::TBone;
 
 # Create checker:
 my $T = typical ExtUtils::TBone;
-$T->begin(12);
+$T->begin(14);
 
 #------------------------------
 # Bug 971008 from Michael W. Normandin <michael.normandin@csfb.com>:
@@ -122,10 +122,20 @@ $T->begin(12);
 {
     my $parser = new MIME::Parser;
     $parser->output_to_core('ALL');
-#    my $e = eval { $parser->parse_open("testin/jt-0498.msg") };
-#    $T->ok_eqnum(($e and $e->parts), 
-#		 2,
-#		 "bug 980430-JT: did we get 2 parts?");
+    my $e = eval { $parser->parse_open("testin/jt-0498.msg") };
+    $T->ok_eqnum(($e and scalar $e->parts), 
+		 2,
+		 "bug 980430-JT: did we get 2 parts?");
+}
+
+# Bug reported by Marcel Brouillet.  MT 5.416 would parse as a single part.
+{
+    my $parser = new MIME::Parser;
+    $parser->output_to_core('ALL');
+    my $e = eval { $parser->parse_open("testin/twopart.msg") };
+    $T->ok_eqnum(($e and scalar $e->parts), 
+		 2,
+		 "bug: did we get 2 parts?");
 }
 
 #------------------------------------------------------------

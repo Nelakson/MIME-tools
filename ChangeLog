@@ -1,3 +1,15 @@
+2005-01-20  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.417 RELEASED
+
+	* Require MIME::QuotedPrint 3.03 to use the three-argument
+	"encode_qp" function.  If we have an earlier version of
+	MIME::QuotedPrint, fall back to the one-argument version.
+
+	* Field/ParamVal.pm: The patch to strip trailing whitespace on
+	parameters was buggy and caused decoding errors.  This has been
+	fixed.
+
 2005-01-03  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.416 RELEASED
@@ -14,7 +26,7 @@
 
 	* VERSION 5.415 RELEASED
 
-	* Fixed parsing of paramater="" in headers, and fixed case where
+	* Fixed parsing of parameter="" in headers, and fixed case where
 	multipart boundary is ""
 
 2004-10-06  David F. Skoll  <dfs@roaringpenguin.com>
