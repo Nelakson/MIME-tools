@@ -85,7 +85,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 6.108 $ $Date: 2003/06/27 17:54:29 $
+$Revision: 1.1 $ $Date: 2004/09/03 14:44:37 $
 
 
 =cut
@@ -94,12 +94,11 @@ use vars qw(@ISA $VERSION);
 
 use MIME::Decoder;
 use MIME::Tools qw(:msgs);
-use MIME::Tools::Utils qw(:msgs);
 
 @ISA = qw(MIME::Decoder);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.108 $, 10;
+$VERSION = substr q$Revision: 1.1 $, 10;
 
 ### How many bytes to decode at a time?
 my $DecodeChunkLength = 8 * 1024;
@@ -117,13 +116,11 @@ sub decode_it {
 
     ### Get chunks until done:
     while ($in->read($_, $DecodeChunkLength)) {
-
-	### We just read a chunk... tack on until the next EOL:
 	$and_also = $in->getline;
 	$_ .= $and_also if defined($and_also);
 	
-	### We now have a chunk ending in a line.
-	s/\015\012$/\n/g;   ### replace CRLF with local newline (BAD?)
+	### Just got a chunk ending in a line.
+	s/\015\012$/\n/g;
 	$out->print($_);
     }
     1;
@@ -144,14 +141,12 @@ sub encode_it {
 
 	### Whine if encoding is 7bit and it has 8-bit data:
 	if ($seven_bit && ($line =~ /[\200-\377]/)) { ### oops! saw 8-bit data!
-	    $LOG->warning("saw 8-bit data while encoding 7bit")
-		unless $saw_8bit++;
+	    whine "saw 8-bit data while encoding 7bit" unless $saw_8bit++;
 	}
 
 	### Whine if long lines detected:
 	if (length($line) > 998) {
-	    $LOG->warning("saw long line while encoding 7bit/8bit")
-		unless $saw_long++;
+	    whine "saw long line while encoding 7bit/8bit" unless $saw_long++;
 	}
 
 	### Output!

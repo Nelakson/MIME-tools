@@ -5,7 +5,7 @@ use ExtUtils::TBone;
 use Globby;
 
 use strict;
-MIME::Tools->debugging(0);
+config MIME::Tools DEBUGGING=>0;
 
 use MIME::Parser;
 
@@ -45,15 +45,14 @@ $T->msg("Create a parser");
 
 
 #------------------------------------------------------------
-package MyFiler;
-use base qw(MIME::Parser::FlatFiler);
-
+package MyParser;
+@MyParser::ISA = qw(MIME::Parser);
 sub output_path {
-    my ($self, $head) = @_;	
+    my ($parser, $head) = @_;
 
-    ### Get the recommended filename:
+    # Get the recommended filename:
     my $filename = $head->recommended_filename;
-    if (defined($filename) && $self->evil_filename($filename)) {
+    if (defined($filename) && $parser->evil_filename($filename)) {
 	$T->msg("Parser.t: ignoring an evil recommended filename ($filename)");
 	$filename = undef;      # forget it: it was evil
     }
@@ -62,17 +61,16 @@ sub output_path {
 	$filename = "message-$Counter.dat";
     }
 
-    ### Get the output filename:
-    my $outdir = $self->output_dir;
+    # Get the output filename:
+    my $outdir = $parser->output_dir;
     "$outdir/$filename";
 }
-
-#------------------------------------------------------------
 package main;
 
-$parser = new MIME::Parser;
-my $filer = MyFiler->new($DIR);
-$parser->filer($filer);
+#------------------------------------------------------------
+
+$parser = new MyParser;
+$parser->output_dir($DIR);
 
 #------------------------------------------------------------
 $T->msg("Read a nested multipart MIME message");

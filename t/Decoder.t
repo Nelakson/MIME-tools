@@ -2,8 +2,9 @@ use lib "./t";
 
 use MIME::Tools;
 use MIME::Decoder;
-MIME::Tools->quiet(1);
+config MIME::Tools QUIET=>1;
 
+# config MIME::Tools DEBUGGING=>1;
 use ExtUtils::TBone;
 
 #------------------------------------------------------------
@@ -27,14 +28,15 @@ my @encodings = ('base64',
 		 '8bit',
 		 'binary',
 		 ($has_gzip ? 'x-gzip64' : ()),
-		 'x-uuencode');
+		 'x-uuencode',
+		 'binhex');
 
 # Create checker:
 my $T = typical ExtUtils::TBone;
 $T->begin(scalar(@encodings));
 
 # Report what tests we may be skipping:
-$T->msg($has_gzip 
+$T->msg($has_gzip
 	? "Using gzip: $has_gzip"
 	: "No gzip: skipping x-gzip64 test");
 
@@ -42,18 +44,22 @@ $T->msg($has_gzip
 my ($e, $eno) = (undef, 0);
 foreach $e (@encodings) {
     ++$eno;
-    my $decoder = new MIME::Decoder $e;
-    $decoder or next;
- 
+    my $decoder = MIME::Decoder->new($e);
+    unless(defined($decoder)) {
+	$T->msg("Encoding/decoding of $e not supported -- skipping test");
+	$T->ok(1);
+	next;
+    }
+
     $T->msg("Encoding/decoding of $e");
     my $infile  = $T->catfile('.', 'testin', 'fun.txt');
     my $encfile = $T->catfile('.', 'testout', "fun.en$eno");
     my $decfile = $T->catfile('.', 'testout', "fun.de$eno");
 
     # Encode:
-    open IN, "<$infile" or die "open $infile: $!";    
-    open OUT, ">$encfile" or die "open $encfile: $!"; 
-    binmode IN; binmode OUT;	 
+    open IN, "<$infile" or die "open $infile: $!";
+    open OUT, ">$encfile" or die "open $encfile: $!";
+    binmode IN; binmode OUT;
     $decoder->encode(\*IN, \*OUT) or next;
     close OUT;
     close IN;
@@ -67,7 +73,7 @@ foreach $e (@encodings) {
     close IN;
 
     # Can we compare?
-    if ($e =~ /^(base64|quoted-printable|binary|x-gzip64|x-uuencode)$/i) {
+    if ($e =~ /^(binhex|base64|quoted-printable|binary|x-gzip64|x-uuencode)$/i) {
 	$T->ok(((-s $infile) == (-s $decfile)),
 		  "size of $infile == size of $decfile");
     }
@@ -80,8 +86,3 @@ foreach $e (@encodings) {
 $T->end;
 exit(0);
 1;
-
-
-
-
-

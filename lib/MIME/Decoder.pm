@@ -90,7 +90,6 @@ use IPC::Open2;
 
 ### Kit modules:
 use MIME::Tools qw(:config :msgs);
-use MIME::Tools::Utils qw(:config :msgs);
 use IO::Wrap;
 use Carp;
 
@@ -112,6 +111,10 @@ use Carp;
     'quoted-printable' => 'MIME::Decoder::QuotedPrint',
 
   ### Non-standard...
+    'binhex'     => 'MIME::Decoder::BinHex',
+    'binhex40'   => 'MIME::Decoder::BinHex',
+    'mac-binhex40' => 'MIME::Decoder::BinHex',
+    'mac-binhex' => 'MIME::Decoder::BinHex',
     'x-uu'       => 'MIME::Decoder::UU',
     'x-uuencode' => 'MIME::Decoder::UU',
 
@@ -123,7 +126,7 @@ use Carp;
 );
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.107 $, 10;
+$VERSION = substr q$Revision: 1.6 $, 10;
 
 ### Me:
 my $ME = 'MIME::Decoder';
@@ -169,7 +172,9 @@ sub new {
 
     ### Create the new object (if we can):
     my $self = { MD_Encoding => lc($encoding) };
-    require $concrete_path;
+    unless (eval "require '$concrete_path';") {
+	return undef;
+    }
     bless $self, $concrete_name;
     $self->init(@args);
 }
@@ -193,7 +198,7 @@ sub best {
     my ($class, $enc, @args) = @_;
     my $self = $class->new($enc, @args);
     if (!$self) {
-	usage_warning "unsupported encoding '$enc': using 'binary'";
+	usage "unsupported encoding '$enc': using 'binary'";
 	$self = $class->new('binary') || croak "ack! no binary decoder!";
     }
     $self;
@@ -227,7 +232,7 @@ sub decode {
 
     ### Invoke back-end method to do the work:
     $self->decode_it($in, $out) ||
-	die "".$self->encoding." decoding failed\n";
+	die "$ME: ".$self->encoding." decoding failed\n";
     1;
 }
 
@@ -248,15 +253,15 @@ Returns true on success, throws exception on failure.
 =cut
 
 sub encode {
-    my ($self, $in, $out) = @_;
-    
+    my ($self, $in, $out, $textual_type) = @_;
+
     ### Coerce old-style filehandles to legit objects, and do it!
     $in  = wraphandle($in);
     $out = wraphandle($out);
 
     ### Invoke back-end method to do the work:
-    $self->encode_it($in, $out) || 
-	die "".$self->encoding." encoding failed\n";
+    $self->encode_it($in, $out, $self->encoding eq 'quoted-printable' ? ($textual_type) : ()) ||
+	die "$ME: ".$self->encoding." encoding failed\n";
 }
 
 #------------------------------
@@ -634,7 +639,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 6.107 $ $Date: 2003/06/06 23:41:38 $
+$Revision: 1.6 $ $Date: 2004/09/08 19:14:23 $
 
 =cut
 

@@ -8,13 +8,13 @@ use ExtUtils::TBone;
 
 # Create checker:
 my $T = typical ExtUtils::TBone;
-$T->begin(13);
+$T->begin(17);
 
 #------------------------------------------------------------
 $T->msg("Read a bogus file (this had better fail...)");
 #------------------------------------------------------------
 my $WARNS = $SIG{'__WARN__'}; $SIG{'__WARN__'} = sub { };
-my $head = eval { MIME::Head->from_file('BLAHBLAH'); };
+my $head = MIME::Head->from_file('BLAHBLAH');
 $T->ok(!$head, "parse failed as expected?");
 $SIG{'__WARN__'} = $WARNS;
 
@@ -83,12 +83,13 @@ $head->replace('X-Files',
 	       'default ; name="X Files Test"; LENgth=60 ;setting="6"');
 my $params;
 { local $^W = 0;
-  $params = MIME::Field::ParamVal->parse($head->get('X-Files'));
+  $params = $head->params('X-Files');
 }
-$T->ok($params->param('_') eq 'default',    	"got the default field?");
-$T->ok($params->param('name') eq 'X Files Test',	"got the name?");
-$T->ok($params->param('length') eq '60',		"got the length?");
-$T->ok($params->param('setting') eq '6',		"got the setting?");
+$T->ok($params,					"got the parameter hash?");
+$T->ok($$params{_}         eq 'default',    	"got the default field?");
+$T->ok($$params{'name'}    eq 'X Files Test',	"got the name?");
+$T->ok($$params{'length'}  eq '60',		"got the length?");
+$T->ok($$params{'setting'} eq '6',		"got the setting?");
 
 #------------------------------------------------------------
 $T->msg("Output to a desired file");
@@ -102,18 +103,16 @@ $T->ok((-s "./testout/tmp.head") > 50,
 #------------------------------------------------------------
 $T->msg("Parse in international header, decode and unfold it");
 #------------------------------------------------------------
-if (0) {
-    ($head = MIME::Head->from_file('./testin/encoded.hdr'))
-	or die "couldn't parse input";  # stop now
-    $head->decode;
-    $head->unfold;
-    $subject = $head->get('subject',0); $subject =~ s/\r?\n\Z//; 
-    my $to   = $head->get('to',0);      $to      =~ s/\r?\n\Z//; 
-    my $tsubject = "If you can read this you understand the example... cool!";
-    my $tto      = "Keld J\370rn Simonsen <keld\@dkuug.dk>";
-    $T->ok($to      eq $tto,      "Q decoding okay?");
-    $T->ok($subject eq $tsubject, "B encoding and compositing okay?");
-}
+($head = MIME::Head->from_file('./testin/encoded.hdr'))
+    or die "couldn't parse input";  # stop now
+$head->decode;
+$head->unfold;
+$subject = $head->get('subject',0); $subject =~ s/\r?\n\Z//; 
+my $to   = $head->get('to',0);      $to      =~ s/\r?\n\Z//; 
+my $tsubject = "If you can read this you understand the example... cool!";
+my $tto      = "Keld J\370rn Simonsen <keld\@dkuug.dk>";
+$T->ok($to      eq $tto,      "Q decoding okay?");
+$T->ok($subject eq $tsubject, "B encoding and compositing okay?");
 
 #------------------------------------------------------------
 $T->msg("Parse in header with 'From ', and check field order");
@@ -155,12 +154,10 @@ $T->ok(lc(join('|',@orighdrs)) eq lc(join('|',@curhdrs)),
       "field order preserved under stringify after fields added?");
 
 # Does it work if we decode the header?
-if (0) {
-    $head->decode;
-    @orighdrs = map {/^\S+:?/ ? $& : ''} (split(/\r?\n/, $head->stringify));
-    $T->ok(lc(join('|',@orighdrs)) eq lc(join('|',@curhdrs)),
-	   "field order is preserved under stringify after decoding?");
-}
+$head->decode;
+@orighdrs = map {/^\S+:?/ ? $& : ''} (split(/\r?\n/, $head->stringify));
+$T->ok(lc(join('|',@orighdrs)) eq lc(join('|',@curhdrs)),
+      "field order is preserved under stringify after decoding?");
 
 # Done!
 exit(0);

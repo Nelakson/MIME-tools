@@ -5,7 +5,7 @@ use ExtUtils::TBone;
 
 use MIME::Body;
 use MIME::Tools;
-MIME::Tools->debugging(0);
+config MIME::Tools DEBUGGING=>0;
 
 #------------------------------------------------------------
 # BEGIN

@@ -142,7 +142,7 @@ use IO::Scalar;
 use Carp;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.108 $, 10;
+$VERSION = substr q$Revision: 1.2 $, 10;
 
 
 #------------------------------
@@ -155,9 +155,7 @@ Create a new body.  Any ARGS are sent to init().
 =cut
 
 sub new {
-    my $self = bless {
-	MB_Binmode => 1,
-    }, shift;
+    my $self = bless {}, shift;
     $self->init(@_);
     $self;
 }
@@ -177,31 +175,6 @@ sub init { 1 }
 
 #------------------------------
 
-=item as_blocks
-
-I<Instance method.>
-Return the contents of the body as an array of scalars,
-whose maxiumum length will be 2048 bytes.
-Returns empty on failure to open (NB: indistinguishable from an empty body!).
-
-B<Note:> the default method gets the data via
-repeated read() calls; your subclass might wish to override this.
-
-=cut
-
-sub as_blocks {
-    my $self = shift;
-    local $_ = ' ' x 2048;
-
-    my @blocks;
-    my $io = $self->open("r") || return ();
-    push @blocks, $_ while ($io->read($_, 2048)); ### TBD: partial info on err 
-    $io->close;
-    @blocks;
-}
-
-#------------------------------
-
 =item as_lines
 
 I<Instance method.>
@@ -209,18 +182,13 @@ Return the contents of the body as an array of lines (each terminated
 by a newline, with the possible exception of the final one).
 Returns empty on failure (NB: indistinguishable from an empty body!).
 
-B<Note:> the default method gets the data via
+Note: the default method gets the data via
 repeated getline() calls; your subclass might wish to override this.
-
-B<Caution:> do not use for inherently-binary data (e.g., mpeg files),
-or for data which lacks newline characters. 
 
 =cut
 
 sub as_lines {
     my $self = shift;
-    local $_;
-
     my @lines;
     my $io = $self->open("r") || return ();
     push @lines, $_ while (defined($_ = $io->getline()));
@@ -386,9 +354,7 @@ The following built-in classes are provided:
 
 
 #------------------------------------------------------------
-#
 package MIME::Body::File;
-#
 #------------------------------------------------------------
 
 =head2 MIME::Body::File
@@ -422,8 +388,7 @@ use strict;
 require FileHandle;
 
 ### Kit modules:
-use MIME::Tools qw(:msgs);
-use MIME::Tools::Utils qw(:msgs);
+use MIME::Tools qw(whine);
 use IO::Wrap;
 
 @ISA = qw(MIME::Body);
@@ -436,14 +401,6 @@ sub init {
     my ($self, $path) = @_;
     $self->path($path);               ### use it as-is
     $self;
-}
-
-#------------------------------
-# calculate_size
-#------------------------------
-sub calculate_size {
-    my $self = shift;
-    (-s $self->path);
 }
 
 #------------------------------
@@ -474,8 +431,7 @@ sub open {
 sub purge {
     my $self = shift;
     if (defined($self->path)) {
-	unlink $self->path or 
-	    $LOG->warning("couldn't unlink ".$self->path.": $!");
+	unlink $self->path or whine "couldn't unlink ".$self->path.": $!";
 	$self->path(undef);
     }
     1;
@@ -485,14 +441,11 @@ sub purge {
 
 
 #------------------------------------------------------------
-#
 package MIME::Body::Scalar;
-#
 #------------------------------------------------------------
 
 =head2 MIME::Body::Scalar
 
-I<Deprecated; please use MIME::Bady::InCore instead.>
 A body class that stores the data in-core, in a simple scalar.
 Invoke the constructor as:
 
@@ -557,9 +510,7 @@ sub open {
 
 
 #------------------------------------------------------------
-#
 package MIME::Body::InCore;
-#
 #------------------------------------------------------------
 
 =head2 MIME::Body::InCore
@@ -628,24 +579,6 @@ sub init {
 sub as_string {
     my $self = shift;
     return join '', @{$self->{MBC_Data}};
-}
-
-#------------------------------
-# as_blocks
-#------------------------------
-sub as_blocks {
-    my $self = shift;
-    return @{$self->{MBC_Data}};
-}
-
-#------------------------------
-# calculate_size
-#------------------------------
-sub calculate_size {
-    my $self = shift;
-    my $size = 0;
-    foreach ($self->as_blocks) { $size += length($_); }
-    $size;
 }
 
 #------------------------------
@@ -727,6 +660,7 @@ if the user application is processing more than one MIME entity at a time.
 =head1 AUTHOR
 
 Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
+David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -738,7 +672,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 6.108 $ $Date: 2003/06/27 17:54:28 $
+$Revision: 1.2 $ $Date: 2004/09/07 15:13:54 $
 
 =cut
 

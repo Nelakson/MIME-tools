@@ -4,14 +4,6 @@
 
 mimeabuse - try hard to break MIME parsing
 
-
-=head1 SYNOPSIS
-
-Usage:
-
-    mimeabuse         [no arguments]
-
-
 =head1 DESCRIPTION
 
 This is meant to be run from the MIME-tools distribution directory
@@ -23,7 +15,6 @@ limits.
 I wrote this after I discovered that, under Perl 5.002 at least,
 FileHandle->new_tmpfile returned an object that did not get
 destructed automatically when it exited scope.  :-(
-
 
 =head1 AUTHOR
 

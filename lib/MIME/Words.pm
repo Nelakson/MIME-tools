@@ -82,10 +82,8 @@ Exporter::export_ok_tags('all');
 @ISA = qw(Exporter);
 
 ### Other modules:
-use MIME::Tools qw(:msgs);
-use MIME::Tools::Utils qw(:msgs);
 use MIME::Base64;
-use MIME::QuotedPrint;
+use MIME::QuotedPrint 3.03;
 
 
 
@@ -96,7 +94,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.107 $, 10;
+$VERSION = substr q$Revision: 1.4 $, 10;
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -227,13 +225,14 @@ sub decode_mimewords {
 			  \n*)             #   followed by 0 or more NLs,
 		         (?=(\Z|=\?))      # terminated by "=?" or EOS
 			}xg) {
-	    length($1) or internal_error "empty token";
+	    length($1) or die "MIME::Words: internal logic err: empty token\n";
 	    push @tokens, [$1];
 	    next;
 	}
 
 	### Case 4: bug!
-	internal_error "unexpected case:\n($encstr) pos $pos";
+	die "MIME::Words: unexpected case:\n($encstr) pos $pos\n\t".
+	    "Please alert developer.\n";
     }
     return (wantarray ? @tokens : join('',map {$_->[0]} @tokens));
 }
@@ -335,6 +334,7 @@ MIME::Base64 and MIME::QuotedPrint.
 =head1 AUTHOR
 
 Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
+David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -350,7 +350,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 6.107 $ $Date: 2003/06/06 23:41:55 $
+$Revision: 1.4 $ $Date: 2004/09/08 00:08:30 $
 
 =cut
 

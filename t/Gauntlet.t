@@ -3,7 +3,7 @@ use lib "./t";
 use MIME::Parser;
 
 use strict;
-MIME::Tools->debugging(0);
+config MIME::Tools DEBUGGING=>0;
 use ExtUtils::TBone;
 
 

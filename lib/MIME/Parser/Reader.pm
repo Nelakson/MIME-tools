@@ -21,10 +21,6 @@ don't need to be looking at it at all.  But just in case...
      
     ### Read until boundary or terminator:
     $subrdr->read_chunk($in, $out);
-    
-    ### Get info on how the stream ended:
-    $eos      = $subrdr->eos;
-    $eos_type = $subrdr->eos_type;
 
 
 =head1 DESCRIPTION
@@ -39,8 +35,6 @@ This class has no official public interface
 
 use strict;
 use IO::ScalarArray;
-use MIME::Tools qw(:msgs);
-use MIME::Tools::Utils qw(:msgs);
 
 ### All possible end-of-line sequences.
 ### Note that "" is included because last line of stream may have no newline!
@@ -176,7 +170,7 @@ sub eos_type {
 	return (($2 eq $self->{Bounds}[0]) ? $1 : 'EXT');
     }
     else {
-	internal_error "unable to classify boundary token ($eos)";
+	die("internal error: unable to classify boundary token ($eos)");
     }
 }
 
@@ -200,7 +194,7 @@ sub native_handle {
 # read_chunk INHANDLE, OUTHANDLE
 #
 # I<Instance method.>
-# Get lines until [virtual] end of stream.
+# Get lines until end-of-stream.
 # Returns the terminating-condition token:
 #
 #    DELIM xyz   saw boundary line "--xyz"

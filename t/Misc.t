@@ -6,7 +6,7 @@ use ExtUtils::TBone;
 
 # Create checker:
 my $T = typical ExtUtils::TBone;
-$T->begin(7);
+$T->begin(12);
 
 #------------------------------
 # Bug 971008 from Michael W. Normandin <michael.normandin@csfb.com>:
@@ -67,13 +67,29 @@ $T->begin(7);
 #    $res =~ s/\./=2E/go;
 #    $res =~ s/From /=46rom /go;
 # at the start of encode_qp_really in MIME::Decoder::QuotedPrint?
+#
+# Textual mode.
 {
     use MIME::Decoder::QuotedPrint;
     my $pair;
-    foreach $pair (["From me",   "=46rom me"],
-		   [".",         "=2E"],
-		   [" From you", " From you"]) {
-	my $out = MIME::Decoder::QuotedPrint::encode_qp_really($pair->[0]);
+    foreach $pair (["From me",   "=46rom me=\n"],
+		   [".",         ".=\n"],  # soft line-break
+		   [".\n",       "=2E\n"], # line-break
+		   [" From you", " From you=\n"]) {
+	my $out = MIME::Decoder::QuotedPrint::encode_qp_really($pair->[0], 1);
+	$T->ok_eq($out, $pair->[1],
+		  "bug 970725-DNA: QP use of RFC2049 guideline 8");
+    }
+}
+# Binary mode
+{
+    use MIME::Decoder::QuotedPrint;
+    my $pair;
+    foreach $pair (["From me",   "=46rom me=\n"],
+		   [".",         ".=\n"],     # soft line-break
+		   [".\n",       ".=0A=\n"],  # line-break
+		   [" From you", " From you=\n"]) {
+	my $out = MIME::Decoder::QuotedPrint::encode_qp_really($pair->[0], 0);
 	$T->ok_eq($out, $pair->[1],
 		  "bug 970725-DNA: QP use of RFC2049 guideline 8");
     }

@@ -214,33 +214,12 @@ Debug:
 
 =head1 PUBLIC INTERFACE
 
-
-=head2 Globals
-
-=over 4
-
-=item $BOUNDARY_DELIMITER
-
-This is the end-of-line sequence output at the end of a
-multipart boundary when you're printing a MIME::Entity.
-It defaults to "\n".
-I strongly suggest that you local'ize your overrides if possible:
-
-    sub do_stuff {
-	local $MIME::Entity::BOUNDARY_DELIMITER = "\r\n";
-	...
-        $entity->print;
-    }
-
-
-=back
-
 =cut
 
 #------------------------------
 
 ### Pragmas:
-use vars qw(@ISA $VERSION ); 
+use vars qw(@ISA $VERSION); 
 use strict;
 
 ### System modules:
@@ -252,8 +231,7 @@ use Mail::Internet 1.28 ();
 use Mail::Field    1.05 ();
 
 ### Kit modules:
-use MIME::Tools qw(:config :msgs);
-use MIME::Tools::Utils qw(:config :msgs :utils);
+use MIME::Tools qw(:config :msgs :utils);
 use MIME::Head;
 use MIME::Body;
 use MIME::Decoder;
@@ -271,11 +249,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.109 $, 10;
-
-### Boundary end-of-line sequence:
-use vars qw($BOUNDARY_DELIMITER);
-$BOUNDARY_DELIMITER = "\n";
+$VERSION = substr q$Revision: 1.3 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -327,6 +301,9 @@ sub known_field {
 sub make_boundary {
     return "----------=_".scalar(time)."-$$-".$BCount++;
 }
+
+
+
 
 
 
@@ -605,13 +582,11 @@ sub build {
 	### Get any supplied boundary, and check it:
 	if (defined($boundary = $params{Boundary})) {  ### they gave us one...
 	    if ($boundary eq '') {
-		$LOG->warning("empty string is not a legal boundary: ".
-			      "I'm ignoring it");
+		whine "empty string not a legal boundary: I'm ignoring it";
 		$boundary = undef;
 	    }
 	    elsif ($boundary =~ m{[^0-9a-zA-Z_\'\(\)\+\,\.\/\:\=\?\- ]}) {
-		$LOG->warning("boundary ignored: ".
-			      "illegal characters ($boundary)");
+		whine "boundary ignored: illegal characters ($boundary)";
 		$boundary = undef;
 	    }
 	}
@@ -676,8 +651,8 @@ sub build {
 
     ### Add the X-Mailer field, if top level (use default value if not given):
     $top and $head->replace('X-Mailer', 
-			    "MIME-tools ".(MIME::Tools->version).
-			    " (Entity "  .($VERSION).")"); 
+			    "MIME-tools ".(0+MIME::Tools->version).
+			    " (Entity "  .(0+$VERSION).")"); 
 	
     ### Add remaining user-specified fields, if any:
     while (@paramlist) {
@@ -1061,13 +1036,6 @@ sub preamble {
     $self->{ME_Preamble};
 }
 
-#------------------------------
-
-sub sourcehandle {
-    my ($self, $sh) = @_;
-    $self->{ME_Sourcehandle} = $sh if @_ > 1;
-    $self->{ME_Sourcehandle};
-}
 
 
 
@@ -1307,10 +1275,9 @@ sub remove_sig {
     ### Handle multiparts:
     $self->is_multipart and return $self->{ME_Parts}[0]->remove_sig(@_);
 
-    ### Refuse non-textual:
+    ### Refuse non-textual unless forced:
     textual_type($self->head->mime_type)
-	or die("can't un-sign a non-text message: ".
-	       "this is a ".$self->head->mime_type."\n");
+	or return error "I won't un-sign a non-text message unless I'm forced";
     
     ### Get body data, as an array of newline-terminated lines:
     $self->bodyhandle or return undef;
@@ -1344,11 +1311,6 @@ The disposition will be C<inline>, and the description will indicate
 that it is a signature.  The default behavior is to append the signature 
 to the text of the message (or the text of its first part if multipart).
 I<MIME-specific; new in this subclass.>
-
-=item Charset
-
-Explicitly declare the character set of the signed text
-if using "Attach".  Default is to leave it undeclared.
 
 =item File
 
@@ -1420,7 +1382,6 @@ sub sign {
     ### Add signature to message as appropriate:
     if ($params{Attach}) {      ### Attach .sig as new part...
 	return $self->attach(Type        => 'text/plain',
-			     Charset     => $params{Charset},
 			     Description => 'Signature',
 			     Disposition => 'inline',
 			     Encoding    => '-SUGGEST',
@@ -1430,7 +1391,7 @@ sub sign {
 
 	### Refuse non-textual unless forced:
 	($self->head->mime_type =~ m{text/}i or $params{Force}) or
-	    die "I won't sign a non-text message unless I'm forced\n";
+	    return error "I won't sign a non-text message unless I'm forced";
 
 	### Get body data, as an array of newline-terminated lines:
 	$self->bodyhandle or return undef;
@@ -1478,7 +1439,6 @@ message is 7bit-ok.  Other types are chosen independent of their body:
 
 sub suggest_encoding {
     my $self = shift;
-    local($_);
 
     my ($type) = split '/', $self->effective_type;
     if (($type eq 'text') || ($type eq 'message')) {    ### scan message body
@@ -1632,7 +1592,7 @@ Currently unimplemented for MIME messages.  Does nothing, returns false.
 =cut
 
 sub tidy_body {
-    usage_warning "MIME::Entity::tidy_body() currently does nothing";
+    usage "MIME::Entity::tidy_body currently does nothing";
     0;
 }
 
@@ -1665,8 +1625,7 @@ the following selection of attributes:
 
     Content-type: multipart/mixed
     Effective-type: multipart/mixed
-    Content-encoding: 7bit
-    Body-location: IN CORE
+    Body-file: NONE
     Subject: Hey there!
     Num-parts: 2
 
@@ -1683,67 +1642,28 @@ sub dump_skeleton {
     my $part;
     no strict 'refs';
 
-    ### Skeletal information;
-    my @info;  ### [tag value] pairs
 
-    ### The content type/encoding:
-    push @info, ["Content-type",    ($self->mime_type      || 'UNKNOWN' )];
-    push @info, ["Effective-type",  ($self->effective_type || 'UNKNOWN' )];
-    push @info, ["Content-encoding", $self->head->mime_encoding];
+    ### The content type:
+    print $fh $ind,"Content-type: ",   ($self->mime_type||'UNKNOWN'),"\n";
+    print $fh $ind,"Effective-type: ", ($self->effective_type||'UNKNOWN'),"\n";
 
     ### The name of the file containing the body (if any!):
-    my $bh = $self->bodyhandle;
-    if ($bh) {
-	my $path = $bh->path;
-	if (defined($path)) {
-	    my $size = (-s $path);
-	    push @info, ["Body-location", $path];
-	    push @info, ["Body-size", $size] if defined($size);
-	}
-	else {
-	    my $size;
-	    $size = $bh->calculate_size if $bh->can('calculate_size');
-	    push @info, ["Body-location", "(IN CORE)"];
-	    push @info, ["Body-size", $size] if defined($size);
-	}
-    }
-
-    ### The name of the file containing the body (if any!):
-    my $sh = $self->sourcehandle;
-    if ($sh) {
-	my $sh = $self->sourcehandle;
-	my $path = $sh->path;
-	if (defined($path)) {
-	    my $size = (-s $path);
-	    push @info, ["Source-location", $path];
-	    push @info, ["Source-size", $size] if defined($size);
-	}
-	else {
-	    my $size;
-	    $size = $sh->calculate_size if $sh->can('calculate_size');
-	    push @info, ["Source-location", "(IN CORE)"];
-	    push @info, ["Source-size", $size] if defined($size);
-	}
-    }
+    my $path = ($self->bodyhandle ? $self->bodyhandle->path : undef);
+    print $fh $ind, "Body-file: ", ($path || 'NONE'), "\n";
 
     ### The recommended file name (thanks to Allen Campbell):
     my $filename = $self->head->recommended_filename;
-    push @info, ["Recommended-filename", $filename] if ($filename);
+    print $fh $ind, "Recommended-filename: ", $filename, "\n" if ($filename);
 
     ### The subject (note: already a newline if 2.x!)
     my $subj = $self->head->get('subject',0);
     defined($subj) or $subj = '';
     chomp($subj);
-    push @info, ["Subject", $subj] if $subj;
+    print $fh $ind, "Subject: $subj\n" if $subj;
 
-    ### Parts:
+    ### The parts:
     my @parts = $self->parts;
-    push @info, ["Num-parts", int(@parts)] if @parts;
-
-    ### Dump info:
-    foreach (@info) { print $fh $ind, $_->[0], ": ", $_->[1], "\n" };
-
-    ### Dump the parts:
+    print $fh $ind, "Num-parts: ", int(@parts), "\n" if @parts;
     print $fh $ind, "--\n";
     foreach $part (@parts) {
 	$part->dump_skeleton($fh, $indent+1);
@@ -1874,24 +1794,22 @@ sub print_body {
 
 	### Preamble:
 	my $preamble = join('', @{ $self->preamble || $DefPreamble });
-	$out->print("$preamble".$BOUNDARY_DELIMITER) 
-	    if ($preamble ne '');
+	$out->print("$preamble\n") if ($preamble ne '');
 
 	### Parts:
 	my $part;
 	foreach $part ($self->parts) {
-	    $out->print("--$boundary".$BOUNDARY_DELIMITER);
+	    $out->print("--$boundary\n");
 	    $part->print($out);
-	    $out->print($BOUNDARY_DELIMITER);   ### needed for next delim/close
+	    $out->print("\n");           ### needed for next delim/close
 	}
-	$out->print("--$boundary--".$BOUNDARY_DELIMITER);
+	$out->print("--$boundary--\n");
 
 	### Epilogue:
 	my $epilogue = join('', @{ $self->epilogue || $DefEpilogue });
 	if ($epilogue ne '') {
 	    $out->print($epilogue);
-	    $out->print($BOUNDARY_DELIMITER) 
-		if ($epilogue !~ /\n\Z/);  ### be nice
+	    $out->print("\n") if ($epilogue !~ /\n\Z/);  ### be nice
 	}
     }
 
@@ -1910,7 +1828,7 @@ sub print_body {
     ### Singlepart type, or no parts: output body...
     else {                     
 	$self->bodyhandle ? $self->print_bodyhandle($out)
-	                  : $LOG->warning("missing body; treated as empty");
+	                  : whine "missing body; treated as empty";
     }
     1;
 }
@@ -1935,7 +1853,7 @@ sub print_bodyhandle {
 
     ### Output the body:
     my $IO = $self->open("r")     || die "open body: $!";
-    $decoder->encode($IO, $out)   || die "encoding failed\n";
+    $decoder->encode($IO, $out, textual_type($self->head->mime_type) ? 1 : 0)   || die "encoding failed\n";
     $IO->close;
     1;
 }
@@ -2309,6 +2227,7 @@ how we work.
 =head1 AUTHOR
 
 Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
+David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
 All rights reserved.  This program is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
@@ -2316,7 +2235,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 6.109 $ $Date: 2003/06/27 17:54:30 $
+$Revision: 1.3 $ $Date: 2004/09/07 15:13:54 $
 
 =cut
 

@@ -4,16 +4,13 @@
 
 mimedump - dump out the contents of a parsed MIME message
 
-
 =head1 DESCRIPTION
 
 Read a MIME stream from the stdin, and dump its contents to the stdout.
 
-
 =head1 SYNOPSIS
 
     mimedump < mime.msg
-
 
 =head1 AUTHOR
 
@@ -39,7 +36,7 @@ sub dump_entity {
     print "\n", '=' x 60, "\n";
     print "Message $name: ";
     print "\n", '=' x 60, "\n\n";
-    print $entity->head->stringify;
+    print $entity->head->original_text;
     print "\n";
 
     # Output the body:
