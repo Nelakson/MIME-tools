@@ -44,8 +44,11 @@ not the default values):
 
 Create a multipart message (could it I<be> much easier?)
 
-    # Create the top-level:
+    # Create the top-level, and set up the mail headers:
     $top = build MIME::Entity Type=>"multipart/mixed";
+    $top->head->add('from',    "me\@myhost.com");
+    $top->head->add('to',      "you\@yourhost.com");
+    $top->head->add('subject', "Hello, nurse!");
     
     # Attachment #1: a simple text document: 
     attach $top  Path=>"./testin/short.txt";
@@ -55,12 +58,7 @@ Create a multipart message (could it I<be> much easier?)
                  Type        => "image/gif",
                  Encoding    => "base64";
     
-    # Maybe add some mail-related stuff...
-    $top->head->add('from',    "me@myhost.com");
-    $top->head->add('to',      "you@yourhost.com");
-    $top->head->add('subject', "Hello, nurse!");
-    
-    # Output:
+    # Output!
     $top->print(\*STDOUT);
 
 Extract information from MIME entities:
@@ -169,7 +167,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Boundary counter:
 my $BCount = 0;
@@ -502,8 +500,8 @@ sub body {
 	}
 	else {             # getting body lines...
 	    $self->bodyhandle || return [];
-	    my @lines = $self->bodyhandle->getlines;
-	    return \@lines;
+	    my $IO = $self->bodyhandle->open("r") || return [];
+	    return $IO->getlines;
 	}
     }
 }
@@ -565,9 +563,11 @@ sub dump_skeleton {
 
     # The subject (note: already a newline if 2.x!)
     my $subj = $self->head->get('subject',0);
+    defined($subj) or $subj = '';
     chomp($subj);
     print $fh $ind, "Subject: $subj\n" if $subj;
 
+    # The parts:
     my @parts = $self->parts;
     print $fh $ind, "Num-parts: ", int(@parts), "\n" if @parts;
     print $fh $ind, "--\n";
@@ -904,7 +904,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.3 $ $Date: 1996/10/18 06:48:45 $
+$Revision: 2.5 $ $Date: 1996/10/28 18:35:39 $
 
 =cut
 

@@ -47,6 +47,10 @@ Eryq C<eryq@rhine.gsfc.nasa.gov>, in a big hurry...
 BEGIN { unshift @INC, ".." }    # to test MIME:: stuff before installing it!
 
 require 5.001;
+
+use strict;
+use vars qw($Msgno);
+
 use MIME::Parser;
 use Getopt::Std;
 
@@ -54,6 +58,7 @@ use Getopt::Std;
 # make_msg - make and return the name of a msgXXX directory
 #------------------------------------------------------------
 $Msgno = 0;
+
 sub make_msg {
     while (-d "msg$Msgno") { 
 	++$Msgno;
@@ -74,7 +79,7 @@ sub dump_entity {
 	map { dump_entity($_) } @parts;
     }
     else {               # single part...
-	print "    Part: ", $ent->body, 
+	print "    Part: ", $ent->bodyhandle->path, 
 	      " (", scalar($ent->head->mime_type), ")\n";
     }
 }
@@ -83,6 +88,8 @@ sub dump_entity {
 # main
 #------------------------------------------------------------
 sub main {
+    my $file;
+    my $entity;
 
     # Sanity:
     (-w ".") or die "cwd not writable, you naughty boy...";
@@ -103,11 +110,12 @@ sub main {
     
 	# Parse an input stream:
 	open FILE, $file or die "couldn't open $file";
-	$entity = $parser->read(\*FILE) or die "couldn't parse MIME stream";
+	$entity = $parser->read(\*FILE) or 
+	    print STDERR "Couldn't parse MIME in $file; continuing...\n";
 	close FILE;
 
 	# Congratulations: you now have a (possibly multipart) MIME entity!
-	dump_entity($entity);
+	dump_entity($entity) if $entity;
     }
     1;
 }

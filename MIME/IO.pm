@@ -65,7 +65,7 @@ I<Thanks to Achim Bohnet for suggesting this more-generic I/O model.>
 use vars qw($VERSION);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 #============================================================
@@ -74,6 +74,10 @@ use vars qw($VERSION);
 package MIME::IO::Handle;
 
 =head2 MIME::IO::Handle
+
+=over
+
+=item B<DESCRIPTION>
 
 An I/O interface object wrapped around a raw filehandle.
 If you hand this class' C<wrap()> constructor an argument, it is 
@@ -124,6 +128,20 @@ compatibility with earlier versions of MIME-parser: if you supply a
 raw filehandle where an INSTREAM or OUTSTREAM is expected, most MIME
 packages will automatically wrap that raw filehandle in a MIME::IO 
 object, which fits the I/O handle criteria.
+
+=item B<NOTES>
+
+Clearly, when wrapping a raw external filehandle (like \*STDOUT), 
+I didn't want to close the file descriptor when this object is
+destructed... since the user might not appreciate that.  Hence,
+there's no DESTROY method in this class.
+
+When wrapping a FileHandle object, however, I believe that Perl will 
+invoke the FileHandle::DESTROY when the last reference goes away,
+so in that case, the filehandle is closed if the wrapped FileHandle
+really was the last reference to it.
+
+=back
 
 =cut
 
@@ -189,6 +207,10 @@ package MIME::IO::Scalar;
 
 =head2 MIME::IO::Scalar
 
+=over
+
+=item DESCRIPTION
+
 An I/O interface object wrapped around a scalar.  
 This is to implement things that look like filehandles, but
 which keep all of their data in-core.
@@ -199,6 +221,8 @@ Use it like this:
     $IO->print("Some data\n");
     $IO->print("Some more data\n");
     $IO->close;    # ...$scalar now holds "Some data\nSome more data\n"
+
+=back
 
 =cut
 
@@ -295,7 +319,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.3 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 1.5 $ $Date: 1996/10/28 18:47:29 $
 
 
 =cut

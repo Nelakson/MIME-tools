@@ -126,8 +126,11 @@ Create a multipart message (could it <EM>be</EM>
 <P>
 
 <PRE>
-    # Create the top-level:
+    # Create the top-level, and set up the mail headers:
     $top = build MIME::Entity Type=&gt;&quot;multipart/mixed&quot;;
+    $top-&gt;head-&gt;add('from',    &quot;me\@myhost.com&quot;);
+    $top-&gt;head-&gt;add('to',      &quot;you\@yourhost.com&quot;);
+    $top-&gt;head-&gt;add('subject', &quot;Hello, nurse!&quot;);
     
     # Attachment #1: a simple text document: 
     attach $top  Path=&gt;&quot;./testin/short.txt&quot;;
@@ -137,12 +140,7 @@ Create a multipart message (could it <EM>be</EM>
                  Type        =&gt; &quot;image/gif&quot;,
                  Encoding    =&gt; &quot;base64&quot;;
     
-    # Maybe add some mail-related stuff...
-    $top-&gt;head-&gt;add('from',    &quot;me@myhost.com&quot;);
-    $top-&gt;head-&gt;add('to',      &quot;you@yourhost.com&quot;);
-    $top-&gt;head-&gt;add('subject', &quot;Hello, nurse!&quot;);
-    
-    # Output:
+    # Output!
     $top-&gt;print(\*STDOUT);
 </PRE>
 
@@ -898,7 +896,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 2.3 $ $Date: 1996/10/18 06:48:45 $
+$Revision: 2.5 $ $Date: 1996/10/28 18:35:39 $
 
 
 <P>

@@ -315,10 +315,10 @@ sub open {
     my ($self, $mode) = @_;
     my $IO;
     if ($mode eq 'w') {          # writing
-	$IO = FileHandle->new($self->writer) || return undef;
+	$IO = FileHandle->new($self->writer) || die "open $self->{Writer}: $!";
     }
     elsif ($mode eq 'r') {       # reading
-	$IO = FileHandle->new($self->reader) || return undef;
+	$IO = FileHandle->new($self->reader) || die "open $self->{Reader}: $!";
     }
     else {  
 	die "bad mode: '$mode'";
@@ -429,7 +429,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 1.8 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 1.9 $ $Date: 1996/10/28 06:51:47 $
 
 =cut
 

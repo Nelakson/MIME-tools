@@ -139,6 +139,10 @@ end of file.
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="mimeiohandle">MIME::IO::Handle</A></H3>
+<DL>
+<DT><STRONG><A NAME="item_description">DESCRIPTION
+
+</A></STRONG><DD>
 An I/O interface object wrapped around a raw filehandle. If you hand this
 class' <CODE>wrap()</CODE> constructor an argument, it is expected to be one of the following:
 
@@ -215,9 +219,33 @@ HREF="IO.html">MIME::IO</A> object, which fits the I/O handle criteria.
 
 <P>
 
+<DT><STRONG><A NAME="item_notes">NOTES
+
+</A></STRONG><DD>
+Clearly, when wrapping a raw external filehandle (like \*STDOUT), I didn't
+want to close the file descriptor when this object is destructed... since
+the user might not appreciate that. Hence, there's no DESTROY method in
+this class.
+
+
+<P>
+
+When wrapping a FileHandle object, however, I believe that Perl will invoke
+the FileHandle::DESTROY when the last reference goes away, so in that case,
+the filehandle is closed if the wrapped FileHandle really was the last
+reference to it.
+
+
+<P>
+
+</DL>
 <P>
 <HR ALIGN=LEFT WIDTH=75%>
 <H3><A NAME="mimeioscalar">MIME::IO::Scalar</A></H3>
+<DL>
+<DT><STRONG><A NAME="item_description">DESCRIPTION
+
+</A></STRONG><DD>
 An I/O interface object wrapped around a scalar. This is to implement
 things that look like filehandles, but which keep all of their data
 in-core.
@@ -239,6 +267,7 @@ Use it like this:
 
 <P>
 
+</DL>
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="notes">NOTES</A></H2>
@@ -267,7 +296,7 @@ and/or modify it under the same terms as Perl itself.
 <P>
 <HR ALIGN=LEFT WIDTH=100%>
 <H2><A HREF="#__top"><IMG SRC="redbul.gif" ALT="*" BORDER=0></A> <A NAME="version">VERSION</A></H2>
-$Revision: 1.3 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 1.5 $ $Date: 1996/10/28 18:47:29 $
 
 
 <P>

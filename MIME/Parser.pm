@@ -90,7 +90,7 @@ use MIME::Decoder;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.1 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # Count of fake filenames generated:
 my $G_output_path = 0;
@@ -374,8 +374,8 @@ sub output_path {
     }
     if (!defined($outname)) {      # evil or missing; make our OWN filename:
 	debug "no filename recommended: synthesizing our own";
-	++$G_output_path if ($CONFIG{DEBUGGING});
-	$head->print(\*STDOUT);
+	++$G_output_path;
+	$head->print(\*STDERR) if ($CONFIG{DEBUGGING});
 	$outname = ($self->output_prefix . "-$$-$G_output_path.doc");
     }
     
@@ -514,7 +514,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 2.1 $ $Date: 1996/10/18 06:52:28 $
+$Revision: 2.4 $ $Date: 1996/10/28 18:38:42 $
 
 =cut
 
@@ -533,6 +533,7 @@ __END__
 BEGIN {unshift @INC, ".", "./etc"}
 MIME::ToolUtils->debugging(1);
 $Counter = 0;
+$^W = 1;
 
 # simple_output_path -- sample hook function, for testing
 sub simple_output_path {

@@ -1,52 +1,68 @@
+From - Fri Oct 18 11:46:18 1996
+Path: news.enteract.com!news
+From: Eryq <eryq@enteract.com>
+Newsgroups: comp.lang.perl.modules
+Subject: MIME-tools 2.01a (Alpha) now on the CPAN
+Date: Fri, 18 Oct 1996 10:38:54 -0500
+Organization: Little or none...
+Lines: 53
+Message-ID: <3267A48E.6092CBB5@enteract.com>
+NNTP-Posting-Host: eryq.sa.enteract.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Mailer: Mozilla 2.01 (X11; I; Linux 1.2.13 i586)
 
-The latest release of the "MIME-parser" package has been uploaded to the 
-CPAN under my author id (ERYQ) and name (Eryq). 
+Well, this seems a good a time as any... :-)
 
-Current version:	1.13
+MIME-tools 2.01a (a.k.a MIME-parser II: The Movie) has been placed
+in my user directory (ERYQ) on the CPAN, and should propagate
+to a CPAN site near you over the next day or so.  The big changes
+have been: 
 
-Major changes:		Now tolerates header fields where the ":" is
-			followed by zero or more characters of linear
-			whitespace.
+	* MIME::Head is now a subclass of Mail::Header 
+	  (MailTools 1.06).
 
-------------------------------------------------------------
+	* MIME::Entity is now a subclass of Mail::Internet
+	  (MailTools 1.06).
 
-NAME
+	* MIME::Entity now has real easy-to-use tools for composing
+	  messages, even ones with attachments.
 
-    MIME-parser - family of MIME:: modules for parsing MIME messages
+	* A MIME::Entity can store its data anywhere... support for
+	  both disk files and in-core scalars is built in.
 
-DESCRIPTION
+	* A lot of the methods now no longer require filehandles...
+	  any object conforming to a subset of the IO::Handle interface
+	  will do (see MIME::IO for details)
 
-    MIME-parser is a collection of Perl5 MIME:: modules for parsing 
-    and decoding single- or multipart (even nested multipart!) MIME 
-    messages. 
+	* A new MIME::ParserBase class separates parsing from
+	  output: see how MIME::Parser inherits from it.
 
-SYNOPSIS
+WARNING: THIS IS THE INITIAL, ALPHA RELEASE OF THE SOFTWARE.
+IF PEOPLE CARP INTELLIGENTLY ABOUT CERTAIN FEATURES, I MAY 
+CHANGE THEM BY JANUARY 1997. 
 
-    You start by creating an instance of MIME::Parser, and setting up
-    certain parsing parameters: what directory to save extracted files 
-    to, how to name the files, etc.
+WARNING: DUE TO INCORPORATION WITH MAIL::, IT IS NOT *FULLY*
+BACKWARD-COMPATIBLE WITH MIME-PARSER 1.0, AND INSTALLING IT 
+ON YOUR SITE AS-IS MAY BREAK MIME-PARSER 1.0 APPLICATIONS!
+HOWEVER, THERE IS A SWITCH TO EMULATE THE 1.0 RELEASE ON YOUR SYSTEM,
+AND IF YOU NEED TO, I CAN TELL YOU HOW TO GLUE IT IN THE "ON"
+POSITION.
 
-    You then give that instance a readable filehandle on which waits a
-    MIME message.  If all goes well, you will get back a MIME::Entity
-    object, consisting of a MIME::Head (which holds the MIME header 
-    data) and the name of the file in which the (decoded) body has been 
-    stored.
+There's still some work to do: not all the methods of Mail::Internet
+work with MIME::Entity objects yet, and I haven't checked out the
+interface to Mail::Send.  But at the very least, you can build
+multipart MIME streams that are ready for piping into sendmail(). 
+    
+Full documentation available in the package.
 
-    If the original message was a multipart document, the MIME::Entity
-    object will have a non-empty list of "parts", each of which is in 
-    turn a MIME::Entity (which might also be a multipart entity, etc, 
-    etc...).
+Suggestions appreciated.  Flames tolerated.  
 
-    Internally, MIME::Parser asks for instances of MIME::Decoder
-    whenever it needs to decode an encoded file.  MIME::Decoder has
-    a mapping from supported encodings (e.g., 'base64') to classes
-    whose instances can decode them.  You can add to this mapping 
-    to try out new/experimental encodings.  You can also use 
-    MIME::Decoder by itself.
-
-AUTHOR
-
-    Eryq, eryq@rhine.gsfc.nasa.gov
-    28 April 1996
-
-
+Enjoy.   
+-- 
+   ____           __
+  / __/__________/_/  Eryq (eryq@rhine.gsfc.nasa.gov)
+ / __/ _/ / / , /     Hughes STX, NASA/Goddard Space Flight Cntr.
+/___/_/ \  /\  /___
+        /_/ /_____/   http://www.mcs.net/~eryq

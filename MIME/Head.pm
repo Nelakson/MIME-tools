@@ -115,9 +115,6 @@ use MIME::Field::ContType;
 
 @ISA = qw(Mail::Header);
 
-# Sanity:
-$Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
-
 
 
 #------------------------------
@@ -127,7 +124,10 @@ $Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-( $VERSION ) = '$Revision: 2.7 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.9 $ ' =~ /\$Revision:\s+([^\s]+)/;
+
+# Sanity (we put this test after our own version, for CPAN::):
+$Mail::Header::VERSION >= 1.01 or confess "Need Mail::Header 1.01 or better";
 
 
 
@@ -427,7 +427,7 @@ sub get {
 	my $tag   = shift;
 	my $index = shift || 0;
 	my $value = $self->Mail::Header::get($tag, $index);
-	$value =~ s/\r?\n$//;
+	$value =~ s/\r?\n$// if defined($value);
 	return $value;
     }
     else {    # normal
@@ -931,7 +931,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 2.7 $ $Date: 1996/10/18 07:43:08 $
+$Revision: 2.9 $ $Date: 1996/10/28 18:29:55 $
 
 =cut
 
