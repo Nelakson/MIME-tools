@@ -642,15 +642,23 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.404 $
+    $Revision: 5.405 $
 
 CHANGE LOG
+    Version 5.405   (2000/11/05)
+        Added a purge() that does what people want it to. Now, when a parse
+        finishes and you want to delete everything that was created by it,
+        you can invoke `purge()' on the parser's filer. All
+        files/directories created during the last parse should vanish.
+        *Thanks to everyone who complained about MIME::Entity::purge.*
+
     Version 5.404   (2000/11/04)
-        Added new automatic MIME-decoding of recommended filenames.
-        Hopefully this will do more good than harm. The use of
-        MIME::Parser::decode_headers() and MIME::Head::decode() has been
-        deprecated in favor of the new MIME::Words "unmime" mechanism.
-        Please see the "unmime" entry in the MIME::Words manpage.
+        Added new automatic MIME-decoding of attachment filenames with
+        encoded (non-ASCII) characters. Hopefully this will do more good
+        than harm. The use of MIME::Parser::decode_headers() and
+        MIME::Head::decode() has been deprecated in favor of the new
+        MIME::Words "unmime" mechanism. Please see the "unmime" entry in the
+        MIME::Words manpage.
 
         Added tolerance for unquoted =?...?= in param values. This is in
         violation of the RFCs, but then, so are some MUAs. *Thanks to desti
@@ -1381,7 +1389,7 @@ ACKNOWLEDGMENTS
     me, and I'll put you in.
 
 SEE ALSO
-    At the time of this writing ($Date: 2000/11/05 18:05:31 $), the MIME-
+    At the time of this writing ($Date: 2000/11/06 11:58:54 $), the MIME-
     tools homepage was http://www.zeegee.com/code/perl/MIME-tools. Check
     there for updates and support.
 

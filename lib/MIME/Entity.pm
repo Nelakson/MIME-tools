@@ -249,7 +249,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 5.404 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -772,11 +772,31 @@ sub body {
 =item bodyhandle [VALUE]
 
 I<Instance method.>
-Get or set an abstract object representing the body.
+Get or set an abstract object representing the body of the message.
+The body holds the decoded message data.
 
-If C<VALUE> I<is not> given, the current bodyhandle is returned.
+B<Note that not all entities have bodies!>
+An entity will have either a body or parts: not both.
+This method will I<only> return an object if this entity can 
+have a body; otherwise, it will return undefined. 
+Whether-or-not a given entity can have a body is determined by 
+(1) its content type, and (2) whether-or-not the parser was told to 
+extract nested messages:
+
+    Type:        | Extract nested? | bodyhandle() | parts()
+    -----------------------------------------------------------------------
+    multipart/*  | -               | undef        | 0 or more MIME::Entity
+    message/*    | true            | undef        | 0 or 1 MIME::Entity
+    message/*    | false           | MIME::Body   | empty list
+    (other)      | -               | MIME::Body   | empty list
+
+If C<VALUE> I<is not> given, the current bodyhandle is returned,
+or undef if the entity cannot have a body.
+
 If C<VALUE> I<is> given, the bodyhandle is set to the new value,
 and the previous value is returned.
+
+See L</parts> for more info.
 
 =cut
 
@@ -966,6 +986,8 @@ certain message parts (such as those of type C<message/rfc822>)
 to be "reparsed" into pseudo-multipart entities.  You should read the
 documentation for those options carefully: it I<is> possible for
 a diddled entity to not be multipart, but still have parts attached to it! 
+
+See L</bodyhandle> for a discussion of parts vs. bodies.
 
 =cut
 
@@ -1170,6 +1192,19 @@ sub make_singlepart {
 I<Instance method.>
 Recursively purge (e.g., unlink) all external (e.g., on-disk) body parts 
 in this message.  See MIME::Body::purge() for details.
+
+B<Note:> this does I<not> delete the directories that those body parts
+are contained in; only the actual message data files are deleted.
+This is because some parsers may be customized to create intermediate
+directories while others are not, and it's impossible for this class
+to know what directories are safe to remove.  Only your application
+program truly knows that.
+  
+B<If you really want to "clean everything up",> one good way is to
+use C<MIME::Parser::file_under()>, and then do this before parsing
+your next message:
+
+    $parser->filer->purge();
 
 I wouldn't attempt to read those body files after you do this, for
 obvious reasons.  As of MIME-tools 4.x, each body's path I<is> undefined
@@ -2199,7 +2234,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:46 $
+$Revision: 5.404 $ $Date: 2000/11/06 11:58:53 $
 
 =cut
 

@@ -988,7 +988,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.404 $
+<P>$Revision: 5.405 $
 
 
 
@@ -998,13 +998,22 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.405   (2000/11/05)</A></B></DT>
+<DD>
+<B>Added a purge() that does what people want it to.</B>
+Now, when a parse finishes and you want to delete everything that
+was created by it, you can invoke <CODE>purge()</CODE> on the parser's filer.
+All files/directories created during the last parse should vanish.
+<I>Thanks to everyone who complained about MIME::Entity::purge.</I>
+
 <P><DT><B><A NAME="item:Version">Version 5.404   (2000/11/04)</A></B></DT>
 <DD>
-<B>Added new automatic MIME-decoding of recommended filenames.</B>
-Hopefully this will do more good than harm.  The use of 
-MIME::Parser::decode_headers() and MIME::Head::decode() has
-been deprecated in favor of the new MIME::Words &quot;unmime&quot;
-mechanism.  Please see <A HREF="../MIME/Words.pm.html#item:unmime">unmime</A>.
+<B>Added new automatic MIME-decoding of attachment filenames with
+encoded (non-ASCII) characters.</B>
+Hopefully this will do more good than harm.  
+The use of MIME::Parser::decode_headers() and MIME::Head::decode() 
+has been deprecated in favor of the new MIME::Words &quot;unmime&quot; mechanism.  
+Please see <A HREF="../MIME/Words.pm.html#item:unmime">unmime</A>.
 
 
 <P><B>Added tolerance for unquoted =?...?= in param values.</B>
@@ -1969,7 +1978,7 @@ Better yet, email me, and I'll put you in.
 <A NAME="SEE_ALSO"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SEE ALSO</H2></A>
 
 
-<P>At the time of this writing ($Date: 2000/11/05 18:05:31 $), the MIME-tools homepage was
+<P>At the time of this writing ($Date: 2000/11/06 11:58:54 $), the MIME-tools homepage was
 <I><FILE><A HREF="http://www.zeegee.com/code/perl/MIME-tools">http://www.zeegee.com/code/perl/MIME-tools</A></FILE></I>.
 Check there for updates and support.
 
@@ -1987,7 +1996,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sun Nov  5 13:06:54 2000 by cvu_pod2html
+Generated Mon Nov  6 07:00:02 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

@@ -79,6 +79,11 @@ Ready?  Ok...
     $parser->ignore_errors(1);
     $entity = eval { $parser->parse(\*STDIN) };
     $error = ($@ || $parser->last_error);
+    
+    ### Cleanup all files created by the parse:
+    eval { $entity = $parser->parse(\*STDIN) };
+    ...
+    $parser->filer->purge;
 
 
 =head2 Examples of parser options
@@ -177,7 +182,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.403 $, 10;
+$VERSION = substr q$Revision: 5.404 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -271,6 +276,7 @@ sub init_parse {
 
     $self->{MP5_Filer}->results($self->{MP5_Results});
     $self->{MP5_Filer}->init_parse();
+    $self->{MP5_Filer}->purgeable([]);   ### just to be safe
     1;
 }
 
@@ -1179,8 +1185,8 @@ B<Warning:> in 5.212 and before, this was done by methods
 of MIME::Parser.  However, since many users have requested 
 fine-tuned control over how this is done, the logic has been split
 off from the parser into its own class, MIME::Parser::Filer
-Every MIME::Parser maintains an instance of a concrete subclass of 
-MIME::Parser::Filer to manage disk output.
+Every MIME::Parser maintains an instance of a MIME::Parser::Filer 
+subclass to manage disk output (see L<MIME::Parser::Filer> for details.)
 
 The benefit to this is that the MIME::Parser code won't be 
 confounded with a lot of garbage related to disk output.
@@ -1516,6 +1522,7 @@ sub new_body_for {
     else {
 	my $outpath = $self->output_path($head);
 	$self->debug("outputting body to disk file: $outpath");
+	$self->filer->purgeable($outpath);        ### we plan to use it
 	return (new MIME::Body::File $outpath);
     }
 }
@@ -1915,7 +1922,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $ $Date: 2000/11/04 19:54:47 $
+$Revision: 5.404 $ $Date: 2000/11/06 11:58:53 $
 
 =cut
 

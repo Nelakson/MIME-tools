@@ -11,9 +11,12 @@
 <UL>
 <LI> <A HREF="#Public_interface">Public interface</A>
 <LI> <A HREF="#Semi-public_interface">Semi-public interface</A>
-<LI> <A HREF="#Using_with_MIME_Parser_objects">Using with MIME::Parser objects</A>
 </UL>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
+<UL>
+<LI> <A HREF="#How_this_class_is_used_when_parsing">How this class is used when parsing</A>
+<LI> <A HREF="#Writing_your_own_subclasses">Writing your own subclasses</A>
+</UL>
 <LI> <A HREF="#PUBLIC_INTERFACE">PUBLIC INTERFACE</A>
 <UL>
 <LI> <A HREF="#MIME_Parser_Filer">MIME::Parser::Filer</A>
@@ -42,7 +45,8 @@ you understand where this module fits into the grand scheme of things.
 Go on, do it now.  I'll wait.
 
 
-<P>Ready?  Ok...
+<P>Ready?  Ok... now read <A HREF="#DESCRIPTION">DESCRIPTION</A> below, and everything else
+should make sense.
 
 
 
@@ -81,23 +85,70 @@ so they don't all make sense in all circumstances:
 
 
 <P><HR>
-<A NAME="Using_with_MIME_Parser_objects"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Using with MIME::Parser objects</H3></A>
+<A NAME="DESCRIPTION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> DESCRIPTION</H2></A>
 
-<FONT SIZE=3 FACE="courier"><PRE>
-    $parser-&gt;filer($filer); 
-</PRE></FONT>
 
 
 <P><HR>
-<A NAME="DESCRIPTION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> DESCRIPTION</H2></A>
+<A NAME="How_this_class_is_used_when_parsing"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> How this class is used when parsing</H3></A>
 
 
 <P>When a MIME::Parser decides that it wants to output a file to disk,
 it uses its &quot;Filer&quot; object -- an instance of a MIME::Parser::Filer 
-subclass -- to determine where to put the file.  There are two 
-standard &quot;Filer&quot; subclasses (see below).  To implement your own custom
-behavior, however, you may want to author your own Filer subclass.
-The only method you have to override is <A HREF="#item:output_path">output_path()</A>:
+subclass -- to determine where to put the file.  
+
+
+<P>Every parser has a single Filer object, which it uses for all
+parsing.  You can get the Filer for a given $parser like this:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $filer = $parser-&gt;filer;
+</PRE></FONT>
+
+<P>At the beginning of each <CODE>parse()</CODE>, the filer's internal state
+is reset by the parser: 
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $parser-&gt;filer-&gt;init_parse;
+</PRE></FONT>
+
+<P>The parser can then get a path for each entity in the message
+by handing that entity's header (a MIME::Head) to the filer 
+and having it do the work, like this:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $new_file = $parser-&gt;filer-&gt;output_path($head);
+</PRE></FONT>
+
+<P>Since it's nice to be able to clean up after a parse (especially
+a failed parse), the parser tells the filer when it has actually 
+used a path:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $parser-&gt;filer-&gt;purgeable($new_file);
+</PRE></FONT>
+
+<P>Then, if you want to clean up the files which were created for a
+particular parse (and also any directories that the Filer created),
+you would do this:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $parser-&gt;filer-&gt;purge;
+</PRE></FONT>
+
+
+<P><HR>
+<A NAME="Writing_your_own_subclasses"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Writing your own subclasses</H3></A>
+
+
+<P>There are two standard &quot;Filer&quot; subclasses (see below): 
+<B>MIME::Parser::FileInto</B>, which throws all files from all parses
+into the same directory, and <B>MIME::Parser::FileUnder</B> (preferred), which 
+creates a subdirectory for each message.  Hopefully, these will be 
+sufficient for most uses, but just in case...
+
+
+<P>The only method you have to override is <A HREF="#item:output_path">output_path()</A>:
 
 <FONT SIZE=3 FACE="courier"><PRE>
     $filer-&gt;output_path($head);
@@ -111,7 +162,8 @@ exception.
 
 <P>The path returned by <CODE>output_path()</CODE> should be &quot;ready for open()&quot;:
 any necessary parent directories need to exist at that point.
-These directories can be created by the Filer, if course.
+These directories can be created by the Filer, if course, and they
+should be marked as <B>purgeable()</B> if a purge should delete them.
 
 
 <P>Actually, if your issue is more <I>where</I> the files go than
@@ -157,7 +209,7 @@ parser to avoid circular reference!
 <DD>
 <I>Instance method.</I>
 Prepare to start parsing a new message.
-Default does nothing.
+Subclasses should always be sure to invoke the inherited method.
 
 <P><DT><B><A NAME="item:evil_filename">evil_filename FILENAME</A></B></DT>
 <DD>
@@ -175,13 +227,41 @@ output_path() might not consult this method; note, however, that
 the built-in subclasses do consult it.
 
 
-<P><B>Note:</B> This method used to be a lot stricter, but it unnecessailry
+<P><B>Note:</B> This method used to be a lot stricter, but it unnecessarily
 inconvenienced users on non-ASCII systems. 
 
 
 <P><I>Thanks to Andrew Pimlott for finding a real dumb bug in the original
 version.  Thanks to Nickolay Saukh for noting that evil is in the 
 eye of the beholder.</I>
+
+<P><DT><B><A NAME="item:find_unused_path">find_unused_path DIR, FILENAME</A></B></DT>
+<DD>
+<I>Instance method, subclasses only.</I>
+We have decided on an output directory and tentative filename,
+but there is a chance that it might already exist.  Keep
+adding a numeric suffix &quot;-1&quot;, &quot;-2&quot;, etc. to the filename
+until an unused path is found, and then return that path.
+
+
+<P>The suffix is actually added before the first &quot;.&quot; in the filename
+is there is one; for example:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    picture.gif       archive.tar.gz      readme
+    picture-1.gif     archive-1.tar.gz    readme-1
+    picture-2.gif     archive-2.tar.gz    readme-2
+    ...               ...                 ...
+    picture-10.gif
+    ...
+</PRE></FONT>
+
+<P>This can be a costly operation, and risky if you don't want files
+renamed, so it is in your best interest to minimize situations
+where these kinds of collisions occur.  Unfortunately, if
+a multipart message gives all of its parts the same recommended
+filename, and you are placing them all in the same directory,
+this method might be unavoidable.
 
 <P><DT><B><A NAME="item:ignore_filename">ignore_filename [YESNO]</A></B></DT>
 <DD>
@@ -298,33 +378,34 @@ implementation, and for making some good suggestions.  Thanks also to
 Achim Bohnet for pointing out that there should be a hookless, OO way of 
 overriding the output path.</I>
 
-<P><DT><B><A NAME="item:find_unused_path">find_unused_path DIR, FILENAME</A></B></DT>
+<P><DT><B><A NAME="item:purge">purge</A></B></DT>
 <DD>
-<I>Instance method, subclasses only.</I>
-We have decided on an output directory and tentative filename,
-but there is a chance that it might already exist.  Keep
-adding a numeric suffix &quot;-1&quot;, &quot;-2&quot;, etc. to the filename
-until an unused path is found, and then return that path.
+<I>Instance method, final.</I>
+Purge all files/directories created by the last parse.
+This method simply goes through the purgeable list in reverse order 
+(see <A HREF="#item:purgeable">purgeable</A>) and removes all existing files/directories in it.
+You should not need to override this method.
+
+<P><DT><B><A NAME="item:purgeable">purgeable [FILE]</A></B></DT>
+<DD>
+<I>Instance method, final.</I>
+Add FILE to the list of &quot;purgeable&quot; files/directories (those which
+will be removed if you do a <CODE>purge()</CODE>).
+You should not need to override this method.
 
 
-<P>The suffix is actually added before the first &quot;.&quot; in the filename
-is there is one; for example:
+<P>If FILE is not given, the &quot;purgeable&quot; list is returned.
+This may be used for more-sophisticated purging.
 
-<FONT SIZE=3 FACE="courier"><PRE>
-    picture.gif       archive.tar.gz      readme
-    picture-1.gif     archive-1.tar.gz    readme-1
-    picture-2.gif     archive-2.tar.gz    readme-2
-    ...               ...                 ...
-    picture-10.gif
-    ...
-</PRE></FONT>
 
-<P>This can be a costly operation, and risky if you don't want files
-renamed, so it is in your best interest to minimize situations
-where these kinds of collisions occur.  Unfortunately, if
-a multipart message gives all of its parts the same recommended
-filename, and you are placing them all in the same directory,
-this method might be unavoidable.
+<P>As a special case, invoking this method with a FILE that is an
+arrayref will replace the purgeable list with a copy of the
+array's contents, so [] may be used to clear the list.
+
+
+<P>Note that the &quot;purgeable&quot; list is cleared when a parser begins a 
+new parse; therefore, if you want to use purge() to do cleanup,
+you <I>must</I> do so <I>before</I> starting a new parse!
 
 </DL>
 
@@ -424,11 +505,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.403 $
+<P>$Revision: 5.404 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Sun Nov  5 13:06:47 2000 by cvu_pod2html
+Generated Mon Nov  6 06:59:55 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

@@ -28,7 +28,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.404 $, 10;
+$VERSION = substr q$Revision: 5.405 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -1030,20 +1030,30 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.404 $
+$Revision: 5.405 $
 
 
 =head1 CHANGE LOG
 
 =over 4
 
+=item Version 5.405   (2000/11/05)
+
+B<Added a purge() that does what people want it to.>
+Now, when a parse finishes and you want to delete everything that
+was created by it, you can invoke C<purge()> on the parser's filer.
+All files/directories created during the last parse should vanish.
+I<Thanks to everyone who complained about MIME::Entity::purge.>
+
+
 =item Version 5.404   (2000/11/04)
 
-B<Added new automatic MIME-decoding of recommended filenames.>
-Hopefully this will do more good than harm.  The use of 
-MIME::Parser::decode_headers() and MIME::Head::decode() has
-been deprecated in favor of the new MIME::Words "unmime"
-mechanism.  Please see L<MIME::Words/unmime>.
+B<Added new automatic MIME-decoding of attachment filenames with
+encoded (non-ASCII) characters.>
+Hopefully this will do more good than harm.  
+The use of MIME::Parser::decode_headers() and MIME::Head::decode() 
+has been deprecated in favor of the new MIME::Words "unmime" mechanism.  
+Please see L<MIME::Words/unmime>.
 
 B<Added tolerance for unquoted =?...?= in param values.>
 This is in violation of the RFCs, but then, so are some MUAs.
@@ -1937,7 +1947,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date: 2000/11/05 18:05:31 $), the MIME-tools homepage was
+At the time of this writing ($Date: 2000/11/06 11:58:54 $), the MIME-tools homepage was
 F<http://www.zeegee.com/code/perl/MIME-tools>.
 Check there for updates and support.
 

@@ -29,7 +29,7 @@ if (!@refpaths) {
 }
 
 ### Create checker:
-$T->begin(int(@refpaths));
+$T->begin(2 * int(@refpaths));
 
 ### For each reference:
 foreach my $refpath (@refpaths) {
@@ -85,13 +85,35 @@ foreach my $refpath (@refpaths) {
 	       Parser  => ($ref->{Parser}{Name} || 'default'));
     }
 
-    ### Cleanup:
+    ### Is purge working?
+    my @a_files = list_dir($output_dir);
+    my @p_files = $parser->filer->purgeable;
+    $parser->filer->purge;
+    my @z_files = list_dir($output_dir);
+    $T->ok((@z_files == 0),
+	   "Did purge work?",
+	    Purgeable => \@p_files,
+	    Original  => \@a_files,
+	    Remaining => \@z_files
+	   );
+	
+    ### Cleanup for real:
     rmtree($output_dir);
 }
 
 ### Done!
 exit(0);
 1;
+
+#------------------------------
+
+sub list_dir {
+    my $dir = shift;
+    opendir DIR, $dir or die "opendir $dir; $!\n";
+    my @files = grep !/^\.+$/, readdir DIR;
+    closedir DIR;
+    return sort @files;
+}
 
 #------------------------------
 

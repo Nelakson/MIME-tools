@@ -11,6 +11,7 @@ WriteMakefile(
 	               "MIME::Base64"      => 2.04,
 		       "IO::Stringy"       => 1.211,
 		       "File::Spec"        => 0.6,
+		       "File::Path"        => 1,
 		       },
       'dist'       => {
 	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools", 

@@ -11,7 +11,8 @@ Before reading further, you should see L<MIME::Parser> to make sure that
 you understand where this module fits into the grand scheme of things.
 Go on, do it now.  I'll wait.
 
-Ready?  Ok...
+Ready?  Ok... now read L<"DESCRIPTION"> below, and everything else
+should make sense.
 
 
 =head2 Public interface
@@ -41,19 +42,55 @@ so they don't all make sense in all circumstances:
     $emap->{"text/html"} = ".htm";
 
 
-=head2 Using with MIME::Parser objects
-
-    $parser->filer($filer); 
-
 
 
 =head1 DESCRIPTION
 
+
+=head2 How this class is used when parsing
+
 When a MIME::Parser decides that it wants to output a file to disk,
 it uses its "Filer" object -- an instance of a MIME::Parser::Filer 
-subclass -- to determine where to put the file.  There are two 
-standard "Filer" subclasses (see below).  To implement your own custom
-behavior, however, you may want to author your own Filer subclass.
+subclass -- to determine where to put the file.  
+
+Every parser has a single Filer object, which it uses for all
+parsing.  You can get the Filer for a given $parser like this:
+
+    $filer = $parser->filer;
+
+At the beginning of each C<parse()>, the filer's internal state
+is reset by the parser: 
+
+    $parser->filer->init_parse;
+
+The parser can then get a path for each entity in the message
+by handing that entity's header (a MIME::Head) to the filer 
+and having it do the work, like this:
+
+    $new_file = $parser->filer->output_path($head);
+
+Since it's nice to be able to clean up after a parse (especially
+a failed parse), the parser tells the filer when it has actually 
+used a path:
+
+    $parser->filer->purgeable($new_file);
+
+Then, if you want to clean up the files which were created for a
+particular parse (and also any directories that the Filer created),
+you would do this:
+
+    $parser->filer->purge;
+
+
+
+=head2 Writing your own subclasses
+
+There are two standard "Filer" subclasses (see below): 
+B<MIME::Parser::FileInto>, which throws all files from all parses
+into the same directory, and B<MIME::Parser::FileUnder> (preferred), which 
+creates a subdirectory for each message.  Hopefully, these will be 
+sufficient for most uses, but just in case...
+
 The only method you have to override is L<output_path()|/output_path>:
 
     $filer->output_path($head);
@@ -65,7 +102,8 @@ exception.
 
 The path returned by C<output_path()> should be "ready for open()":
 any necessary parent directories need to exist at that point.
-These directories can be created by the Filer, if course.
+These directories can be created by the Filer, if course, and they
+should be marked as B<purgeable()> if a purge should delete them.
 
 Actually, if your issue is more I<where> the files go than
 what they're named, you can use the default L<output_path()|/output_path>
@@ -74,6 +112,7 @@ method and just override one of its components:
     $dir  = $filer->output_dir($head);
     $name = $filer->output_filename($head);
     ...
+
 
 
 =head1 PUBLIC INTERFACE
@@ -92,6 +131,7 @@ use strict;
 ### Kit modules:
 use MIME::Tools qw(:msgtypes);
 use File::Spec;
+use File::Path qw(rmtree);
 use MIME::Words qw(unmime);
 
 ### Output path uniquifiers:
@@ -194,9 +234,10 @@ override for their own use (the default init does nothing).
 sub new {
     my ($class, @initargs) = @_;
     my $self = bless {
-	MPF_Prefix => "msg",
-	MPF_Dir    => ".",
-	MPF_Ext    => { %DefaultTypeToExt },
+	MPF_Prefix    => "msg",
+	MPF_Dir       => ".",
+	MPF_Ext       => { %DefaultTypeToExt },
+	MPF_Purgeable => [],       ### files created by the last parse
     }, $class;
     $self->init(@initargs);
     $self;
@@ -264,12 +305,13 @@ sub whine {
 
 I<Instance method.>
 Prepare to start parsing a new message.
-Default does nothing.
+Subclasses should always be sure to invoke the inherited method.
 
 =cut
 
 sub init_parse {
     my $self = shift;
+    $self->{MPF_Purgeable} = [];
 }
 
 #------------------------------
@@ -291,7 +333,7 @@ B<Note:> subclasses of MIME::Parser::Filer which override
 output_path() might not consult this method; note, however, that
 the built-in subclasses do consult it.
 
-B<Note:> This method used to be a lot stricter, but it unnecessailry
+B<Note:> This method used to be a lot stricter, but it unnecessarily
 inconvenienced users on non-ASCII systems. 
 
 I<Thanks to Andrew Pimlott for finding a real dumb bug in the original
@@ -310,6 +352,53 @@ sub evil_filename {
     return 1 if ($name =~ tr{\\/:[]}{});      ### path characters
     $self->debug("it's ok");
     0;
+}
+
+
+#------------------------------
+
+=item find_unused_path DIR, FILENAME
+
+I<Instance method, subclasses only.>
+We have decided on an output directory and tentative filename,
+but there is a chance that it might already exist.  Keep
+adding a numeric suffix "-1", "-2", etc. to the filename
+until an unused path is found, and then return that path.
+
+The suffix is actually added before the first "." in the filename
+is there is one; for example:
+
+    picture.gif       archive.tar.gz      readme
+    picture-1.gif     archive-1.tar.gz    readme-1
+    picture-2.gif     archive-2.tar.gz    readme-2
+    ...               ...                 ...
+    picture-10.gif
+    ...
+
+This can be a costly operation, and risky if you don't want files
+renamed, so it is in your best interest to minimize situations
+where these kinds of collisions occur.  Unfortunately, if
+a multipart message gives all of its parts the same recommended
+filename, and you are placing them all in the same directory,
+this method might be unavoidable.
+
+=cut
+
+sub find_unused_path {
+    my ($self, $dir, $fname) = @_;
+    my $i = 0;
+    while (1) {
+
+	### Create suffixed name (from filename), and see if we can use it:
+	my $suffix = ($i ? "-$i" : "");
+	my $sname = $fname; $sname =~ s/^(.*?)(\.|\Z)/$1$suffix$2/;
+	my $path = File::Spec->catfile($dir, $sname);
+	if (! -e $path) {   ### it's good!
+	    $i and $self->whine("collision with $fname in $dir: using $path");
+	    return $path;
+	}
+	$self->debug("$path already taken");
+    } continue { ++$i; }
 }
 
 #------------------------------
@@ -526,48 +615,55 @@ sub output_path {
 
 #------------------------------
 
-=item find_unused_path DIR, FILENAME
+=item purge
 
-I<Instance method, subclasses only.>
-We have decided on an output directory and tentative filename,
-but there is a chance that it might already exist.  Keep
-adding a numeric suffix "-1", "-2", etc. to the filename
-until an unused path is found, and then return that path.
-
-The suffix is actually added before the first "." in the filename
-is there is one; for example:
-
-    picture.gif       archive.tar.gz      readme
-    picture-1.gif     archive-1.tar.gz    readme-1
-    picture-2.gif     archive-2.tar.gz    readme-2
-    ...               ...                 ...
-    picture-10.gif
-    ...
-
-This can be a costly operation, and risky if you don't want files
-renamed, so it is in your best interest to minimize situations
-where these kinds of collisions occur.  Unfortunately, if
-a multipart message gives all of its parts the same recommended
-filename, and you are placing them all in the same directory,
-this method might be unavoidable.
+I<Instance method, final.>
+Purge all files/directories created by the last parse.
+This method simply goes through the purgeable list in reverse order 
+(see L</purgeable>) and removes all existing files/directories in it.
+You should not need to override this method.
 
 =cut
 
-sub find_unused_path {
-    my ($self, $dir, $fname) = @_;
-    my $i = 0;
-    while (1) {
+sub purge {
+    my ($self) = @_;
+    foreach my $path (reverse @{$self->{MPF_Purgeable}}) {
+	(-e $path) or next;   ### must check: might delete DIR before DIR/FILE 
+	rmtree($path, 0, 1);
+	(-e $path) and $self->whine("unable to purge: $path");
+    }
+    1;
+}
 
-	### Create suffixed name (from filename), and see if we can use it:
-	my $suffix = ($i ? "-$i" : "");
-	my $sname = $fname; $sname =~ s/^(.*?)(\.|\Z)/$1$suffix$2/;
-	my $path = File::Spec->catfile($dir, $sname);
-	if (! -e $path) {   ### it's good!
-	    $i and $self->whine("collision with $fname in $dir: using $path");
-	    return $path;
-	}
-	$self->debug("$path already taken");
-    } continue { ++$i; }
+#------------------------------
+
+=item purgeable [FILE]
+
+I<Instance method, final.>
+Add FILE to the list of "purgeable" files/directories (those which
+will be removed if you do a C<purge()>).
+You should not need to override this method.
+
+If FILE is not given, the "purgeable" list is returned.
+This may be used for more-sophisticated purging.
+
+As a special case, invoking this method with a FILE that is an
+arrayref will replace the purgeable list with a copy of the
+array's contents, so [] may be used to clear the list.
+
+Note that the "purgeable" list is cleared when a parser begins a 
+new parse; therefore, if you want to use purge() to do cleanup,
+you I<must> do so I<before> starting a new parse!
+
+=cut
+
+sub purgeable {
+    my ($self, $path) = @_;
+    return @{$self->{MPF_Purgeable}} if (@_ == 1);   
+
+    if (ref($path)) { $self->{MPF_Purgeable} = [ @$path ]; }
+    else            { push @{$self->{MPF_Purgeable}}, $path; }
+    1;
 }
 
 =back
@@ -575,6 +671,7 @@ sub find_unused_path {
 =cut
 
 
+#------------------------------------------------------------
 #------------------------------------------------------------
 
 =head2 MIME::Parser::FileInto
@@ -623,6 +720,8 @@ sub output_dir {
 
 
 
+
+#------------------------------------------------------------
 #------------------------------------------------------------
 
 =head2 MIME::Parser::FileUnder
@@ -704,20 +803,26 @@ sub init {
 sub init_parse {
     my $self = shift;
 
+    ### Invoke inherited method first!
+    $self->SUPER::init_parse;
+
     ### Determine the subdirectory of ther base to use:
     my $subdir = (defined($self->{MPFU_DirName})
 		  ?       $self->{MPFU_DirName}
 		  :       ("msg-".scalar(time)."-$$-".$GSubdirNo++));
     $self->debug("subdir = $subdir");
     
-    ### Determine full path to output directory:
+    ### Determine full path to the per-message output directory:
     $self->{MPFU_Dir} = File::Spec->catfile($self->{MPFU_Base}, $subdir);
 
-    ### Remove and re-create it:
+    ### Remove and re-create the per-message output directory:
     rmtree $self->output_dir if $self->{MPFU_Purge};
     (-d $self->output_dir) or
 	mkdir $self->output_dir, 0700 or 
 	    die "mkdir ".$self->output_dir.": $!\n";
+
+    ### Add the per-message output directory to the puregables:
+    $self->purgeable($self->output_dir);
     1;
 }
 
@@ -750,5 +855,5 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.403 $
+$Revision: 5.404 $
 
