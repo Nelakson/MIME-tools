@@ -26,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.304 $, 10;
+$VERSION = substr q$Revision: 5.306 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -849,12 +849,21 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.304 $
+$Revision: 5.306 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.305   (2000/07/20)
+
+B<Added MIME::Entity::parts_DFS> as convenient way to "get all parts".
+I<Thanks to Xavier Armengou for suggesting this method.>
+
+Removed the Alpha notice.
+Still a few features to tweak, but those will be minor.
+
 
 =item Version 5.303   (2000/07/07)
 

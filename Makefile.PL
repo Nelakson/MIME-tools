@@ -13,7 +13,7 @@ WriteMakefile(
 		       "File::Spec"        => 0.8,
 		       },
       'dist'       => {
-	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools -A", 
+	  PREOP        =>"cvu_perl_preop -f -m MIME::Tools", 
 	  COMPRESS     =>'gzip',
 	  SUFFIX       =>'gz',	      
       },

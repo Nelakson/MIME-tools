@@ -478,9 +478,16 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.304 $
+    $Revision: 5.306 $
 
 CHANGE LOG
+    Version 5.305   (2000/07/20)
+        Added MIME::Entity::parts_DFS as convenient way to "get all parts".
+        *Thanks to Xavier Armengou for suggesting this method.*
+
+        Removed the Alpha notice. Still a few features to tweak, but those
+        will be minor.
+
     Version 5.303   (2000/07/07)
         Fixed output bugs in new Filers. Scads of them: bad handling of
         filename collisions, bad implementation of output_under(), bad

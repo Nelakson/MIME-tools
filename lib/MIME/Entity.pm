@@ -243,7 +243,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.208 $, 10;
+$VERSION = substr q$Revision: 5.209 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -967,6 +967,24 @@ sub parts {
     my $self = shift;
     ref($_[0]) and return @{$self->{ME_Parts} = [@{$_[0]}]};  ### set the parts
     (@_ ? $self->{ME_Parts}[$_[0]] : @{$self->{ME_Parts}});
+}
+
+#------------------------------
+
+=item parts_DFS
+
+I<Instance method.>
+Return the list of all MIME::Entity objects included in the entity,
+starting with the entity itself, in depth-first-search order.  
+If the entity has no parts, it alone will be returned.
+
+I<Thanks to Xavier Armengou for suggesting this method.>
+
+=cut
+
+sub parts_DFS {
+    my $self = shift;
+    return ($self, map { $_->parts_DFS } $self->parts);
 }
 
 #------------------------------
@@ -2169,7 +2187,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.208 $ $Date: 2000/07/06 05:31:50 $
+$Revision: 5.209 $ $Date: 2000/07/20 06:25:47 $
 
 =cut
 

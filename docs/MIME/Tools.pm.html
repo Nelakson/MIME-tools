@@ -5,8 +5,7 @@
 <BODY 
        bgcolor="#FFFFFF" link="#BE1B58" vlink="#8C337C" alink="#F28EAA">
 <A HREF="http://www.zeegee.com" TARGET="_top"><IMG SRC="icons/zeegee.gif" ALT="ZeeGee Software" ALIGN="RIGHT" BORDER="0"></A><A NAME="__TOP__"><H1>MIME-tools</H1>
-</A>
-<P><B>This module is <FONT COLOR="#990000">ALPHA</FONT> code, which means that public interfaces are largely untested, and may change in future releases. Use with caution! Please report any errors back to <A HREF="mailto:eryq@zeegee.com">eryq@zeegee.com</A> as soon as you can.</B><UL>
+</A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
@@ -739,7 +738,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.304 $
+<P>$Revision: 5.306 $
 
 
 
@@ -749,6 +748,15 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.305   (2000/07/20)</A></B></DT>
+<DD>
+<B>Added MIME::Entity::parts_DFS</B> as convenient way to &quot;get all parts&quot;.
+<I>Thanks to Xavier Armengou for suggesting this method.</I>
+
+
+<P>Removed the Alpha notice.
+Still a few features to tweak, but those will be minor.
+
 <P><DT><B><A NAME="item:Version">Version 5.303   (2000/07/07)</A></B></DT>
 <DD>
 <B>Fixed output bugs in new Filers</B>.
@@ -1622,7 +1630,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Fri Jul  7 02:23:28 2000 by cvu_pod2html
+Generated Thu Jul 20 02:33:12 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>
