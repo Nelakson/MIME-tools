@@ -142,7 +142,7 @@ use IO::Scalar;
 use Carp;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.107 $, 10;
+$VERSION = substr q$Revision: 6.108 $, 10;
 
 
 #------------------------------
@@ -439,6 +439,14 @@ sub init {
 }
 
 #------------------------------
+# calculate_size
+#------------------------------
+sub calculate_size {
+    my $self = shift;
+    (-s $self->path);
+}
+
+#------------------------------
 # open READWRITE
 #------------------------------
 sub open {
@@ -631,6 +639,16 @@ sub as_blocks {
 }
 
 #------------------------------
+# calculate_size
+#------------------------------
+sub calculate_size {
+    my $self = shift;
+    my $size = 0;
+    foreach ($self->as_blocks) { $size += length($_); }
+    $size;
+}
+
+#------------------------------
 # open READWRITE
 #------------------------------
 sub open {
@@ -720,7 +738,7 @@ to the use of FileHandles.
 
 =head1 VERSION
 
-$Revision: 6.107 $ $Date: 2003/06/06 23:41:37 $
+$Revision: 6.108 $ $Date: 2003/06/27 17:54:28 $
 
 =cut
 

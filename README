@@ -63,7 +63,7 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 6.108 $
+    $Revision: 6.110 $
 
 CHANGES
     See the MIME::Tools::changes manpage for the full change log.
@@ -79,10 +79,9 @@ AUTHOR
        \___||_|  \__, |\__, |__   http://www.zeegee.com/
                  |___/    |___/
 
-    Released as MIME-parser (1.0): 28 April 1996. Released as MIME-tools
-    (2.0): Halloween 1996. Released as MIME-tools (4.0): Christmas 1997.
-    Released as MIME-tools (5.0): Mother's Day 2000. Released as MIME-tools
-    (6.0): May Day 2003. (m'aidez!)
+    Released as MIME-parser (1.0): April 1996. Released as MIME-tools (2.0):
+    October 1996. Released as MIME-tools (4.0): December 1997. Released as
+    MIME-tools (5.0): May 2000. Released as MIME-tools (6.0): June 2003.
 
   Acknowledgments
 
@@ -123,7 +122,7 @@ AUTHOR
     me, and I'll put you in.
 
 SEE ALSO
-    At the time of this writing ($Date: 2003/06/06 23:41:49 $), the
+    At the time of this writing ($Date: 2003/06/27 17:54:33 $), the
     MIME-tools homepage was http://www.zeegee.com/code/perl/MIME-tools.
     Check there for updates and support.
 

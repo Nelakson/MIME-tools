@@ -271,7 +271,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.107 $, 10;
+$VERSION = substr q$Revision: 6.109 $, 10;
 
 ### Boundary end-of-line sequence:
 use vars qw($BOUNDARY_DELIMITER);
@@ -676,8 +676,8 @@ sub build {
 
     ### Add the X-Mailer field, if top level (use default value if not given):
     $top and $head->replace('X-Mailer', 
-			    "MIME-tools ".(0+MIME::Tools->version).
-			    " (Entity "  .(0+$VERSION).")"); 
+			    "MIME-tools ".(MIME::Tools->version).
+			    " (Entity "  .($VERSION).")"); 
 	
     ### Add remaining user-specified fields, if any:
     while (@paramlist) {
@@ -1061,6 +1061,13 @@ sub preamble {
     $self->{ME_Preamble};
 }
 
+#------------------------------
+
+sub sourcehandle {
+    my ($self, $sh) = @_;
+    $self->{ME_Sourcehandle} = $sh if @_ > 1;
+    $self->{ME_Sourcehandle};
+}
 
 
 
@@ -1338,6 +1345,11 @@ that it is a signature.  The default behavior is to append the signature
 to the text of the message (or the text of its first part if multipart).
 I<MIME-specific; new in this subclass.>
 
+=item Charset
+
+Explicitly declare the character set of the signed text
+if using "Attach".  Default is to leave it undeclared.
+
 =item File
 
 Use the contents of this file as the signature.  
@@ -1408,6 +1420,7 @@ sub sign {
     ### Add signature to message as appropriate:
     if ($params{Attach}) {      ### Attach .sig as new part...
 	return $self->attach(Type        => 'text/plain',
+			     Charset     => $params{Charset},
 			     Description => 'Signature',
 			     Disposition => 'inline',
 			     Encoding    => '-SUGGEST',
@@ -1679,22 +1692,37 @@ sub dump_skeleton {
     push @info, ["Content-encoding", $self->head->mime_encoding];
 
     ### The name of the file containing the body (if any!):
-    if (!$self->bodyhandle) { }
-    else {
-	my $path = $self->bodyhandle->path;
+    my $bh = $self->bodyhandle;
+    if ($bh) {
+	my $path = $bh->path;
 	if (defined($path)) {
 	    my $size = (-s $path);
 	    push @info, ["Body-location", $path];
 	    push @info, ["Body-size", $size] if defined($size);
 	}
 	else {
-	    my $size = undef;
-	    if ($self->bodyhandle->isa('MIME::Body::InCore')) {
-		$size = 0;
-		foreach ($self->bodyhandle->as_blocks) { $size += length($_); }
-	    }
+	    my $size;
+	    $size = $bh->calculate_size if $bh->can('calculate_size');
 	    push @info, ["Body-location", "(IN CORE)"];
 	    push @info, ["Body-size", $size] if defined($size);
+	}
+    }
+
+    ### The name of the file containing the body (if any!):
+    my $sh = $self->sourcehandle;
+    if ($sh) {
+	my $sh = $self->sourcehandle;
+	my $path = $sh->path;
+	if (defined($path)) {
+	    my $size = (-s $path);
+	    push @info, ["Source-location", $path];
+	    push @info, ["Source-size", $size] if defined($size);
+	}
+	else {
+	    my $size;
+	    $size = $sh->calculate_size if $sh->can('calculate_size');
+	    push @info, ["Source-location", "(IN CORE)"];
+	    push @info, ["Source-size", $size] if defined($size);
 	}
     }
 
@@ -2288,7 +2316,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 6.107 $ $Date: 2003/06/06 23:41:43 $
+$Revision: 6.109 $ $Date: 2003/06/27 17:54:30 $
 
 =cut
 

@@ -9,7 +9,8 @@ MIME::Tools::Utils - common utilities for the MIME::Tools toolkit
 =head1 SYNOPSIS
 
 B<The MIME::Tools::* modules are for MIME::Tools internal consumption only.>
-The modules and their interfaces may change radically from version to version.  
+The modules and their interfaces may change radically from version to version.
+ 
 
 
 =cut
@@ -50,7 +51,7 @@ use MIME::Tools qw($LOG %CONFIG);
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 ### The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.1 $, 10;
+$VERSION = substr q$Revision: 6.2 $, 10;
 
 
 

@@ -2,7 +2,7 @@
 use ExtUtils::MakeMaker;
 WriteMakefile(
       NAME         => "MIME-tools",
-      VERSION      => "6.200_01",
+      VERSION      => "6.200_02",
 #     VERSION_FROM => "lib/MIME/Tools.pm",
       PREREQ_PM    => {"Mail::Header"      => 1.01,
 		       "Mail::Internet"    => 1.0203,

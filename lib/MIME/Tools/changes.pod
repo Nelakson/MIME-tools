@@ -25,14 +25,26 @@ might not be backwards-compatible, so beware, and read the log!
 =over 4
 
 
-=item Version 6.107
+=item Version 6.200_02   (2003/06/27)   
+
+B<Added Charset to MIME::Entity::sign>.
+I<Thanks to Honza Holec(ek for the suggestion.>
+
+B<Fixed MIME::WordDecoder warnings about uninitialized value.>
+I'm new to the whole "locale" thing, so I'm bound to get
+this part wrong a few more times.
+I<Thanks to Nigel Kukard et al for the bug report.>
+
+
+=item Version 6.200_01   (2003/06/09)
 
 B<Support for virtually any charset in MIME::WordDecoder.>
 Enabled via Unicode::String and Unicode::Map, which means
 you gotta get those now.
 I<Thanks to Rafa Bielinski for the motivation.>
 
-=item Version 6
+
+=item Version 6   (2003/05/25)
 
 I<My most profuse apologies to all who were inconvenienced by my
 unexpected 2 year hiatus.  I'm back and applying patches like mad.  
@@ -110,6 +122,7 @@ fetching a body.
 
 B<Regenerated docs.>
 Bug in HTML docs, now all fixed.
+
 
 =item Version 5.410   (2000/11/23)
 
@@ -916,6 +929,7 @@ either a space or a tab after the ":" will be swallowed
 if there.
 I<Thanks to Igor Starovoitov for pointing out this shortcoming.>
 
+
 =item Version 1.12
 
 Fixed bugs in parser where CRLF-terminated lines were
@@ -938,6 +952,7 @@ Hey, 5.001'ers: let me know if this breaks stuff, okay?
 
 Added unsupported ./examples directory.
 
+
 =item Version 1.11
 
 Converted over to using Makefile.PL.
@@ -952,6 +967,7 @@ there simply I<were> no recommended filenames.  D'oh!
 Fixed redefined parts() method in Entity.
 
 Fixed bugs in Head where field name wasn't being case folded.
+
 
 =item Version 1.10
 
@@ -973,9 +989,11 @@ some solutions.>
 
 Fixed illegal "simple" multipart test file.  D'OH!
 
+
 =item Version 1.9
 
 No changes: 1.8 failed CPAN registration
+
 
 =item Version 1.8
 

@@ -33,7 +33,7 @@ debug messages are output.
 =item quiet
 
 Turn the reporting of warning/error messages on or off.
-Default is true, meaning that these message are silenced.
+Default is false, meaning that these message are not silenced.
 
      MIME::Tools->quiet(1);
 

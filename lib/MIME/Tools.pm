@@ -29,7 +29,7 @@ use MIME::Tools::ToolkitLogger;
 Exporter::export_ok_tags('config', 'msgs');
 
 ### The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.108 $, 10;
+$VERSION = substr q$Revision: 6.110 $, 10;
 
 
 ### Configuration (do NOT alter this directly)...
@@ -37,7 +37,7 @@ $VERSION = substr q$Revision: 6.108 $, 10;
 %CONFIG =
     (
      DEBUGGING       => 0,
-     QUIET           => 1,
+     QUIET           => 0,
      );
 
 
@@ -162,7 +162,7 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 6.108 $
+$Revision: 6.110 $
 
 
 
@@ -184,11 +184,11 @@ MIME-tools was created by:
    \___||_|  \__, |\__, |__   http://www.zeegee.com/
              |___/    |___/
 
-Released as MIME-parser (1.0): 28 April 1996.
-Released as MIME-tools (2.0): Halloween 1996.
-Released as MIME-tools (4.0): Christmas 1997.
-Released as MIME-tools (5.0): Mother's Day 2000.
-Released as MIME-tools (6.0): May Day 2003. (m'aidez!)
+Released as MIME-parser (1.0): April 1996.
+Released as MIME-tools (2.0): October 1996.
+Released as MIME-tools (4.0): December 1997.
+Released as MIME-tools (5.0): May 2000.
+Released as MIME-tools (6.0): June 2003.
 
 
 =head2 Acknowledgments
@@ -232,7 +232,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date: 2003/06/06 23:41:49 $),
+At the time of this writing ($Date: 2003/06/27 17:54:33 $),
 the MIME-tools homepage was
 F<http://www.zeegee.com/code/perl/MIME-tools>.
 Check there for updates and support.

@@ -62,7 +62,7 @@ use strict;
 use vars qw($VERSION @ISA);
 
 # System modules:
-
+require v5.6;
 
 # Other modules:
 use Mail::Field;
@@ -70,6 +70,7 @@ use Mail::Field;
 # Kit modules:
 use MIME::Tools qw(:msgs :config);
 use MIME::Tools::Utils qw(:msgs :config);
+#use MIME::Tools::MailFieldTokenizerForRFC2045 qw(:all);
 
 @ISA = qw(Mail::Field);
 
@@ -81,7 +82,7 @@ use MIME::Tools::Utils qw(:msgs :config);
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 6.107 $, 10;
+$VERSION = substr q$Revision: 6.108 $, 10;
 
 
 #------------------------------
@@ -215,7 +216,7 @@ sub rfc2231percent {
     return $str;
 }
 
-sub parse_params {
+sub parse_params_orig {
     my ($self, $raw) = @_;
     my %params = ();
     my %rfc2231params = ();
@@ -287,6 +288,18 @@ sub parse_params {
     ### Done:
     \%params;
 }
+
+# The syntax is approximately like this:
+#
+#   PVFIELD :- PVVALUE (';' PVPAIR)*
+#   PVPAIR  :- PVPARAM ('=' PVVALUE)?
+#   PVPARAM :- any+
+#   PVVALUE :- any+
+#
+sub parse_params {
+    shift->parse_params_orig(@_);
+}
+
 
 #------------------------------
 

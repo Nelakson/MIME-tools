@@ -189,7 +189,7 @@ package MIME::Parser;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 use vars qw($VERSION);
-$VERSION = substr q$Revision: 6.107 $, 10;
+$VERSION = substr q$Revision: 6.108 $, 10;
 
 
 #------------------------------
@@ -1017,6 +1017,14 @@ sub process_singlepart {
 	### Flush and rewind encoded buffer, so we can read it:
 	$ENCODED->flush;
 	$ENCODED->seek(0, 0);
+    }
+
+    ### Record the original unencoded swath?
+    if ($self->{MP_RecordOriginal}) {
+	my @enclines = $ENCODED->getlines;
+	$ENCODED->flush;
+	$ENCODED->seek(0, 0,);
+	$ent->{ME_Sourcehandle} = new MIME::Body::InCore(\@enclines);
     }
 
     ### Get a content-decoder to decode this part's encoding:
@@ -2253,7 +2261,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 6.107 $ $Date: 2003/06/06 23:41:46 $
+$Revision: 6.108 $ $Date: 2003/06/27 17:54:32 $
 
 =cut
 

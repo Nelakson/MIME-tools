@@ -749,7 +749,7 @@ package MIME::WordDecoder;
 ### Determine the default charset for this locale:
 my $DefaultCharset;
 {
-    $DefaultCharset = $ENV{LC_CTYPE};
+    $DefaultCharset = $ENV{LC_CTYPE} || "en_US.ISO8859-1";
     $DefaultCharset =~ s/^\w+\.//;  ###  "en_US.ISO8859-1" => "ISO8859-1"
     $DefaultCharset =~ s/^ISO(\w)/ISO-$1/i;
     $DefaultCharset ||= "ISO-8859-1";   ### just in case
@@ -776,10 +776,10 @@ else {
     $Default = MIME::WordDecoder::Unicode->new($DefaultCharset);
 }
 
-{
-  package main; no strict; local $^W = 0;
-  if (!caller()) { eval join '', <::DATA> or die "$@"; }
-}
+#{
+#  package main; no strict; local $^W = 0;
+#  eval join('',<main::DATA>) || die "$@ $main::DATA" unless caller();
+#}
 1;           # end the module
 __END__
 
@@ -790,7 +790,7 @@ Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 =head1 VERSION
 
-$Revision: 6.111 $ $Date: 2003/06/06 23:41:54 $
+$Revision: 6.113 $ $Date: 2003/06/27 17:54:37 $
 
 =cut
 

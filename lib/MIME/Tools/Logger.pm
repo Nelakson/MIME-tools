@@ -8,6 +8,10 @@ MIME::Tools::Logger - an abstract logger of messages
 
 =head1 SYNOPSIS
 
+B<The MIME::Tools::* modules are for MIME::Tools internal consumption only.>
+The modules and their interfaces may change radically from version to version.
+
+
     ### Log messages of various types:
     $logger->debug("about to open config file");
     $logger->warning("missing config file: must create");

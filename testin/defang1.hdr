@@ -1,0 +1,9 @@
+Content-Type: audio/x-wav; (filename) name=bb[1].wav; volume = 10 (but these dials 
+	go to 11)   ; audacity=very.high 
+Content-Type-2: message/external-body; access-type=URL; URL*0="ftp://";
+        URL*1="cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar" 
+
+Subject: MIMEdefang noticed this bug
+
+
+

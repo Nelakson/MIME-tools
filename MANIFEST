@@ -43,6 +43,9 @@ lib/MIME/Parser/UURedoer.pm
 lib/MIME/Tools.pm
 lib/MIME/Tools/IndentingLogger.pm
 lib/MIME/Tools/Logger.pm
+lib/MIME/Tools/MailFieldParserForRFC2045.pm
+lib/MIME/Tools/MailFieldTokenizerForRFC2045.pm
+lib/MIME/Tools/MailFieldTokenizerForRFC822.pm
 lib/MIME/Tools/NullLogger.pm
 lib/MIME/Tools/PrefixingLogger.pm
 lib/MIME/Tools/ToolkitLogger.pm
@@ -68,11 +71,13 @@ t/Gauntlet.t
 t/Globby.pm
 t/Head.t
 t/Misc.t
+t/ParamValHeader.t
 t/Parser.t
 t/Ref.t
 t/Tmpfile.topt
 t/WordDecoder.t
 t/Words.t
+t/scripts/mime_entity_signature_charset
 testin/DecodeWords.dat
 testin/ak-0696.msg
 testin/andreas-1296.txt
@@ -81,6 +86,7 @@ testin/badbound.msg
 testin/badfile.msg
 testin/bluedot.jpg
 testin/crlf.hdr
+testin/defang1.hdr
 testin/encoded.hdr
 testin/first.hdr
 testin/fun.txt
@@ -178,4 +184,3 @@ testmsgs/uu-junk.msg
 testmsgs/uu-junk.ref
 testmsgs/uu-zeegee.msg
 testmsgs/uu-zeegee.ref
-

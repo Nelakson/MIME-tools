@@ -39,7 +39,7 @@ sub dump_entity {
     print "\n", '=' x 60, "\n";
     print "Message $name: ";
     print "\n", '=' x 60, "\n\n";
-    print $entity->head->original_text;
+    print $entity->head->stringify;
     print "\n";
 
     # Output the body:
