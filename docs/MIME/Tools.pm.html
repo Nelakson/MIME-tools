@@ -683,19 +683,48 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.207</A></B></DT>
+<DD>
+Fixed bug in MIME::Parser where the &quot;warning&quot; method whine() was 
+called as a static function instead of invoked as an instance method.  
+<I>Thanks to Todd A. Bradfute for reporting this.</I>
+
+<PRE>
+       A simple warning
+          Invokes method as function:
+       &quot;Warning&quot; makes us die
+</PRE>
 <P><DT><B><A NAME="item:Version">Version 5.206</A></B></DT>
 <DD>
-Fixed bug in MIME::Parser: the reader was not correctly handling the 
+Ahem.  Cough cough:
+
+<PRE>
+       Way too many bugs
+          Thus, a self-imposed penance:
+       Write haiku for each
+</PRE>
+
+<P>Fixed bug in MIME::Parser: the reader was not handling the 
 odd (but legal) case where a multipart boundary is followed by linear 
 whitespace.
 <I>Thanks to Jon Agnew for reporting this with the RFC citation.</I>
 
+<PRE>
+       Legal message fails
+          And 'round the globe, thousands cry:
+       READ THE RFC
+</PRE>
 
 <P>Empty preambles are now handled properly by MIME::Entity when
 printing: there is now no space between the header-terminator
 and the initial boundary.
 <I>Thanks to &quot;sen_ml&quot; for suggesting this.</I>
 
+<PRE>
+       Nature hates vacuum
+          But please refrain from tossing
+       Newlines in the void
+</PRE>
 
 <P>Started using Benchmark for benchmarking.
 
@@ -1290,7 +1319,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.206 $ 
+<P>$Revision: 5.207 $ 
 
 
 
@@ -1356,7 +1385,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Thu Jun  8 03:28:19 2000 by cvu_pod2html
+Generated Thu Jun  8 23:33:50 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </BODY>
 </HTML>

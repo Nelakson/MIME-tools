@@ -26,7 +26,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.206 $, 10;
+$VERSION = substr q$Revision: 5.207 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -806,17 +806,42 @@ bugs I<before> they become problems...
 
 =over 4
 
+=item Version 5.207
+
+Fixed bug in MIME::Parser where the "warning" method whine() was 
+called as a static function instead of invoked as an instance method.  
+I<Thanks to Todd A. Bradfute for reporting this.>
+
+       A simple warning
+          Invokes method as function:
+       "Warning" makes us die
+
+
 =item Version 5.206
 
-Fixed bug in MIME::Parser: the reader was not correctly handling the 
+Ahem.  Cough cough:
+
+       Way too many bugs
+          Thus, a self-imposed penance:
+       Write haiku for each
+
+Fixed bug in MIME::Parser: the reader was not handling the 
 odd (but legal) case where a multipart boundary is followed by linear 
 whitespace.
 I<Thanks to Jon Agnew for reporting this with the RFC citation.>
+
+       Legal message fails
+          And 'round the globe, thousands cry:
+       READ THE RFC
 
 Empty preambles are now handled properly by MIME::Entity when
 printing: there is now no space between the header-terminator
 and the initial boundary.
 I<Thanks to "sen_ml" for suggesting this.>
+
+       Nature hates vacuum
+          But please refrain from tossing
+       Newlines in the void
 
 Started using Benchmark for benchmarking.
 
@@ -1374,7 +1399,7 @@ Released as MIME-tools (5.0): Mother's Day 2000.
 
 =head1 VERSION
 
-$Revision: 5.206 $ 
+$Revision: 5.207 $ 
 
 
 =head1 ACKNOWLEDGMENTS

@@ -167,7 +167,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.204 $, 10;
+$VERSION = substr q$Revision: 5.205 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -725,9 +725,9 @@ sub process_singlepart {
     my $encoding = $head->mime_encoding;
     my $decoder = new MIME::Decoder $encoding;
     if (!$decoder) {
-	whine "Unsupported encoding '$encoding': using 'binary'... \n".
-	      "The entity will have an effective MIME type of \n".
-	      "application/octet-stream, as per RFC-2045.";
+	$self->whine("Unsupported encoding '$encoding': using 'binary'... \n".
+		     "The entity will have an effective MIME type of \n".
+		     "application/octet-stream.");  ### as per RFC-2045
 	$ent->effective_type('application/octet-stream');
 	$decoder = new MIME::Decoder 'binary';
     }
@@ -1239,8 +1239,8 @@ sub output_path {
     ### Get the output filename:
     my $outname = $head->recommended_filename;
     if (defined($outname) && $self->evil_filename($outname)) {
-	whine "Provided filename '$outname' is regarded as evil by\n",
-	      "this parser... I'm ignoring it and supplying my own.";
+	$self->whine("Provided filename '$outname' is regarded as evil by\n",
+		     "this parser... I'm ignoring it and supplying my own.");
 	$outname = undef;
     }
     if (!defined($outname)) {      ### evil or missing; make our OWN filename:
@@ -1862,7 +1862,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.204 $ $Date: 2000/06/08 07:26:46 $
+$Revision: 5.205 $ $Date: 2000/06/09 03:32:08 $
 
 =cut
 
