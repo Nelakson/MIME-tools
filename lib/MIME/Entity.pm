@@ -249,7 +249,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.413";
+$VERSION = "5.414";
 
 ### Boundary counter:
 my $BCount = 0;
@@ -1373,7 +1373,7 @@ sub sign {
     elsif ($params{File}) {                      ### file contents
 	CORE::open SIG, $params{File} or croak "can't open $params{File}: $!";
 	$sig = join('', SIG->getlines);
-	close SIG;
+	close SIG or croak "can't close $params{File}: $!";
     }
     else {
 	croak "no signature given!";
@@ -1404,11 +1404,11 @@ sub sign {
 
 	### Output data back into body, followed by signature:
 	my $line;
-	$io = $self->open("w");
+	$io = $self->open("w") or croak("open: $!");
 	foreach $line (@body) { $io->print($line) };      ### body data
 	(($body[-1]||'') =~ /\n\Z/) or $io->print("\n");  ### ensure final \n
 	$io->print("-- \n$sig");                          ### separator + sig
-	$io->close;	
+	$io->close or croak("close: $!");
 	return 1;         ### done!
     }
 }
@@ -2235,7 +2235,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.4 $ $Date: 2004/09/15 14:01:55 $
+$Revision: 1.6 $ $Date: 2004/10/06 18:55:27 $
 
 =cut
 

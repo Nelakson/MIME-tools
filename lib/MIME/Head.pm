@@ -137,7 +137,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.413";
+$VERSION = "5.414";
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -204,9 +204,9 @@ sub from_file {
 
     ### Parse:
     open(HDR, $file) or return error("open $file: $!");
-    binmode(HDR);  # we expect to have \r\n at line ends, and want to keep 'em.
+    binmode(HDR) or return error("binmode $file: $!");  # we expect to have \r\n at line ends, and want to keep 'em.
     $self = $class->new(\*HDR, @opts);      ### now, $self is instance or undef
-    close(HDR);
+    close(HDR) or return error("close $file: $!");
     $self;
 }
 
@@ -906,7 +906,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 1.4 $ $Date: 2004/09/15 14:01:55 $
+$Revision: 1.6 $ $Date: 2004/10/06 18:55:27 $
 
 =cut
 

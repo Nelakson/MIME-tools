@@ -46,7 +46,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.2 $ $Date: 2004/09/15 14:01:55 $
+$Revision: 1.3 $ $Date: 2004/10/06 18:55:27 $
 
 =cut
 
@@ -58,7 +58,7 @@ use MIME::Tools qw(debug);
 @ISA = qw(MIME::Decoder);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.413";
+$VERSION = "5.414";
 
 ### How many bytes to encode at a time (must be a multiple of 3, and
 ### less than (76 * 0.75)!

@@ -32,7 +32,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.8 $ $Date: 2004/09/15 14:01:55 $
+$Revision: 1.9 $ $Date: 2004/10/06 18:55:27 $
 
 =cut
 
@@ -46,7 +46,7 @@ use Convert::BinHex;
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.413";
+$VERSION = "5.414";
 
 
 #------------------------------

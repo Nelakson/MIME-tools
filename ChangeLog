@@ -1,3 +1,13 @@
+2004-10-06  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.414 RELEASED
+
+	* Remove MIME::QuotedPrint 3.03 as a dependency and add
+	MIME::Base64 3.03 instead.
+
+	* Check return values of I/O operations like open(), close(), etc.
+	and die if they fail.  Problem reported by Mark Martinec.
+
 2004-09-15  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.413 RELEASED

@@ -6,9 +6,7 @@ WriteMakefile(
       PREREQ_PM    => {"Mail::Header"      => 1.01,
 		       "Mail::Internet"    => 1.0203,
 		       "Mail::Field"       => 1.05,
-
-		       "MIME::QuotedPrint" => 3.03,
-	               "MIME::Base64"      => 2.04,
+	               "MIME::Base64"      => 3.03,
 		       "IO::Stringy"       => 1.211,
 		       "File::Spec"        => 0.6,
 		       "File::Path"        => 1,

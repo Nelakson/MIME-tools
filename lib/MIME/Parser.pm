@@ -164,10 +164,12 @@ use vars qw(@ISA);
 
 sub print {
     shift->add_length(length(join('', @_)));
+    1;
 }
 
 sub PRINT  {
     shift->{LG} += length(join('', @_));
+    1;
 }
 
 #============================================================
@@ -182,7 +184,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.413";
+$VERSION = "5.414";
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -784,8 +786,8 @@ sub process_singlepart {
 	}
 
 	### Flush and rewind encoded buffer, so we can read it:
-	$ENCODED->flush;
-	$ENCODED->seek(0, 0);
+	$ENCODED->flush or die "$ME: can't flush: $!";
+	$ENCODED->seek(0, 0) or die "$ME: can't seek: $!";
     }
 
     ### Get a content-decoder to decode this part's encoding:
@@ -816,19 +818,20 @@ sub process_singlepart {
 	}
 	else {           ### boojum
 	    $self->whine("while hunting for uuencode: $@");
-	    $ENCODED->seek(0,0);
+	    $ENCODED->seek(0,0) or die "$ME: can't seek: $!";
 	}
     }
 
     ### Open a new bodyhandle for outputting the data:
-    my $body = $self->new_body_for($head) || die "$ME: no body\n"; # gotta die
-    $body->binmode(1) unless textual_type($ent->effective_type);
+    my $body = $self->new_body_for($head) or die "$ME: no body"; # gotta die
+    $body->binmode(1) or die "$ME: can't set to binmode: $!"
+        unless textual_type($ent->effective_type);
 
     ### Decode and save the body (using the decoder):
-    my $DECODED = $body->open("w") || die "$ME: body not opened: $!\n";
+    my $DECODED = $body->open("w") or die "$ME: body not opened: $!";
     eval { $decoder->decode($ENCODED, $DECODED); };
     $@ and $self->error($@);
-    $DECODED->close;
+    $DECODED->close or die "$ME: can't close: $!";
 
     ### Success!  Remember where we put stuff:
     $ent->bodyhandle($body);
@@ -852,7 +855,7 @@ sub hunt_for_uuencode {
     $self->debug("sniffing around for UUENCODE");
 
     ### Heuristic:
-    $ENCODED->seek(0,0);
+    $ENCODED->seek(0,0) or die "$ME: can't seek: $!";
     while (defined($_ = $ENCODED->getline)) {
 	if ($good = /^begin [0-7]{3}/) {
 	  $how_encoded = 'uu';
@@ -879,7 +882,7 @@ sub hunt_for_uuencode {
     my @parts;
 
     ### Made the first cut; on to the real stuff:
-    $ENCODED->seek(0,0);
+    $ENCODED->seek(0,0) or die "$ME: can't seek: $!";
     $self->whine("Found a $how_encoded attachment");
     my $pre;
     while (1) {
@@ -906,9 +909,9 @@ sub hunt_for_uuencode {
 	    MIME::Entity->build(Type => "text/plain",
 				Data => "");
 	    $txt_ent->bodyhandle($self->new_body_for($txt_ent->head));
-	    my $io = $txt_ent->bodyhandle->open("w");
-	    $io->print(@$preamble);
-	    $io->close;
+	    my $io = $txt_ent->bodyhandle->open("w") or die "$ME: can't create: $!";
+	    $io->print(@$preamble) or die "$ME: can't print: $!";
+	    $io->close or die "$ME: can't close: $!";
 	    push @parts, $txt_ent;
 	}
 
@@ -920,10 +923,10 @@ sub hunt_for_uuencode {
 					      Data=>"");
 	    $bin_ent->head->mime_attr('Content-type.x-unix-mode' => "0$mode");
 	    $bin_ent->bodyhandle($self->new_body_for($bin_ent->head));
-	    $bin_ent->bodyhandle->binmode(1);
-	    my $io = $bin_ent->bodyhandle->open("w");
-	    $io->print(@bin_data);
-	    $io->close;
+	    $bin_ent->bodyhandle->binmode(1) or die "$ME: can't set to binmode: $!";
+	    my $io = $bin_ent->bodyhandle->open("w") or die "$ME: can't create: $!";
+	    $io->print(@bin_data) or die "$ME: can't print: $!";
+	    $io->close or die "$ME: can't close: $!";
 	    push @parts, $bin_ent;
 	}
     }
@@ -1017,7 +1020,7 @@ sub process_part {
        $head->mime_type('text/plain; charset=US-ASCII');
        $ent->head($head);
        $ent->bodyhandle($self->new_body_for($head));
-       $ent->bodyhandle->open("w")->close;
+       $ent->bodyhandle->open("w")->close or die "$ME: can't close: $!";
        $self->results->level(-1);
        return $ent;
     }
@@ -1168,9 +1171,9 @@ sub parse_open {
     my ($self, $expr) = @_;
     my $ent;
 
-    my $io = IO::File->new($expr) or die "$ME: couldn't open $expr: $!\n";
+    my $io = IO::File->new($expr) or die "$ME: couldn't open $expr: $!";
     $ent = $self->parse($io);
-    $io->close;
+    $io->close or die "$ME: can't close: $!";
     $ent;
 }
 
@@ -1208,7 +1211,7 @@ sub parse_two {
     foreach ($headfile, $bodyfile) {
 	open IN, "<$_" or die "$ME: open $_: $!";
 	push @lines, <IN>;
-	close IN;
+	close IN or die "$ME: can't close: $!";
     }
     return $self->parse_data(\@lines);
 }
@@ -1639,12 +1642,12 @@ sub new_tmpfile {
 	    $Config{'truncate'} && $io->can('seek')  ### recycling will work
 	    ){
 	    $self->debug("recycling tmpfile: $io");
-	    $io->seek(0, 0);
-	    truncate($io, 0);
+	    $io->seek(0, 0) or die "$ME: can't seek: $!";
+	    truncate($io, 0) or die "$ME: can't truncate: $!";
 	}
 	else {                                 ### Return a new one:
-	    $io = tmpopen() || die "$ME: can't open tmpfile: $!\n";
-	    binmode($io);
+	    $io = tmpopen() or die "$ME: can't open tmpfile: $!\n";
+	    binmode($io) or die "$ME: can't set to binmode: $!";
 	}
     }
     return $io;
@@ -1992,6 +1995,6 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.9 $ $Date: 2004/09/15 14:01:55 $
+$Revision: 1.11 $ $Date: 2004/10/06 18:55:27 $
 
 =cut

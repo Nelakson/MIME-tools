@@ -94,7 +94,7 @@ use MIME::QuotedPrint 3.03;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.413";
+$VERSION = "5.414";
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -350,7 +350,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 1.5 $ $Date: 2004/09/15 14:01:55 $
+$Revision: 1.6 $ $Date: 2004/10/06 18:55:27 $
 
 =cut
 
