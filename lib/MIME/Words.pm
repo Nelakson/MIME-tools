@@ -8,6 +8,12 @@ MIME::Words - deal with RFC-1522 encoded words
 
 =head1 SYNOPSIS
 
+Before reading further, you should see L<MIME::Tools> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+Ready?  Ok...
+
     use MIME::Words qw(:all);   
      
     ### Decode the string into another string, forgetting the charsets:
@@ -86,7 +92,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.206 $, 10;
+$VERSION = substr q$Revision: 5.207 $, 10;
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -335,7 +341,7 @@ Thanks also to...
 
 =head1 VERSION
 
-$Revision: 5.206 $ $Date: 2000/07/07 06:21:20 $
+$Revision: 5.207 $ $Date: 2000/09/21 05:54:15 $
 
 =cut
 

@@ -79,7 +79,7 @@ foreach my $refpath (@refpaths) {
 	my $ok = eval { check_ref($msgpath, $ent, $ref) };
 	$T->ok($ok,
 	       $refpath,
-	       Error   => $@,
+	       ($@ ? (Error => $@) : ()),
 	       Message => $msgpath,
 	       Parser  => ($ref->{Parser}{Name} || 'default'));
     }
@@ -169,6 +169,12 @@ sub check_ref {
 			? basename($body->path) 
 			: undef);
 	    }
+	    elsif (/^Preamble$/) {
+		$got = join('', @{$part->preamble});
+	    }
+	    elsif (/^Epilogue$/) {
+		$got = join('', @{$part->epilogue});
+	    }
 	    elsif (/^Size$/)     { 
 		if ($head->mime_type =~ m{^(text|message)}) {
 		    $T->log("Skipping Size evaluation in text message ".
@@ -184,17 +190,28 @@ sub check_ref {
 
 	    ### Log this sub-test:
 	    $T->log("SUB-TEST: msg=$msgpath; part=$partname; attr=$_:\n");
-	    $T->log("  want: ". (defined($want) ? $want : '<<undef>>') . "\n");
-	    $T->log("  got:  ". (defined($got)  ? $got  : '<<undef>>') . "\n");
+	    $T->log("  want: ".encode($want)."\n");
+	    $T->log("  got:  ".encode($got )."\n");
 	    $T->log("\n");
 
 	    next ATTR if (!defined($want) and !defined($got));
 	    next ATTR if ($want eq $got);
-	    die "$partname: wanted '$want', got '$got'\n";
+	    die "$partname: wanted qq{$want}, got qq{$got}\n";
 	}
     }
 
     1;
+}
+
+# Encode a string
+sub encode {
+	local $_ = shift;
+	return '<undef>' if !defined($_);
+
+	s{([\n\t\x00-\x1F\x7F-\xFF\\\"])}
+         {'\\'.sprintf("%02X",ord($1)) }exg;
+        s{\\0A}{\\n}g;
+	return qq{"$_"};
 }
 
 #------------------------------

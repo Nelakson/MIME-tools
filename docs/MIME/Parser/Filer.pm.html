@@ -8,6 +8,11 @@
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
+<UL>
+<LI> <A HREF="#Public_interface">Public interface</A>
+<LI> <A HREF="#Semi-public_interface">Semi-public interface</A>
+<LI> <A HREF="#Using_with_MIME_Parser_objects">Using with MIME::Parser objects</A>
+</UL>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
 <LI> <A HREF="#PUBLIC_INTERFACE">PUBLIC INTERFACE</A>
 <UL>
@@ -32,7 +37,17 @@
 <A NAME="SYNOPSIS"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SYNOPSIS</H2></A>
 
 
-<P>Public interface:
+<P>Before reading further, you should see <A HREF="../../MIME/Parser.pm.html">MIME::Parser</A> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+
+<P>Ready?  Ok...
+
+
+
+<P><HR>
+<A NAME="Public_interface"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Public interface</H3></A>
 
 <FONT SIZE=3 FACE="courier"><PRE>
     ### Create a &quot;filer&quot; of the desired class:
@@ -50,14 +65,13 @@
     $path = $filer-&gt;output_path($head);
 </PRE></FONT>
 
-<P>Using with MIME::Parser objects:
 
-<FONT SIZE=3 FACE="courier"><PRE>
-    $parser-&gt;filer($filer); 
-</PRE></FONT>
+<P><HR>
+<A NAME="Semi-public_interface"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Semi-public interface</H3></A>
 
-<P>Semi-public interface -- these methods might be overriden or ignored
-in some subclasses, so they don't all make sense in all circumstances:
+
+<P>These methods might be overriden or ignored in some subclasses, 
+so they don't all make sense in all circumstances:
 
 <FONT SIZE=3 FACE="courier"><PRE>
     ### Tweak the mapping from content-type to extension:
@@ -65,9 +79,13 @@ in some subclasses, so they don't all make sense in all circumstances:
     $emap-&gt;{&quot;text/html&quot;} = &quot;.htm&quot;;
 </PRE></FONT>
 
-<P>The protected (subclass) interface is described below.
-    
 
+<P><HR>
+<A NAME="Using_with_MIME_Parser_objects"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Using with MIME::Parser objects</H3></A>
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $parser-&gt;filer($filer); 
+</PRE></FONT>
 
 
 <P><HR>
@@ -406,11 +424,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.8 $
+<P>$Revision: 5.9 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Wed Sep  6 00:49:48 2000 by cvu_pod2html
+Generated Thu Sep 21 02:06:33 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

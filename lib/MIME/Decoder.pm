@@ -8,7 +8,15 @@ MIME::Decoder - an object for decoding the body part of a MIME stream
 
 =head1 SYNOPSIS
 
-B<Decoding a data stream.>
+Before reading further, you should see L<MIME::Tools> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+Ready?  Ok...
+
+
+=head2 Decoding a data stream
+
 Here's a simple filter program to read quoted-printable data from STDIN
 (until EOF) and write the decoded data to STDOUT:
 
@@ -17,7 +25,9 @@ Here's a simple filter program to read quoted-printable data from STDIN
     $decoder = new MIME::Decoder 'quoted-printable' or die "unsupported";
     $decoder->decode(\*STDIN, \*STDOUT);
 
-B<Encoding a data stream.>
+
+=head2 Encoding a data stream
+
 Here's a simple filter program to read binary data from STDIN
 (until EOF) and write base64-encoded data to STDOUT:
 
@@ -26,14 +36,17 @@ Here's a simple filter program to read binary data from STDIN
     $decoder = new MIME::Decoder 'base64' or die "unsupported";
     $decoder->encode(\*STDIN, \*STDOUT);
 
-You can B<write and install your own decoders> so that
+
+=head2 Non-standard encodings
+
+You can B<write and install> your own decoders so that
 MIME::Decoder will know about them:
 
     use MyBase64Decoder;
     
     install MyBase64Decoder 'base64';
 
-You can also B<test if an encoding is supported:> 
+You can also B<test> if a given encoding is supported: 
 
     if (supported MIME::Decoder 'x-uuencode') {
         ### we can uuencode!
@@ -109,7 +122,7 @@ use Carp;
 );
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.203 $, 10;
+$VERSION = substr q$Revision: 5.204 $, 10;
 
 ### Me:
 my $ME = 'MIME::Decoder';
@@ -620,7 +633,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.203 $ $Date: 2000/09/05 04:03:18 $
+$Revision: 5.204 $ $Date: 2000/09/21 05:54:12 $
 
 =cut
 

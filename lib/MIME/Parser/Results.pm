@@ -7,6 +7,12 @@ MIME::Parser::Results - results of the last entity parsed
 
 =head1 SYNOPSIS
 
+Before reading further, you should see L<MIME::Parser> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+Ready?  Ok...
+
    ### Do parse, get results:
    my $entity = eval { $parser->parse(\*STDIN); };
    my $results  = $parser->results;
@@ -178,7 +184,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.209 $
+$Revision: 5.210 $
 
 
 

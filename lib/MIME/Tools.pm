@@ -28,7 +28,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.314 $, 10;
+$VERSION = substr q$Revision: 5.316 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -618,24 +618,31 @@ Return the toolkit version.
 
 
 
-=head2 Good advice
+=head1 THINGS YOU SHOULD DO
 
-=over 4
 
-=item *
+=head2 Take a look at the examples
 
-B<Run with -w on.>  If you see a warning about a deprecated method,
-change your code ASAP.  This will ease upgrades tremendously.
+The MIME-Tools distribution comes with an "examples" directory.
+The scripts in there are basically just tossed-together, but
+they'll give you some ideas of how to use the parser.
 
-=item *
 
-B<Don't try to MIME-encode using the non-standard MIME encodings.>
+=head2 Run with -w
+
+If you see a warning about a deprecated method, change your 
+code ASAP.  This will ease upgrades tremendously.
+
+
+=head2 Avoid non-standard encodings
+
+Don't try to MIME-encode using the non-standard MIME encodings.
 It's just not a good practice if you want people to be able to
 read your messages.
 
-=item *
 
-B<Be aware of possible thrown exceptions.>
+=head2 Plan for thrown exceptions
+
 For example, if your mail-handling code absolutely must not die,
 then perform mail parsing like this:
 
@@ -648,30 +655,143 @@ instead of asking me to propagate C<undef> up the stack.  Use of exceptions in
 reusable modules is one of those religious issues we're never all
 going to agree upon; thankfully, that's what C<eval{}> is good for.
 
-=back
+
+=head2 Check the parser results for warnings/errors
+
+As of 5.3xx, the parser tries extremely hard to give you a
+MIME::Entity.  If there were any problems, it logs warnings/errors
+to the underlying "results" object (see L<MIME::Parser::Results>).
+Look at that object after each parse.
+Print out the warnings and errors, I<especially> if messages don't
+parse the way you thought they would.
+
+
+=head2 Don't plan on printing exactly what you parsed!
+
+I<Parsing is a (slightly) lossy operation.>
+Because of things like ambiguities in base64-encoding, the following 
+is I<not> going to spit out its input unchanged in all cases:
+
+    $entity = $parser->parse(\*STDIN);
+    $entity->print(\*STDOUT);
+
+If you're using MIME::Tools to process email, remember to save
+the data you parse if you want to send it on unchanged.  
+This is vital for things like PGP-signed email.
 
 
 
 
-=head1 NOTES
+
+=head1 THINGS I DO THAT YOU SHOULD KNOW ABOUT
 
 
+=head2 Fuzzing of CRLF and newline on input
 
-=head2 Design issues
+RFC-1521 dictates that MIME streams have lines terminated by CRLF
+(C<"\r\n">).  However, it is extremely likely that folks will want to
+parse MIME streams where each line ends in the local newline
+character C<"\n"> instead.
 
-=over 4
+An attempt has been made to allow the parser to handle both CRLF
+and newline-terminated input.
 
 
-=item Why the need for temp files?  Why not do everything in core?
+=head2 Fuzzing of CRLF and newline when decoding
 
+The C<"7bit"> and C<"8bit"> decoders will decode both
+a C<"\n"> and a C<"\r\n"> end-of-line sequence into a C<"\n">.
+
+The C<"binary"> decoder (default if no encoding specified)
+still outputs stuff verbatim... so a MIME message with CRLFs
+and no explicit encoding will be output as a text file
+that, on many systems, will have an annoying ^M at the end of
+each line... I<but this is as it should be>.
+
+
+=head2 Fuzzing of CRLF and newline when encoding/composing
+
+All encoders currently output the end-of-line sequence as a C<"\n">,
+with the assumption that the local mail agent will perform
+the conversion from newline to CRLF when sending the mail.
+However, there probably should be an option to output CRLF as per RFC-1521.
+
+
+=head2 Inability to handle multipart boundaries with embedded newlines
+
+Let's get something straight: this is an evil, EVIL practice.
+If your mailer creates multipart boundary strings that contain
+newlines, give it two weeks notice and find another one.  If your
+mail robot receives MIME mail like this, regard it as syntactically
+incorrect, which it is.
+
+
+=head2 Ignoring non-header headers
+
+People like to hand the parser raw messages straight from 
+POP3 or from a mailbox.  There is often predictable non-header
+information in front of the real headers; e.g., the initial
+"From" line in the following message:
+
+    From - Wed Mar 22 02:13:18 2000
+    Return-Path: <eryq@zeegee.com>
+    Subject: Hello
+
+The parser simply ignores such stuff quietly.  Perhaps it
+shouldn't, but most people seem to want that behavior.
+
+
+=head2 Fuzzing of empty multipart preambles
+
+Please note that there is currently an ambiguity in the way
+preambles are parsed in.  The following message fragments I<both>
+are regarded as having an empty preamble (where C<\n> indicates a 
+newline character):
+
+     Content-type: multipart/mixed; boundary="xyz"\n
+     Subject: This message (#1) has an empty preamble\n
+     \n      
+     --xyz\n
+     ...
+      
+     Content-type: multipart/mixed; boundary="xyz"\n
+     Subject: This message (#2) also has an empty preamble\n
+     \n      
+     \n
+     --xyz\n
+     ...
+
+In both cases, the I<first> completely-empty line (after the "Subject")
+marks the end of the header.  
+
+But we should clearly ignore the I<second> empty line in message #2,
+since it fills the role of I<"the newline which is only there to make
+sure that the boundary is at the beginning of a line">.  
+Such newlines are I<never> part of the content preceding the boundary; 
+thus, there is no preamble "content" in message #2.
+
+However, it seems clear that message #1 I<also> has no preamble
+"content", and is in fact merely a compact representation of an
+empty preamble.
+
+
+=head2 Use of a temp file during parsing 
+
+I<Why not do everything in core?>
 Although the amount of core available on even a modest home
 system continues to grow, the size of attachments continues
 to grow with it.  I wanted to make sure that even users with small
 systems could deal with decoding multi-megabyte sounds and movie files.
 That means not being core-bound.
 
+As of the released 5.3xx, MIME::Parser gets by with only
+one temp file open per parser.  This temp file provides
+a sort of infinite scratch space for dealing with the current
+message part.  It's fast and lightweight, but you should know
+about it anyway.
 
-=item Why assume that MIME objects are email objects?
+
+=head2 Why do I assume that MIME objects are email objects?
 
 Achim Bohnet once pointed out that MIME headers do nothing more than
 store a collection of attributes, and thus could be represented as
@@ -688,56 +808,6 @@ time about whether or not they really should subclass from B<Mail::Internet>
 MailTools 1.06 to be more MIME-friendly, unification was achieved
 at MIME-tools release 2.0.
 The benefits in reuse alone have been substantial.
-
-=back
-
-
-
-=head2 Questionable practices
-
-=over 4
-
-=item Fuzzing of CRLF and newline on input
-
-RFC-1521 dictates that MIME streams have lines terminated by CRLF
-(C<"\r\n">).  However, it is extremely likely that folks will want to
-parse MIME streams where each line ends in the local newline
-character C<"\n"> instead.
-
-An attempt has been made to allow the parser to handle both CRLF
-and newline-terminated input.
-
-
-=item Fuzzing of CRLF and newline when decoding
-
-The C<"7bit"> and C<"8bit"> decoders will decode both
-a C<"\n"> and a C<"\r\n"> end-of-line sequence into a C<"\n">.
-
-The C<"binary"> decoder (default if no encoding specified)
-still outputs stuff verbatim... so a MIME message with CRLFs
-and no explicit encoding will be output as a text file
-that, on many systems, will have an annoying ^M at the end of
-each line... I<but this is as it should be>.
-
-
-=item Fuzzing of CRLF and newline when encoding/composing
-
-All encoders currently output the end-of-line sequence as a C<"\n">,
-with the assumption that the local mail agent will perform
-the conversion from newline to CRLF when sending the mail.
-However, there probably should be an option to output CRLF as per RFC-1521.
-
-
-=item Inability to handle multipart boundaries with embedded newlines
-
-First, let's get something straight: this is an evil, EVIL practice.
-If your mailer creates multipart boundary strings that contain
-newlines, give it two weeks notice and find another one.  If your
-mail robot receives MIME mail like this, regard it as syntactically
-incorrect, which it is.
-
-
-=back
 
 
 
@@ -934,12 +1004,30 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.314 $
+$Revision: 5.316 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.316   (2000/09/21)
+
+B<Increased tolerance in MIME::Parser.>
+Now will ignore bogus POP3 "+OK" line before header, as well as bogus
+mailbox "From " line (both with warnings). 
+I<Thanks to Antony OSullivan (ajos1) for suggesting this feature.>
+
+B<Fixed small epilogue-related bug in MIME::Entity::print_body().>
+Now it only outputs a final newline if the epilogue does not end
+in one already.  Support for checking the preamble/epilogue in 
+regression tests was also added.
+I<Thanks to Lars Hecking for bringing this issue up.>
+
+B<Updated documentation.>
+All module manual pages should now direct readers to the main 
+MIME-tools manual page.
+
 
 =item Version 5.314   (2000/09/06)
 
@@ -1807,6 +1895,10 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
+At the time of this writing ($Date: 2000/09/21 06:02:17 $), the MIME-tools homepage was
+F<http://www.zeegee.com/code/perl/MIME-tools>.
+Check there for updates and support.
+
 Users of this toolkit may wish to read the documentation of Mail::Header
 and Mail::Internet.
 
@@ -1815,7 +1907,6 @@ in RFCs 2045-2049.
 
 The MIME header format is an outgrowth of the mail header format
 documented in RFC 822.
-
 
 
 =cut

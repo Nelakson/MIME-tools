@@ -7,7 +7,14 @@ MIME::Parser::Filer - manage file-output of the parser
 
 =head1 SYNOPSIS
 
-Public interface:
+Before reading further, you should see L<MIME::Parser> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+Ready?  Ok...
+
+
+=head2 Public interface
 
     ### Create a "filer" of the desired class:
     my $filer = MIME::Parser::FileInto->new($dir);
@@ -24,22 +31,21 @@ Public interface:
     $path = $filer->output_path($head);
 
 
-Using with MIME::Parser objects:
+=head2 Semi-public interface
 
-    $parser->filer($filer); 
-
-
-Semi-public interface -- these methods might be overriden or ignored
-in some subclasses, so they don't all make sense in all circumstances:
+These methods might be overriden or ignored in some subclasses, 
+so they don't all make sense in all circumstances:
 
     ### Tweak the mapping from content-type to extension:
     $emap = $filer->output_extension_map;
     $emap->{"text/html"} = ".htm";
 
 
+=head2 Using with MIME::Parser objects
 
-The protected (subclass) interface is described below.
-    
+    $parser->filer($filer); 
+
+
 
 =head1 DESCRIPTION
 
@@ -743,5 +749,5 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.8 $
+$Revision: 5.9 $
 

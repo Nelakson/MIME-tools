@@ -8,6 +8,11 @@ MIME::Head - MIME message header (a subclass of Mail::Header)
 
 =head1 SYNOPSIS
 
+Before reading further, you should see L<MIME::Tools> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+Ready?  Ok...
 
 =head2 Construction
 
@@ -133,7 +138,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.204 $, 10;
+$VERSION = substr q$Revision: 5.205 $, 10;
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -874,7 +879,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 5.204 $ $Date: 2000/09/05 04:03:19 $
+$Revision: 5.205 $ $Date: 2000/09/21 05:54:14 $
 
 =cut
 

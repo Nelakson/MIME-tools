@@ -19,12 +19,26 @@
 <LI> <A HREF="#Encoding_decoding_support">Encoding/decoding support</A>
 <LI> <A HREF="#Message-logging">Message-logging</A>
 <LI> <A HREF="#Configuring_the_toolkit">Configuring the toolkit</A>
-<LI> <A HREF="#Good_advice">Good advice</A>
 </UL>
-<LI> <A HREF="#NOTES">NOTES</A>
+<LI> <A HREF="#THINGS_YOU_SHOULD_DO">THINGS YOU SHOULD DO</A>
 <UL>
-<LI> <A HREF="#Design_issues">Design issues</A>
-<LI> <A HREF="#Questionable_practices">Questionable practices</A>
+<LI> <A HREF="#Take_a_look_at_the_examples">Take a look at the examples</A>
+<LI> <A HREF="#Run_with_-w">Run with -w</A>
+<LI> <A HREF="#Avoid_non-standard_encodings">Avoid non-standard encodings</A>
+<LI> <A HREF="#Plan_for_thrown_exceptions">Plan for thrown exceptions</A>
+<LI> <A HREF="#Check_the_parser_results_for_warnings_errors">Check the parser results for warnings/errors</A>
+<LI> <A HREF="#Don_t_plan_on_printing_exactly_what_you_parsed">Don't plan on printing exactly what you parsed!</A>
+</UL>
+<LI> <A HREF="#THINGS_I_DO_THAT_YOU_SHOULD_KNOW_ABOUT">THINGS I DO THAT YOU SHOULD KNOW ABOUT</A>
+<UL>
+<LI> <A HREF="#Fuzzing_of_CRLF_and_newline_on_input">Fuzzing of CRLF and newline on input</A>
+<LI> <A HREF="#Fuzzing_of_CRLF_and_newline_when_decoding">Fuzzing of CRLF and newline when decoding</A>
+<LI> <A HREF="#Fuzzing_of_CRLF_and_newline_when_encoding_composing">Fuzzing of CRLF and newline when encoding/composing</A>
+<LI> <A HREF="#Inability_to_handle_multipart_boundaries_with_embedded_newlines">Inability to handle multipart boundaries with embedded newlines</A>
+<LI> <A HREF="#Ignoring_non-header_headers">Ignoring non-header headers</A>
+<LI> <A HREF="#Fuzzing_of_empty_multipart_preambles">Fuzzing of empty multipart preambles</A>
+<LI> <A HREF="#Use_of_a_temp_file_during_parsing">Use of a temp file during parsing</A>
+<LI> <A HREF="#Why_do_I_assume_that_MIME_objects_are_email_objects">Why do I assume that MIME objects are email objects?</A>
 </UL>
 <LI> <A HREF="#A_MIME_PRIMER">A MIME PRIMER</A>
 <UL>
@@ -470,23 +484,44 @@ Return the toolkit version.
 
 
 <P><HR>
-<A NAME="Good_advice"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Good advice</H3></A>
+<A NAME="THINGS_YOU_SHOULD_DO"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> THINGS YOU SHOULD DO</H2></A>
 
 
 
-<UL>
-<P><LI>
-<P><B>Run with -w on.</B>  If you see a warning about a deprecated method,
-change your code ASAP.  This will ease upgrades tremendously.
+<P><HR>
+<A NAME="Take_a_look_at_the_examples"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Take a look at the examples</H3></A>
 
-<P><LI>
-<P><B>Don't try to MIME-encode using the non-standard MIME encodings.</B>
+
+<P>The MIME-Tools distribution comes with an &quot;examples&quot; directory.
+The scripts in there are basically just tossed-together, but
+they'll give you some ideas of how to use the parser.
+
+
+
+<P><HR>
+<A NAME="Run_with_-w"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Run with -w</H3></A>
+
+
+<P>If you see a warning about a deprecated method, change your 
+code ASAP.  This will ease upgrades tremendously.
+
+
+
+<P><HR>
+<A NAME="Avoid_non-standard_encodings"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Avoid non-standard encodings</H3></A>
+
+
+<P>Don't try to MIME-encode using the non-standard MIME encodings.
 It's just not a good practice if you want people to be able to
 read your messages.
 
-<P><LI>
-<P><B>Be aware of possible thrown exceptions.</B>
-For example, if your mail-handling code absolutely must not die,
+
+
+<P><HR>
+<A NAME="Plan_for_thrown_exceptions"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Plan for thrown exceptions</H3></A>
+
+
+<P>For example, if your mail-handling code absolutely must not die,
 then perform mail parsing like this:
 
 <FONT SIZE=3 FACE="courier"><PRE>
@@ -500,32 +535,185 @@ instead of asking me to propagate <CODE>undef</CODE> up the stack.  Use of excep
 reusable modules is one of those religious issues we're never all
 going to agree upon; thankfully, that's what <CODE>eval{}</CODE> is good for.
 
-</UL>
+
+
+<P><HR>
+<A NAME="Check_the_parser_results_for_warnings_errors"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Check the parser results for warnings/errors</H3></A>
+
+
+<P>As of 5.3xx, the parser tries extremely hard to give you a
+MIME::Entity.  If there were any problems, it logs warnings/errors
+to the underlying &quot;results&quot; object (see <A HREF="../MIME/Parser/Results.pm.html">MIME::Parser::Results</A>).
+Look at that object after each parse.
+Print out the warnings and errors, <I>especially</I> if messages don't
+parse the way you thought they would.
 
 
 
 <P><HR>
-<A NAME="NOTES"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> NOTES</H2></A>
+<A NAME="Don_t_plan_on_printing_exactly_what_you_parsed"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Don't plan on printing exactly what you parsed!</H3></A>
+
+
+<P><I>Parsing is a (slightly) lossy operation.</I>
+Because of things like ambiguities in base64-encoding, the following 
+is <I>not</I> going to spit out its input unchanged in all cases:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    $entity = $parser-&gt;parse(\*STDIN);
+    $entity-&gt;print(\*STDOUT);
+</PRE></FONT>
+
+<P>If you're using MIME::Tools to process email, remember to save
+the data you parse if you want to send it on unchanged.  
+This is vital for things like PGP-signed email.
 
 
 
 <P><HR>
-<A NAME="Design_issues"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Design issues</H3></A>
+<A NAME="THINGS_I_DO_THAT_YOU_SHOULD_KNOW_ABOUT"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> THINGS I DO THAT YOU SHOULD KNOW ABOUT</H2></A>
 
 
 
-<DL>
-<P><DT><B><A NAME="item:Why_the_need_for_temp_files_Why_not_do_everything_in_core">Why the need for temp files?  Why not do everything in core?</A></B></DT>
-<DD>
+<P><HR>
+<A NAME="Fuzzing_of_CRLF_and_newline_on_input"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Fuzzing of CRLF and newline on input</H3></A>
+
+
+<P>RFC-1521 dictates that MIME streams have lines terminated by CRLF
+(<CODE>&quot;\r\n&quot;</CODE>).  However, it is extremely likely that folks will want to
+parse MIME streams where each line ends in the local newline
+character <CODE>&quot;\n&quot;</CODE> instead.
+
+
+<P>An attempt has been made to allow the parser to handle both CRLF
+and newline-terminated input.
+
+
+
+<P><HR>
+<A NAME="Fuzzing_of_CRLF_and_newline_when_decoding"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Fuzzing of CRLF and newline when decoding</H3></A>
+
+
+<P>The <CODE>&quot;7bit&quot;</CODE> and <CODE>&quot;8bit&quot;</CODE> decoders will decode both
+a <CODE>&quot;\n&quot;</CODE> and a <CODE>&quot;\r\n&quot;</CODE> end-of-line sequence into a <CODE>&quot;\n&quot;</CODE>.
+
+
+<P>The <CODE>&quot;binary&quot;</CODE> decoder (default if no encoding specified)
+still outputs stuff verbatim... so a MIME message with CRLFs
+and no explicit encoding will be output as a text file
+that, on many systems, will have an annoying ^M at the end of
+each line... <I>but this is as it should be</I>.
+
+
+
+<P><HR>
+<A NAME="Fuzzing_of_CRLF_and_newline_when_encoding_composing"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Fuzzing of CRLF and newline when encoding/composing</H3></A>
+
+
+<P>All encoders currently output the end-of-line sequence as a <CODE>&quot;\n&quot;</CODE>,
+with the assumption that the local mail agent will perform
+the conversion from newline to CRLF when sending the mail.
+However, there probably should be an option to output CRLF as per RFC-1521.
+
+
+
+<P><HR>
+<A NAME="Inability_to_handle_multipart_boundaries_with_embedded_newlines"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Inability to handle multipart boundaries with embedded newlines</H3></A>
+
+
+<P>Let's get something straight: this is an evil, EVIL practice.
+If your mailer creates multipart boundary strings that contain
+newlines, give it two weeks notice and find another one.  If your
+mail robot receives MIME mail like this, regard it as syntactically
+incorrect, which it is.
+
+
+
+<P><HR>
+<A NAME="Ignoring_non-header_headers"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Ignoring non-header headers</H3></A>
+
+
+<P>People like to hand the parser raw messages straight from 
+POP3 or from a mailbox.  There is often predictable non-header
+information in front of the real headers; e.g., the initial
+&quot;From&quot; line in the following message:
+
+<FONT SIZE=3 FACE="courier"><PRE>
+    From - Wed Mar 22 02:13:18 2000
+    Return-Path: &lt;eryq@zeegee.com&gt;
+    Subject: Hello
+</PRE></FONT>
+
+<P>The parser simply ignores such stuff quietly.  Perhaps it
+shouldn't, but most people seem to want that behavior.
+
+
+
+<P><HR>
+<A NAME="Fuzzing_of_empty_multipart_preambles"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Fuzzing of empty multipart preambles</H3></A>
+
+
+<P>Please note that there is currently an ambiguity in the way
+preambles are parsed in.  The following message fragments <I>both</I>
+are regarded as having an empty preamble (where <CODE>\n</CODE> indicates a 
+newline character):
+
+<FONT SIZE=3 FACE="courier"><PRE>
+     Content-type: multipart/mixed; boundary=&quot;xyz&quot;\n
+     Subject: This message (#1) has an empty preamble\n
+     \n      
+     --xyz\n
+     ...
+      
+     Content-type: multipart/mixed; boundary=&quot;xyz&quot;\n
+     Subject: This message (#2) also has an empty preamble\n
+     \n      
+     \n
+     --xyz\n
+     ...
+</PRE></FONT>
+
+<P>In both cases, the <I>first</I> completely-empty line (after the &quot;Subject&quot;)
+marks the end of the header.  
+
+
+<P>But we should clearly ignore the <I>second</I> empty line in message #2,
+since it fills the role of <I>&quot;the newline which is only there to make
+sure that the boundary is at the beginning of a line&quot;</I>.  
+Such newlines are <I>never</I> part of the content preceding the boundary; 
+thus, there is no preamble &quot;content&quot; in message #2.
+
+
+<P>However, it seems clear that message #1 <I>also</I> has no preamble
+&quot;content&quot;, and is in fact merely a compact representation of an
+empty preamble.
+
+
+
+<P><HR>
+<A NAME="Use_of_a_temp_file_during_parsing"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Use of a temp file during parsing</H3></A>
+
+
+<P><I>Why not do everything in core?</I>
 Although the amount of core available on even a modest home
 system continues to grow, the size of attachments continues
 to grow with it.  I wanted to make sure that even users with small
 systems could deal with decoding multi-megabyte sounds and movie files.
 That means not being core-bound.
 
-<P><DT><B><A NAME="item:Why_assume_that_MIME_objects_are_email_objects">Why assume that MIME objects are email objects?</A></B></DT>
-<DD>
-Achim Bohnet once pointed out that MIME headers do nothing more than
+
+<P>As of the released 5.3xx, MIME::Parser gets by with only
+one temp file open per parser.  This temp file provides
+a sort of infinite scratch space for dealing with the current
+message part.  It's fast and lightweight, but you should know
+about it anyway.
+
+
+
+<P><HR>
+<A NAME="Why_do_I_assume_that_MIME_objects_are_email_objects"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Why do I assume that MIME objects are email objects?</H3></A>
+
+
+<P>Achim Bohnet once pointed out that MIME headers do nothing more than
 store a collection of attributes, and thus could be represented as
 objects which don't inherit from Mail::Header.
 
@@ -542,56 +730,6 @@ time about whether or not they really should subclass from <B>Mail::Internet</B>
 MailTools 1.06 to be more MIME-friendly, unification was achieved
 at MIME-tools release 2.0.
 The benefits in reuse alone have been substantial.
-
-</DL>
-
-
-
-<P><HR>
-<A NAME="Questionable_practices"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Questionable practices</H3></A>
-
-
-
-<DL>
-<P><DT><B><A NAME="item:Fuzzing_of_CRLF_and_newline_on_input">Fuzzing of CRLF and newline on input</A></B></DT>
-<DD>
-RFC-1521 dictates that MIME streams have lines terminated by CRLF
-(<CODE>&quot;\r\n&quot;</CODE>).  However, it is extremely likely that folks will want to
-parse MIME streams where each line ends in the local newline
-character <CODE>&quot;\n&quot;</CODE> instead.
-
-
-<P>An attempt has been made to allow the parser to handle both CRLF
-and newline-terminated input.
-
-<P><DT><B><A NAME="item:Fuzzing_of_CRLF_and_newline_when_decoding">Fuzzing of CRLF and newline when decoding</A></B></DT>
-<DD>
-The <CODE>&quot;7bit&quot;</CODE> and <CODE>&quot;8bit&quot;</CODE> decoders will decode both
-a <CODE>&quot;\n&quot;</CODE> and a <CODE>&quot;\r\n&quot;</CODE> end-of-line sequence into a <CODE>&quot;\n&quot;</CODE>.
-
-
-<P>The <CODE>&quot;binary&quot;</CODE> decoder (default if no encoding specified)
-still outputs stuff verbatim... so a MIME message with CRLFs
-and no explicit encoding will be output as a text file
-that, on many systems, will have an annoying ^M at the end of
-each line... <I>but this is as it should be</I>.
-
-<P><DT><B><A NAME="item:Fuzzing_of_CRLF_and_newline_when_encoding_composing">Fuzzing of CRLF and newline when encoding/composing</A></B></DT>
-<DD>
-All encoders currently output the end-of-line sequence as a <CODE>&quot;\n&quot;</CODE>,
-with the assumption that the local mail agent will perform
-the conversion from newline to CRLF when sending the mail.
-However, there probably should be an option to output CRLF as per RFC-1521.
-
-<P><DT><B><A NAME="item:Inability_to_handle_multipart_boundaries_with_embedded_newlines">Inability to handle multipart boundaries with embedded newlines</A></B></DT>
-<DD>
-First, let's get something straight: this is an evil, EVIL practice.
-If your mailer creates multipart boundary strings that contain
-newlines, give it two weeks notice and find another one.  If your
-mail robot receives MIME mail like this, regard it as syntactically
-incorrect, which it is.
-
-</DL>
 
 
 
@@ -813,7 +951,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.314 $
+<P>$Revision: 5.316 $
 
 
 
@@ -823,6 +961,25 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.316   (2000/09/21)</A></B></DT>
+<DD>
+<B>Increased tolerance in MIME::Parser.</B>
+Now will ignore bogus POP3 &quot;+OK&quot; line before header, as well as bogus
+mailbox &quot;From &quot; line (both with warnings). 
+<I>Thanks to Antony OSullivan (ajos1) for suggesting this feature.</I>
+
+
+<P><B>Fixed small epilogue-related bug in MIME::Entity::print_body().</B>
+Now it only outputs a final newline if the epilogue does not end
+in one already.  Support for checking the preamble/epilogue in 
+regression tests was also added.
+<I>Thanks to Lars Hecking for bringing this issue up.</I>
+
+
+<P><B>Updated documentation.</B>
+All module manual pages should now direct readers to the main 
+MIME-tools manual page.
+
 <P><DT><B><A NAME="item:Version">Version 5.314   (2000/09/06)</A></B></DT>
 <DD>
 Fixed Makefile.PL to have less-restrictive requirement
@@ -1758,6 +1915,11 @@ Better yet, email me, and I'll put you in.
 <A NAME="SEE_ALSO"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SEE ALSO</H2></A>
 
 
+<P>At the time of this writing ($Date: 2000/09/21 06:02:17 $), the MIME-tools homepage was
+<I><FILE><A HREF="http://www.zeegee.com/code/perl/MIME-tools">http://www.zeegee.com/code/perl/MIME-tools</A></FILE></I>.
+Check there for updates and support.
+
+
 <P>Users of this toolkit may wish to read the documentation of Mail::Header
 and Mail::Internet.
 
@@ -1771,7 +1933,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Wed Sep  6 00:49:55 2000 by cvu_pod2html
+Generated Thu Sep 21 02:06:40 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

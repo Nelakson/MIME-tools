@@ -7,6 +7,9 @@ MIME::Parser::Reader - a line-oriented reader for a MIME::Parser
 
 =head1 SYNOPSIS
 
+This module is used internally by MIME::Parser; you probably
+don't need to be looking at it at all.  But just in case...
+
     ### Create a top-level reader, where chunks end at EOF:
     $rdr = MIME::Parser::Reader->new();
       

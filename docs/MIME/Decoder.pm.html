@@ -8,6 +8,11 @@
 </A><UL>
 <LI> <A HREF="#NAME">NAME</A>
 <LI> <A HREF="#SYNOPSIS">SYNOPSIS</A>
+<UL>
+<LI> <A HREF="#Decoding_a_data_stream">Decoding a data stream</A>
+<LI> <A HREF="#Encoding_a_data_stream">Encoding a data stream</A>
+<LI> <A HREF="#Non-standard_encodings">Non-standard encodings</A>
+</UL>
 <LI> <A HREF="#DESCRIPTION">DESCRIPTION</A>
 <LI> <A HREF="#PUBLIC_INTERFACE">PUBLIC INTERFACE</A>
 <UL>
@@ -37,8 +42,20 @@
 <A NAME="SYNOPSIS"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> SYNOPSIS</H2></A>
 
 
-<P><B>Decoding a data stream.</B>
-Here's a simple filter program to read quoted-printable data from STDIN
+<P>Before reading further, you should see <A HREF="../MIME/Tools.pm.html">MIME::Tools</A> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+
+<P>Ready?  Ok...
+
+
+
+<P><HR>
+<A NAME="Decoding_a_data_stream"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Decoding a data stream</H3></A>
+
+
+<P>Here's a simple filter program to read quoted-printable data from STDIN
 (until EOF) and write the decoded data to STDOUT:
 
 <FONT SIZE=3 FACE="courier"><PRE>
@@ -48,8 +65,12 @@ Here's a simple filter program to read quoted-printable data from STDIN
     $decoder-&gt;decode(\*STDIN, \*STDOUT);
 </PRE></FONT>
 
-<P><B>Encoding a data stream.</B>
-Here's a simple filter program to read binary data from STDIN
+
+<P><HR>
+<A NAME="Encoding_a_data_stream"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Encoding a data stream</H3></A>
+
+
+<P>Here's a simple filter program to read binary data from STDIN
 (until EOF) and write base64-encoded data to STDOUT:
 
 <FONT SIZE=3 FACE="courier"><PRE>
@@ -59,7 +80,12 @@ Here's a simple filter program to read binary data from STDIN
     $decoder-&gt;encode(\*STDIN, \*STDOUT);
 </PRE></FONT>
 
-<P>You can <B>write and install your own decoders</B> so that
+
+<P><HR>
+<A NAME="Non-standard_encodings"><H3><A HREF="#__TOP__"><IMG SRC="icons/h2bullet.gif" ALT="Top" BORDER="0"></A> Non-standard encodings</H3></A>
+
+
+<P>You can <B>write and install</B> your own decoders so that
 MIME::Decoder will know about them:
 
 <FONT SIZE=3 FACE="courier"><PRE>
@@ -68,7 +94,7 @@ MIME::Decoder will know about them:
     install MyBase64Decoder 'base64';
 </PRE></FONT>
 
-<P>You can also <B>test if an encoding is supported:</B> 
+<P>You can also <B>test</B> if a given encoding is supported: 
 
 <FONT SIZE=3 FACE="courier"><PRE>
     if (supported MIME::Decoder 'x-uuencode') {
@@ -477,11 +503,11 @@ it and/or modify it under the same terms as Perl itself.
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.203 $ $Date: 2000/09/05 04:03:18 $
+<P>$Revision: 5.204 $ $Date: 2000/09/21 05:54:12 $
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Wed Sep  6 00:49:18 2000 by cvu_pod2html
+Generated Thu Sep 21 02:05:59 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

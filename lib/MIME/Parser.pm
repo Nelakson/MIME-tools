@@ -8,6 +8,12 @@ MIME::Parser - experimental class for parsing MIME streams
 
 =head1 SYNOPSIS
 
+Before reading further, you should see L<MIME::Tools> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+Ready?  Ok...
+
 =head2 Basic usage examples
 
     ### Create a new parser object:
@@ -171,7 +177,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.219 $, 10;
+$VERSION = substr q$Revision: 5.220 $, 10;
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -532,7 +538,9 @@ sub process_header {
     ### Read the lines of the header.
     ### We localize IO inside here, so that we can support the IO:: interface
     my @headlines;
-    my $hdr_rdr = $rdr->spawn->add_terminator("");
+    my $hdr_rdr = $rdr->spawn;
+    $hdr_rdr->add_terminator("");
+    $hdr_rdr->add_terminator("\r");           ### sigh
     $hdr_rdr->read_lines($in, \@headlines);
     foreach (@headlines) { s/[\r\n]+\Z/\n/ }  ### fold
 
@@ -540,11 +548,22 @@ sub process_header {
     ($hdr_rdr->eos_type eq 'DONE') or
 	$self->error("unexpected end of header\n");
 
-    ### Cleanup ">From " lines.
+    ### Cleanup bogus header lines.
     ###    Some folks like to parse mailboxes, so the header will start
     ###    with "From " or ">From ".  Tolerate this by removing both kinds
-    ###    of lines silently (can't use Mail::Header for this).
-    shift @headlines while (@headlines and $headlines[0] =~ /^>?From /);
+    ###    of lines silently (can't we use Mail::Header for this, and try
+    ###    and keep the envelope?).  Ditto for POP.
+    while (@headlines) {
+	if    ($headlines[0] =~ /^>?From /) {    ### mailbox
+	    $self->whine("skipping bogus mailbox 'From ' line");
+	    shift @headlines;
+	}
+	elsif ($headlines[0] =~ /^\+OK/) {       ### POP3 status line
+	    $self->whine("skipping bogus POP3 '+OK' line");
+	    shift @headlines;
+	}
+	else { last }
+    }
 
     ### Extract the header (note that zero-size headers are admissible!):
     $head->extract(\@headlines);
@@ -1841,7 +1860,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.219 $ $Date: 2000/09/05 04:03:20 $
+$Revision: 5.220 $ $Date: 2000/09/21 05:54:14 $
 
 =cut
 

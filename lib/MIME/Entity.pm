@@ -8,6 +8,12 @@ MIME::Entity - class for parsed-and-decoded MIME message
 
 =head1 SYNOPSIS
 
+Before reading further, you should see L<MIME::Tools> to make sure that 
+you understand where this module fits into the grand scheme of things.
+Go on, do it now.  I'll wait.
+
+Ready?  Ok...
+
     ### Create an entity:
     $top = MIME::Entity->build(From    => 'me@myhost.com',
                                To      => 'you@yourhost.com',
@@ -243,7 +249,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.211 $, 10;
+$VERSION = substr q$Revision: 5.212 $, 10;
 
 ### Boundary counter:
 my $BCount = 0;
@@ -1766,7 +1772,10 @@ sub print_body {
 
 	### Epilogue:
 	my $epilogue = join('', @{ $self->epilogue || $DefEpilogue });
-	$out->print("$epilogue\n") if ($epilogue ne '');
+	if ($epilogue ne '') {
+	    $out->print($epilogue);
+	    $out->print("\n") if ($epilogue !~ /\n\Z/);  ### be nice
+	}
     }
 
     ### Singlepart type with parts...
@@ -2190,7 +2199,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 5.211 $ $Date: 2000/09/05 04:03:18 $
+$Revision: 5.212 $ $Date: 2000/09/21 05:54:12 $
 
 =cut
 
