@@ -1,7 +1,7 @@
-use lib "./blib/lib", "./t";
+use lib "./t";
 use MIME::Tools;
 
-use Checker;
+use ExtUtils::TBone;
 use Globby;
 
 use strict;
@@ -12,6 +12,10 @@ use MIME::Parser;
 # Set the counter, for filenames:
 my $Counter = 0;
 
+# Create checker:
+my $T = typical ExtUtils::TBone;
+$T->begin(61);
+
 # Messages we know about:
 my %MESSAGES = 
     (
@@ -21,10 +25,10 @@ my %MESSAGES =
  	 Nested=>0,	
 	 Type  =>'multipart/mixed',
 	 Parts => [
-		   { Type=>'text/plain',
-		     Enc=>'7bit'},	
-		   { Type=>'message/rfc822',
-		     Enc=>'7bit'}
+		   { Type =>'text/plain',
+		     Enc  =>'7bit'},	
+		   { Type =>'message/rfc822',
+		     Enc  =>'7bit'}
 		   ],
      },
 
@@ -33,10 +37,10 @@ my %MESSAGES =
  	 Nested=>'NEST',
 	 Type  =>'multipart/mixed',
 	 Parts => [
-		   { Type=>'text/plain',
-		     Enc=>'7bit'},	
-		   { Type=>'message/rfc822',
-		     Enc=>'7bit'}
+		   { Type =>'text/plain',
+		     Enc  =>'7bit'},	
+		   { Type =>'message/rfc822',
+		     Enc  =>'7bit'}
 		   ],
      },
 
@@ -45,10 +49,10 @@ my %MESSAGES =
  	 Nested=>'REPLACE',
 	 Type  =>'multipart/mixed',
 	 Parts => [
-		   { Type=>'text/plain',
-		     Enc=>'7bit'},	
-		   { Type=>'text/plain',
-		     Enc=>'quoted-printable'}
+		   { Type =>'text/plain',
+		     Enc  =>'7bit'},	
+		   { Type =>'text/plain',
+		     Enc  =>'quoted-printable'}
 		   ],
      },
 
@@ -64,16 +68,16 @@ my %MESSAGES =
  	 Nested=>0,
 	 Type  =>'multipart/mixed',
 	 Parts => [
-		   { Type=>'text/plain',
-		     Enc=>'7bit'},	
-		   { Type=>'image/gif',
-		     Enc=>'base64',
-		     File=>'3d-compress.gif',
-		     Size=>419},
-		   { Type=>'image/gif',
-		     Enc=>'base64',
-		     File=>'3d-eye.gif',
-		     Size=>357},
+		   { Type =>'text/plain',
+		     Enc  =>'7bit'},	
+		   { Type =>'image/gif',
+		     Enc  =>'base64',
+		     File =>'3d-compress.gif',
+		     Size =>419},
+		   { Type =>'image/gif',
+		     Enc  =>'base64',
+		     File =>'3d-eye.gif',
+		     Size =>357},
 		   ],
      },
 
@@ -95,17 +99,17 @@ sub check_entity {
     my $t_type = ($info->{Type} || 'text/plain');
     my $t_enc  = ($info->{Enc}  || '7bit');
 
-    check($ent, "$name parsed");
-    check((($type = $ent->head->mime_type || '') eq $t_type),
+    $T->ok($ent, "$name parsed");
+    $T->ok((($type = $ent->head->mime_type || '') eq $t_type),
 	  "$name: verified type $t_type?")
 	if $ent;
-    check((($enc = $ent->head->mime_encoding || '') eq $t_enc),
+    $T->ok((($enc = $ent->head->mime_encoding || '') eq $t_enc),
 	  "$name: verified encoding $t_enc?")
 	if $ent;
-    check((-s "testout/$info->{File}"),
+    $T->ok((-s "testout/$info->{File}"),
 	  "$name: nonzero output file $info->{File}?")
 	if ($ent and $info->{File});
-    check(((-s "testout/$info->{File}") == $info->{Size}),
+    $T->ok(((-s "testout/$info->{File}") == $info->{Size}),
 	  "$name: got expected size of $info->{Size}?")
 	if ($ent and $info->{Size});
 
@@ -126,7 +130,7 @@ sub simple_output_path {
     # Get the recommended filename:
     my $filename = $head->recommended_filename;
     if (defined($filename) && $parser->evil_filename($filename)) {
-	note "Parser.t: ignoring an evil recommended filename ($filename)";
+	$T->msg("Parser.t: ignoring an evil recommended filename ($filename)");
 	$filename = undef;      # forget it: it was evil
     }
     if (!defined($filename)) {  # either no name or an evil name
@@ -149,10 +153,6 @@ unlink globby("$DIR/[a-z]*");
 # BEGIN
 #------------------------------------------------------------
 
-# Create checker:
-my $T = new Checker "./testout/Parser.tlog";
-$T->begin(61);
-
 my $parser;
 my $entity;
 my $msgno;
@@ -162,7 +162,7 @@ my $enc;
 
 
 #------------------------------------------------------------
-note "Create a parser";
+$T->msg("Create a parser");
 #------------------------------------------------------------
 $parser = new MIME::Parser;
 $parser->output_dir($DIR);
@@ -172,34 +172,34 @@ $parser->output_dir($DIR);
 }
 
 #------------------------------------------------------------
-note "Read a nested multipart MIME message";
+$T->msg("Read a nested multipart MIME message");
 #------------------------------------------------------------
 open IN, "./testin/multi-nested.msg" or die "open: $!";
 $entity = $parser->read(\*IN);
-check($entity, "parse of nested multipart");
+$T->ok($entity, "parse of nested multipart");
 
 #------------------------------------------------------------
-note "Check the various output files";
+$T->msg("Check the various output files");
 #------------------------------------------------------------
-check((-s "$DIR/3d-vise.gif" == 419), "vise gif");
-check((-s "$DIR/3d-eye.gif" == 357) , "3d-eye gif");
+$T->ok((-s "$DIR/3d-vise.gif" == 419), "vise gif");
+$T->ok((-s "$DIR/3d-eye.gif" == 357) , "3d-eye gif");
 for $msgno (1..4) {
-    check((-s "$DIR/message-$msgno.dat"), "message $msgno");
+    $T->ok((-s "$DIR/message-$msgno.dat"), "message $msgno");
 }
 
 #------------------------------------------------------------
-note "Same message, but CRLF-terminated and no output path hook";
+$T->msg("Same message, but CRLF-terminated and no output path hook");
 #------------------------------------------------------------
 $parser = new MIME::Parser;
 { local $^W = undef;
 $parser->output_dir($DIR);
 open IN, "./testin/multi-nested2.msg" or die "open: $!";
 $entity = $parser->read(\*IN);
-check($entity, "parse of CRLF-terminated message");
+$T->ok($entity, "parse of CRLF-terminated message");
 }
 
 #------------------------------------------------------------
-note "Read a simple in-core MIME message, three ways";
+$T->msg("Read a simple in-core MIME message, three ways");
 #------------------------------------------------------------
 my $data_scalar = <<EOF;
 Content-type: text/html
@@ -214,22 +214,22 @@ my $data_test;
 $parser->output_to_core('ALL');
 foreach $data_test ($data_scalar, $data_scalarref, $data_arrayref) {
     $entity = $parser->parse_data($data_test);
-    check(($entity and $entity->head->mime_type eq 'text/html') ,
+    $T->ok(($entity and $entity->head->mime_type eq 'text/html') ,
 	((ref($data_test)||'NO') . "-REF"));
 }
 $parser->output_to_core('NONE');
 
 
 #------------------------------------------------------------
-note "Simple message, in two parts";
+$T->msg("Simple message, in two parts");
 #------------------------------------------------------------
 $entity = $parser->parse_two("./testin/simple.msgh", "./testin/simple.msgb");
 my $es = ($entity ? $entity->head->get('subject',0) : '');
-check(($es =~ /^Request for Leave$/),
-      "parse of 2-part simple message (subj <$es>)");
+$T->ok(($es =~ /^Request for Leave$/),
+      "	parse of 2-part simple message (subj <$es>)");
 
 #------------------------------------------------------------
-note "Check various messages";
+$T->msg("Check various messages");
 #------------------------------------------------------------
 $parser = new MIME::Parser;
 $parser->output_dir($DIR);
@@ -241,7 +241,7 @@ foreach $message (sort keys %MESSAGES) {
     $parser->parse_nested_messages($MESSAGES{$message}{Nested});
 
     # Parse:
-    note "Parsing/checking $message...";
+    $T->msg("Parsing/checking $message...");
     open IN, "./testin/$MESSAGES{$message}{Infile}" or die "open: $!";
     $ent = eval { $parser->read(\*IN) };
     close IN;

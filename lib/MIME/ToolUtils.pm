@@ -6,6 +6,13 @@ package MIME::ToolUtils;
 MIME::ToolUtils - MIME-tools kit configuration and utilities
 
 
+=head1 SYNOPSIS
+
+    # Get current debugging flag, and invert it:
+    $current = config MIME::ToolUtils 'DEBUGGING';
+    config MIME::ToolUtils DEBUGGING => !$current;
+
+
 =head1 DESCRIPTION
 
 A catch-all place for miscellaneous global information related to 
@@ -51,7 +58,7 @@ Exporter::export_ok_tags('config', 'msgs', 'utils');
 #------------------------------ 
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.102 $, 10;
+$VERSION = substr q$Revision: 4.103 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -399,7 +406,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.102 $ $Date: 1997/12/14 03:07:10 $
+$Revision: 4.103 $ $Date: 1998/05/01 19:52:15 $
 
 I<Note: this file is used to set the version of the entire MIME-tools 
 distribution.>

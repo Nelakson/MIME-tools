@@ -1,10 +1,10 @@
-use lib "./blib/lib", "./t";
+use lib "./t";
 use MIME::Head;
 
-use Checker;
+use ExtUtils::TBone;
 
 # Create checker:
-my $T = new Checker "./testout/Misc.tlog";
+my $T = typical ExtUtils::TBone;
 $T->begin(7);
 
 #------------------------------
@@ -22,11 +22,11 @@ $T->begin(7);
 #
 {
     my $head = MIME::Head->new([
-        'Content-Type: application/vnd.ms-powerpoint; name="June97V4.0.ppt"'
-			       ]);
-    $T->test_eq($head->mime_type,
-		"application/vnd.ms-powerpoint",
-		"bug 971008-MWN: are MIME attributes parsed ok?");
+	 'Content-Type: application/vnd.ms-powerpoint; name="June97V4.0.ppt"'
+				]);
+    $T->ok_eq($head->mime_type,
+	      "application/vnd.ms-powerpoint",
+	      "bug 971008-MWN: are MIME attributes parsed ok?");
 }
 
 #------------------------------
@@ -50,12 +50,12 @@ $T->begin(7);
     use MIME::Head;
     my $field = Mail::Field->new('Content-type', 
 				 'text/HTML; charset="US-ASCII"');
-    $T->test_eq($field->paramstr('_'),
-		"text/HTML",
-		"bug 970822-AL: Mail::Field register problem (paramstr)");
-    $T->test_eq($field->type,
-		"text/html",
-		"bug 970822-AL: Mail::Field register problem (type)");
+    $T->ok_eq($field->paramstr('_'),
+	      "text/HTML",
+	      "bug 970822-AL: Mail::Field register problem (paramstr)");
+    $T->ok_eq($field->type,
+	      "text/html",
+	      "bug 970822-AL: Mail::Field register problem (type)");
 }
 
 #------------------------------
@@ -73,8 +73,8 @@ $T->begin(7);
 		   [".",         "=2E"],
 		   [" From you", " From you"]) {
 	my $out = MIME::Decoder::QuotedPrint::encode_qp_really($pair->[0]);
-	$T->test_eq($out, $pair->[1],
-		    "bug 970725-DNA: QP use of RFC2049 guideline 8");
+	$T->ok_eq($out, $pair->[1],
+		  "bug 970725-DNA: QP use of RFC2049 guideline 8");
     }
 }
 
@@ -93,10 +93,13 @@ $T->begin(7);
 				"Received: fourth\n",
 				"subject: hi!\n"]);
     my @received = $head->get_all('Received');
-    $T->test_eqn(int(@received), 4,	 
+    $T->ok_eqnum(int(@received), 
+		 4,	 
 		 "bug 970626-TS: header get_all() case problem fixed?");
 }
 
 #------------------------------------------------------------
 $T->end;
 1;
+
+

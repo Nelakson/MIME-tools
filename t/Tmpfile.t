@@ -1,11 +1,11 @@
-use lib "./blib/lib", "./t";
+use lib "./t";
 use MIME::ToolUtils qw(tmpopen);
-use Checker;
+use ExtUtils::TBone;
 use FileHandle;
 
 # Create checker:
 my $ntests = 800;
-my $T = new Checker "./testout/Tmpfile.tlog";
+my $T = typical ExtUtils::TBone;
 $T->begin($ntests);
 
 # Run the test:
@@ -22,7 +22,7 @@ sub leak {
     print $TMP "Hello!\nGoodbye!\n";
     seek($TMP, 0, 0);
     my $line = <$TMP>;
-    $T->test(($line eq "Hello!\n"));
+    $T->ok($line, "Hello!\n");
     # no close! hopefully, the destructor will handle it!
 }
 

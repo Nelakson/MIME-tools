@@ -1,18 +1,21 @@
-use lib "./blib/lib", "./t";
+use lib "./t";
 
 use MIME::Tools;
 use MIME::Decoder;
 config MIME::Tools QUIET=>1;
 
 # config MIME::Tools DEBUGGING=>1;
-use Checker;
+use ExtUtils::TBone;
 
 #------------------------------------------------------------
 # BEGIN
 #------------------------------------------------------------
 
 # Is gzip available?  Quick and dirty test:
-my $has_gzip = which('gzip');
+my $has_gzip;
+foreach (split ':', $ENV{PATH}) {
+    last if ($has_gzip = -x "$_/gzip");
+}
 if ($has_gzip) {
    require MIME::Decoder::Gzip64;
    install MIME::Decoder::Gzip64 'x-gzip64';
@@ -28,7 +31,7 @@ my @encodings = ('base64',
 		 'x-uuencode');
 
 # Create checker:
-my $T = new Checker "./testout/Decoder.tlog";
+my $T = typical ExtUtils::TBone;
 $T->begin(scalar(@encodings));
 
 # Report what tests we may be skipping:
@@ -64,11 +67,11 @@ foreach $e (@encodings) {
 
     # Can we compare?
     if ($e =~ /^(base64|quoted-printable|binary|x-gzip64|x-uuencode)$/i) {
-	$T->test(((-s $infile) == (-s $decfile)),
+	$T->ok(((-s $infile) == (-s $decfile)),
 		  "size of $infile == size of $decfile");
     }
     else {
-	$T->test_ok;
+	$T->ok(1);
     }
 }
 

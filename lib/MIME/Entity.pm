@@ -237,7 +237,7 @@ use IO::Wrap;
 #------------------------------
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.114 $, 10;
+$VERSION = substr q$Revision: 4.115 $, 10;
 
 # Boundary counter:
 my $BCount = 0;
@@ -460,6 +460,11 @@ warned, and your boundary will be ignored, if this is not the case).
 If you omit this, a random string will be chosen... which is probably 
 safer.
 
+=item Charset
+
+I<Optional.>  
+The character set.
+
 =item Data
 
 I<Single-part entities only. Optional.>  
@@ -497,7 +502,7 @@ The recommended filename.  Overrides any name extracted from C<Path>.
 The information is stored both the deprecated (content-type) and
 preferred (content-disposition) locations.  If you explicitly want to 
 I<avoid> a recommended filename (even when Path is used), supply this 
-as undef.
+as empty or undef.
 
 =item Path
 
@@ -535,6 +540,7 @@ sub build {
 
     # Get sundry field:
     my $type         = $params{Type} || 'text/plain';
+    my $charset      = $params{Charset};
     my $is_multipart = ($type =~ m{^multipart/}i);
     my $encoding     = $params{Encoding} || '';
     my $desc         = $params{Description};
@@ -542,10 +548,10 @@ sub build {
     my $disposition  = $params{Disposition} || 'inline';
 
     # Get recommended filename, allowing explicit no-value value:
-    $filename = (exists($params{Filename}) 
-		 ? $params{Filename} : ($params{Path} || ''));
-    $filename =~ s{^.*/}{}g;        # nuke path info    
-
+    my ($path_fname) = (($params{Path}||'') =~ m{([^/]+)\Z});
+    $filename = (exists($params{Filename}) ? $params{Filename} : $path_fname);
+    $filename = undef if (defined($filename) and $filename eq '');
+    
     # Type-check sanity:
     if ($type =~ m{^(multipart|message)/}) {
 	($encoding =~ /^(|7bit|8bit|binary|-suggest)$/i) 
@@ -597,8 +603,9 @@ sub build {
     # Add content-type field:
     $field = new Mail::Field 'Content_type';         # not a typo :-(
     $field->type($type);
-    $field->name($filename)      if ($filename ne '');
-    $field->boundary($boundary)  if (defined($boundary));
+    $field->charset($charset)    if $charset;
+    $field->name($filename)      if defined($filename);
+    $field->boundary($boundary)  if defined($boundary);
     $head->replace('Content-type', $field->stringify);
 
     # Now that both body and content-type are available, we can suggest 
@@ -609,7 +616,7 @@ sub build {
     unless ($is_multipart) {
 	$field = new Mail::Field 'Content_disposition';  # not a typo :-(
 	$field->type($disposition);
-	$field->filename($filename) if ($filename ne '');
+	$field->filename($filename) if defined($filename);
 	$head->replace('Content-disposition', $field->stringify);
     }
 
@@ -2036,7 +2043,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 4.114 $ $Date: 1998/01/25 19:54:07 $
+$Revision: 4.115 $ $Date: 1998/05/01 19:52:15 $
 
 =cut
 

@@ -12,7 +12,7 @@ use vars qw($VERSION);
 sub config { shift; MIME::ToolUtils->config(@_) }
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 4.116 $, 10;
+$VERSION = substr q$Revision: 4.119 $, 10;
 
 #------------------------------
 1;
@@ -277,7 +277,7 @@ turn on debugging), use the routines in the B<L<MIME::ToolUtils>> module.
 
 =item *
 
-B<Run with -w.>  If you see a warning about a deprecated method,
+B<Run with C<-w> on.>  If you see a warning about a deprecated method,
 change your code ASAP.  This will ease upgrades tremendously.
 
 =item *
@@ -633,6 +633,20 @@ Support for S/MIME and message/partial?
 
 =over 4
 
+=item Version 4.117
+
+B<Nicer MIME::Entity::build.> 
+        No longer outputs warnings with undefined Filename, and now
+        accepts Charset as well.
+	I<Thanks to Jason Tibbits III for the inspirational patch.>
+
+B<Documentation fixes.>  
+        Hopefully we've seen the last of the pod2man warnings...
+
+B<Better test logging.>  
+        Now uses ExtUtils::TBone.
+
+
 =item Version 4.116
 
 B<Bug fix:> 
@@ -843,9 +857,9 @@ B<You can now compute/strip content lengths>
 	I<Thanks to Tim Pierce for bringing the basic problem to my attention.>
 
 B<Many warnings are now silent unless $^W is true.>  
-	That means unless you run your Perl with -w, you won't see deprecation
-	warnings, non-fatal-error messages, etc.  But of course you run with
-	-w, so this doesn't affect you.  C<:-)>
+	That means unless you run your Perl with C<-w>, you won't see 
+        deprecation warnings, non-fatal-error messages, etc.  
+        But of course you run with C<-w>, so this doesn't affect you.  C<:-)>
 
 B<Completed the 7-bit encodings in MIME::Latin1.>
 	We hadn't had complete coverage in the conversion from 8- to 7-bit; 
@@ -1079,7 +1093,7 @@ Release of 4.0: Christmas 1997.
 
 =head1 VERSION
 
-$Revision: 4.116 $ 
+$Revision: 4.119 $ 
 
 
 =head1 ACKNOWLEDGMENTS
