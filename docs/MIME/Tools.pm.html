@@ -813,7 +813,7 @@ bugs <I>before</I> they become problems...
 <A NAME="VERSION"><H2><A HREF="#__TOP__"><IMG SRC="icons/h1bullet.gif" ALT="Top" BORDER="0"></A> VERSION</H2></A>
 
 
-<P>$Revision: 5.313 $
+<P>$Revision: 5.314 $
 
 
 
@@ -823,6 +823,11 @@ bugs <I>before</I> they become problems...
 
 
 <DL>
+<P><DT><B><A NAME="item:Version">Version 5.314   (2000/09/06)</A></B></DT>
+<DD>
+Fixed Makefile.PL to have less-restrictive requirement
+for File::Spec (0.6).
+
 <P><DT><B><A NAME="item:Version">Version 5.313   (2000/09/05)</A></B></DT>
 <DD>
 <B>Fixed nasty bug with evil filenames.</B>
@@ -830,7 +835,8 @@ Certain evil filenames were getting replaced by internally-generated
 filenames which were just as evil... ouch!  If your parser occasionally
 throws a fatal exception with a &quot;write-open&quot; error message, then
 you have this bug.
-<I>Thanks to Julian Field for delivering the evidence!</I> 
+<I>Thanks to Julian Field and Antony OSullivan (ajos1)
+for delivering the evidence!</I> 
 
 <FONT SIZE=3 FACE="courier"><PRE>
        Beware the doctor
@@ -1765,7 +1771,7 @@ documented in RFC 822.
 
 <P><HR>
 <ADDRESS><FONT SIZE=-1>
-Generated Tue Sep  5 00:05:05 2000 by cvu_pod2html
+Generated Wed Sep  6 00:49:55 2000 by cvu_pod2html
 </FONT></ADDRESS>
 </FONT></BODY>
 </HTML>

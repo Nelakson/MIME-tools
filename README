@@ -534,15 +534,20 @@ SUPPORT
     out about those bugs *before* they become problems...
 
 VERSION
-    $Revision: 5.313 $
+    $Revision: 5.314 $
 
 CHANGE LOG
+    Version 5.314   (2000/09/06)
+        Fixed Makefile.PL to have less-restrictive requirement for
+        File::Spec (0.6).
+
     Version 5.313   (2000/09/05)
         Fixed nasty bug with evil filenames. Certain evil filenames were
         getting replaced by internally-generated filenames which were just
         as evil... ouch! If your parser occasionally throws a fatal
         exception with a "write-open" error message, then you have this bug.
-        *Thanks to Julian Field for delivering the evidence!*
+        *Thanks to Julian Field and Antony OSullivan (ajos1) for delivering
+        the evidence!*
 
                Beware the doctor
                   who cures seasonal head cold

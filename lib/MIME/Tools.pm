@@ -28,7 +28,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = substr q$Revision: 5.313 $, 10;
+$VERSION = substr q$Revision: 5.314 $, 10;
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -934,12 +934,18 @@ bugs I<before> they become problems...
 
 =head1 VERSION
 
-$Revision: 5.313 $
+$Revision: 5.314 $
 
 
 =head1 CHANGE LOG
 
 =over 4
+
+=item Version 5.314   (2000/09/06)
+
+Fixed Makefile.PL to have less-restrictive requirement
+for File::Spec (0.6).
+
 
 =item Version 5.313   (2000/09/05)
 
@@ -948,7 +954,8 @@ Certain evil filenames were getting replaced by internally-generated
 filenames which were just as evil... ouch!  If your parser occasionally
 throws a fatal exception with a "write-open" error message, then
 you have this bug.
-I<Thanks to Julian Field for delivering the evidence!> 
+I<Thanks to Julian Field and Antony OSullivan (ajos1)
+for delivering the evidence!> 
 
        Beware the doctor
           who cures seasonal head cold
