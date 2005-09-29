@@ -16,7 +16,7 @@ my $LINE;
 
 # Create checker:
 my $T = typical ExtUtils::TBone;
-$T->begin(29);
+$T->begin(30);
 
 
 #------------------------------------------------------------
@@ -54,7 +54,14 @@ $T->msg("Testing build()");
      $T->ok(!$got,
 	    "Path: with explicitly undef Filename, got no filename",
 	    Got => $got);
+     my $x = $e->stringify();
+     my $version = $MIME::Entity::VERSION;
+     my $desired = "Content-Type: text/plain\nContent-Disposition: inline\nContent-Transfer-Encoding: binary\nMIME-Version: 1.0\nX-Mailer: MIME-tools $version (Entity $version)\n\nDear «François Müller»,\n\nAs you requested, I have rewritten the MIME:: parser modules to support\nthe creation of MIME messages.\n\nEryq\n";
+     $T->ok($x eq $desired,
+	    "Tested stringify",
+	    Got => $x);
  }
+
  { 
      #-----test------
      my $e = MIME::Entity->build(Path     => "./testin/short.txt",

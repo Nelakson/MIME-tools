@@ -2,6 +2,7 @@ COPYING
 ChangeLog
 INSTALLING
 MANIFEST
+MANIFEST.SKIP
 META.yml
 Makefile.PL
 README
@@ -40,8 +41,6 @@ lib/MIME/Parser/Results.pm
 lib/MIME/Tools.pm
 lib/MIME/WordDecoder.pm
 lib/MIME/Words.pm
-patch
-set-version.pl
 t/Body.t
 t/Decoder.t
 t/Entity.t

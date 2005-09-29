@@ -1,3 +1,16 @@
+2005-09-29  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* MIME/Decoder/QuotedPrint.pm: Localize "$_" in a couple of places.
+
+	* MIME/WordDecoder.pm: Turn off useless debugging output to STDERR
+
+	* MIME/Entity.pm: Make the stringify method use IO::ScalarArray
+	instead of IO::Scalar.  For small messages, performance may be
+	worse; for large messages, it is definitely much better.
+
+	* MANIFEST: Remove some useless internal files from the manifest.
+	They were never meant to be part of the actual distribution.
+	
 2005-01-20  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.417 RELEASED
