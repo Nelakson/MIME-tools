@@ -249,7 +249,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.418";
+$VERSION = "5.419";
 
 ### Boundary counter:
 my $BCount = 0;
@@ -1445,8 +1445,8 @@ sub suggest_encoding {
 	$self->bodyhandle || return ($self->parts ? 'binary' : '7bit');
 	my ($IO, $unclean);
 	if ($IO = $self->bodyhandle->open("r")) {
-
-	    ### Scan message for 7bit-cleanliness:
+	    ### Scan message for 7bit-cleanliness
+	    local $_;
 	    while (defined($_ = $IO->getline)) {
 		last if ($unclean = ((length($_) > 999) or /[\200-\377]/));
 	    }
@@ -1794,7 +1794,7 @@ sub print_body {
 
 	### Preamble:
 	my $preamble = join('', @{ $self->preamble || $DefPreamble });
-	$out->print("$preamble\n") if ($preamble ne '');
+	$out->print("$preamble\n") if ($preamble ne '' or $self->preamble);
 
 	### Parts:
 	my $part;
@@ -1846,14 +1846,20 @@ sub print_bodyhandle {
     my ($self, $out) = @_;
     $out = wraphandle($out || select);             ### get a printable output
 
-    ### Get the encoding, defaulting to "binary" if unsupported:
-    my $encoding = ($self->head->mime_encoding || 'binary');
-    my $decoder = best MIME::Decoder $encoding;
-    $decoder->head($self->head);      ### associate with head, if any
-
-    ### Output the body:
     my $IO = $self->open("r")     || die "open body: $!";
-    $decoder->encode($IO, $out, textual_type($self->head->mime_type) ? 1 : 0)   || die "encoding failed\n";
+    if ( $self->bodyhandle->is_encoded ) {
+      ### Transparent mode: data is already encoded, so no
+      ### need to encode it again
+      my $buf;
+      $out->print($buf) while ($IO->read($buf, 2048));
+    } else {
+      ### Get the encoding, defaulting to "binary" if unsupported:
+      my $encoding = ($self->head->mime_encoding || 'binary');
+      my $decoder = best MIME::Decoder $encoding;
+      $decoder->head($self->head);      ### associate with head, if any
+      $decoder->encode($IO, $out)   || return error "encoding failed";
+    }
+
     $IO->close;
     1;
 }
@@ -2236,7 +2242,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.12 $ $Date: 2005/09/28 13:59:20 $
+$Revision: 1.15 $ $Date: 2005/12/22 14:56:59 $
 
 =cut
 

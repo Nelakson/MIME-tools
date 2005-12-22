@@ -1,4 +1,15 @@
+2005-12-22  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.419 RELEASED
+
+	* Added MIME::Parser->decode_bodies method.  This lets you force
+	MIME::Tools to store body parts WITHOUT decoding them.  Useful
+	if you need the exact unmangled message source (for example,
+	for GPG-signing.)  Patch submitted by Jörn Reder.
+
 2005-09-29  David F. Skoll  <dfs@roaringpenguin.com>
+
+	* VERSION 5.418 RELEASED
 
 	* MIME/Decoder/QuotedPrint.pm: Localize "$_" in a couple of places.
 
@@ -10,7 +21,7 @@
 
 	* MANIFEST: Remove some useless internal files from the manifest.
 	They were never meant to be part of the actual distribution.
-	
+
 2005-01-20  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.417 RELEASED

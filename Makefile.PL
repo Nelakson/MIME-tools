@@ -75,6 +75,7 @@ WriteMakefile(
 		       "IO::Stringy"       => 1.211,
 		       "File::Spec"        => 0.6,
 		       "File::Path"        => 1,
+                       "Test::More"        => 0,
 		       },
       AUTHOR => 'Eryq <eryq@zeegee.com>, David F. Skoll <dfs@roaringpenguin.com>',
       ABSTRACT => 'Tools to manipulate MIME messages',
