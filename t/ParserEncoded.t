@@ -50,10 +50,10 @@ main: {
     $mail_text = $entity->as_string;
     if ( $has_md5 ) {
         my $md5 = Digest::MD5::md5_hex($mail_text);
-        ok($md5 eq "01c226d7a54febb44488c29bfbfba9c1", "Decoded MD5 match");
+        ok($md5 eq "54a4ccb3a16f83e851581ffa5178f68a", "Decoded MD5 match");
     } else {
         my $len = length($mail_text);
-        ok($len == 669, "Decoded length match");
+        ok($len == 609, "Decoded length match");
     }
 }
 

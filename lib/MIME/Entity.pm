@@ -249,7 +249,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.419";
+$VERSION = "5.420";
 
 ### Boundary counter:
 my $BCount = 0;
@@ -651,8 +651,8 @@ sub build {
 
     ### Add the X-Mailer field, if top level (use default value if not given):
     $top and $head->replace('X-Mailer', 
-			    "MIME-tools ".(0+MIME::Tools->version).
-			    " (Entity "  .(0+$VERSION).")"); 
+			    "MIME-tools ".(MIME::Tools->version).
+			    " (Entity "  .($VERSION).")"); 
 	
     ### Add remaining user-specified fields, if any:
     while (@paramlist) {
@@ -1857,7 +1857,7 @@ sub print_bodyhandle {
       my $encoding = ($self->head->mime_encoding || 'binary');
       my $decoder = best MIME::Decoder $encoding;
       $decoder->head($self->head);      ### associate with head, if any
-      $decoder->encode($IO, $out)   || return error "encoding failed";
+      $decoder->encode($IO, $out, textual_type($self->head->mime_type) ? 1 : 0)   || return error "encoding failed";
     }
 
     $IO->close;
@@ -2242,7 +2242,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.15 $ $Date: 2005/12/22 14:56:59 $
+$Revision: 1.18 $ $Date: 2006/03/17 21:15:49 $
 
 =cut
 

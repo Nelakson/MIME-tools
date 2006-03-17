@@ -1,3 +1,10 @@
+2006-03-17  David F. Skoll  <dfs@roaringpenguin.com>
+	
+	* VERSION 5.420 RELEASED
+
+	* Fix regression introduced in 5.419 -- quoted-printable
+	encoding would sometimes fail on "textual" MIME parts.
+
 2005-12-22  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.419 RELEASED
