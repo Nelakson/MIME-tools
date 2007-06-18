@@ -1,11 +1,11 @@
-use lib "./t";
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+use Test::More;
+use File::Spec;
 
 use MIME::Tools;
 use MIME::Decoder;
-config MIME::Tools QUIET=>1;
-
-# config MIME::Tools DEBUGGING=>1;
-use ExtUtils::TBone;
 
 #------------------------------------------------------------
 # BEGIN
@@ -31,12 +31,10 @@ my @encodings = ('base64',
 		 'x-uuencode',
 		 'binhex');
 
-# Create checker:
-my $T = typical ExtUtils::TBone;
-$T->begin(scalar(@encodings));
+plan( tests => scalar @encodings);
 
 # Report what tests we may be skipping:
-$T->msg($has_gzip
+diag($has_gzip
 	? "Using gzip: $has_gzip"
 	: "No gzip: skipping x-gzip64 test");
 
@@ -46,15 +44,13 @@ foreach $e (@encodings) {
     ++$eno;
     my $decoder = MIME::Decoder->new($e);
     unless(defined($decoder)) {
-	$T->msg("Encoding/decoding of $e not supported -- skipping test");
-	$T->ok(1);
+	pass("Encoding/decoding of $e not supported -- skipping test");
 	next;
     }
 
-    $T->msg("Encoding/decoding of $e");
-    my $infile  = $T->catfile('.', 'testin', 'fun.txt');
-    my $encfile = $T->catfile('.', 'testout', "fun.en$eno");
-    my $decfile = $T->catfile('.', 'testout', "fun.de$eno");
+    my $infile  = File::Spec->catfile('.', 'testin', 'fun.txt');
+    my $encfile = File::Spec->catfile('.', 'testout', "fun.en$eno");
+    my $decfile = File::Spec->catfile('.', 'testout', "fun.de$eno");
 
     # Encode:
     open IN, "<$infile" or die "open $infile: $!";
@@ -74,15 +70,9 @@ foreach $e (@encodings) {
 
     # Can we compare?
     if ($e =~ /^(binhex|base64|quoted-printable|binary|x-gzip64|x-uuencode)$/i) {
-	$T->ok(((-s $infile) == (-s $decfile)),
-		  "size of $infile == size of $decfile");
+	is(-s $infile, -s $decfile, "Encoding/decoding of $e: size of $infile == size of $decfile");
     }
     else {
-	$T->ok(1);
+	pass("Encoding/decoding of $e: size not comparable, marking pass anyway");
     }
 }
-
-# Done!
-$T->end;
-exit(0);
-1;

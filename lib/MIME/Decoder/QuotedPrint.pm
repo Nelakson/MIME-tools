@@ -47,7 +47,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.21 $ $Date: 2006/03/17 21:03:23 $
+$Revision$ $Date$
 
 
 =cut
@@ -59,7 +59,7 @@ use MIME::QuotedPrint;
 @ISA = qw(MIME::Decoder);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420";
+$VERSION = "5.420_01";
 
 #------------------------------
 # If we have MIME::QuotedPrint 3.03 or later, use the three-argument

@@ -1,6 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 use strict;
+use warnings;
 use Test::More;
 
 plan tests => 2;

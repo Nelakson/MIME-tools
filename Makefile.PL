@@ -12,7 +12,7 @@ my %modules =
 		       rec_version => "3.03" },
  'IO::Stringy' =>    { min_version => "1.211" },
  'File::Spec' =>     { min_version => "0.6" },
- 'File::Path' =>     { min_version => "1" }
+ 'File::Path' =>     { min_version => "1" },
  );
 
 my($m, $foundit, $foundrec, @missing);

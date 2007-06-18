@@ -1,12 +1,13 @@
-use lib "./t";
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+use Test::More tests => 14;
+
 use MIME::Head;
 use MIME::Parser;
-
-use ExtUtils::TBone;
-
-# Create checker:
-my $T = typical ExtUtils::TBone;
-$T->begin(14);
+use Mail::Field;
+use MIME::Head;
+use MIME::Decoder::QuotedPrint;
 
 #------------------------------
 # Bug 971008 from Michael W. Normandin <michael.normandin@csfb.com>:
@@ -25,7 +26,7 @@ $T->begin(14);
     my $head = MIME::Head->new([
 	 'Content-Type: application/vnd.ms-powerpoint; name="June97V4.0.ppt"'
 				]);
-    $T->ok_eq($head->mime_type,
+    is($head->mime_type,
 	      "application/vnd.ms-powerpoint",
 	      "bug 971008-MWN: are MIME attributes parsed ok?");
 }
@@ -47,14 +48,12 @@ $T->begin(14);
 # than `Mail::Field', but I am at a loss as to what to do next. Maybe you
 # can help? Thank you very much.
 {
-    use Mail::Field;
-    use MIME::Head;
     my $field = Mail::Field->new('Content-type', 
 				 'text/HTML; charset="US-ASCII"');
-    $T->ok_eq($field->paramstr('_'),
+    is($field->paramstr('_'),
 	      "text/HTML",
 	      "bug 970822-AL: Mail::Field register problem (paramstr)");
-    $T->ok_eq($field->type,
+    is($field->type,
 	      "text/html",
 	      "bug 970822-AL: Mail::Field register problem (type)");
 }
@@ -70,27 +69,25 @@ $T->begin(14);
 #
 # Textual mode.
 {
-    use MIME::Decoder::QuotedPrint;
     my $pair;
     foreach $pair (["From me",   "=46rom me=\n"],
 		   [".",         ".=\n"],  # soft line-break
 		   [".\n",       "=2E\n"], # line-break
 		   [" From you", " From you=\n"]) {
 	my $out = MIME::Decoder::QuotedPrint::encode_qp_really($pair->[0], 1);
-	$T->ok_eq($out, $pair->[1],
+	is($out, $pair->[1],
 		  "bug 970725-DNA: QP use of RFC2049 guideline 8");
     }
 }
 # Binary mode
 {
-    use MIME::Decoder::QuotedPrint;
     my $pair;
     foreach $pair (["From me",   "=46rom me=\n"],
 		   [".",         ".=\n"],     # soft line-break
 		   [".\n",       ".=0A=\n"],  # line-break
 		   [" From you", " From you=\n"]) {
 	my $out = MIME::Decoder::QuotedPrint::encode_qp_really($pair->[0], 0);
-	$T->ok_eq($out, $pair->[1],
+	is($out, $pair->[1],
 		  "bug 970725-DNA: QP use of RFC2049 guideline 8");
     }
 }
@@ -110,7 +107,7 @@ $T->begin(14);
 				"Received: fourth\n",
 				"subject: hi!\n"]);
     my @received = $head->get_all('Received');
-    $T->ok_eqnum(int(@received), 
+    is(scalar @received, 
 		 4,	 
 		 "bug 970626-TS: header get_all() case problem fixed?");
 }
@@ -123,7 +120,7 @@ $T->begin(14);
     my $parser = new MIME::Parser;
     $parser->output_to_core('ALL');
     my $e = eval { $parser->parse_open("testin/jt-0498.msg") };
-    $T->ok_eqnum(($e and scalar $e->parts), 
+    is(scalar $e->parts, 
 		 2,
 		 "bug 980430-JT: did we get 2 parts?");
 }
@@ -133,13 +130,9 @@ $T->begin(14);
     my $parser = new MIME::Parser;
     $parser->output_to_core('ALL');
     my $e = eval { $parser->parse_open("testin/twopart.msg") };
-    $T->ok_eqnum(($e and scalar $e->parts), 
+    is( scalar $e->parts, 
 		 2,
 		 "bug: did we get 2 parts?");
 }
 
-#------------------------------------------------------------
-$T->end;
 1;
-
-

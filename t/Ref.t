@@ -1,35 +1,36 @@
-use lib "./t";
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+
+use Test::More;
 
 use MIME::Tools;
 use File::Path;
+use File::Spec;
 use File::Basename;
-use ExtUtils::TBone;
-use Globby;
 use MIME::WordDecoder qw(unmime);
 
-use strict;
-config MIME::Tools DEBUGGING=>0;
+use lib qw( ./t/ );
+use Globby;
 
 use MIME::Parser;
 
-my $T = typical ExtUtils::TBone;
 #print STDERR "\n";
 
 ### Verify directory paths:
 (-d "testout") or die "missing testout directory\n";
-my $output_dir = $T->catdir(".", "testout", "Ref_t");
+my $output_dir = File::Spec->catdir(".", "testout", "Ref_t");
 
 ### Get messages to process:
 my @refpaths = @ARGV;
 if (!@refpaths) { 
     opendir DIR, "testmsgs" or die "opendir: $!\n";
-    @refpaths = map { $T->catfile(".", "testmsgs", $_) 
+    @refpaths = map { File::Spec->catfile(".", "testmsgs", $_) 
 		      } grep /\w.*\.ref$/, readdir(DIR);
     closedir DIR; 
 }
 
-### Create checker:
-$T->begin(2 * int(@refpaths));
+plan( tests => 2 * scalar(@refpaths) );
 
 ### For each reference:
 foreach my $refpath (@refpaths) {
@@ -41,9 +42,9 @@ foreach my $refpath (@refpaths) {
     ### Get reference, as ref to array:
     my $ref = read_ref($refpath);
     if ($ref->{Parser}{Message}) {
-	$msgpath = $T->catfile(".", (split /\//, $ref->{Parser}{Message}));
+	$msgpath = File::Spec->catfile(".", (split /\//, $ref->{Parser}{Message}));
     }
-    $T->log("Trying $refpath [$msgpath]\n");
+    # diag("Trying $refpath [$msgpath]\n");
 
     ### Create parser which outputs to testout/scratch:
     my $parser = MIME::Parser->new;
@@ -64,7 +65,7 @@ foreach my $refpath (@refpaths) {
 				     'US-ASCII' => 'KEEP',
       				     '*'        => 'WARN']);
     }
-    $T->log("Default charset: $tgt");
+    # diag("Default charset: $tgt");
     MIME::WordDecoder->default($wd);
 	
     ### Pre-clean:    
@@ -76,27 +77,25 @@ foreach my $refpath (@refpaths) {
     my $parse_error = $@;
 
     ### Output parse log:
-    $T->msg("PARSE LOG FOR $refpath [$msgpath]");
+#    diag("PARSE LOG FOR $refpath [$msgpath]");
     if ($parser->results) {
-	$T->msg($parser->results->msgs);
+#	diag($parser->results->msgs);
     }
     else {
-	$T->msg("Parse failed before results object was created");
+	diag("Parse failed before results object was created");
     }
 
     ### Interpret results:
     if ($parse_error || !$ent) {
-	$T->ok($ref->{Msg}{Fail},
-	       $refpath,
-	       Problem => $parse_error);
+	ok($ref->{Msg}{Fail}, "$refpath, problem: $parse_error" );
     }
     else {
+	# TODO: check_ref is evil
 	my $ok = eval { check_ref($msgpath, $ent, $ref) };
-	$T->ok($ok,
-	       $refpath,
-	       ($@ ? (Error => $@) : ()),
-	       Message => $msgpath,
-	       Parser  => ($ref->{Parser}{Name} || 'default'));
+	if( $@ ) {
+		diag("Eval failed: $@");
+	}
+	ok($ok, "$refpath Message => $msgpath, Parser => " . ($ref->{Parser}{Name} || 'default'));
     }
 
     ### Is purge working?
@@ -104,12 +103,7 @@ foreach my $refpath (@refpaths) {
     my @p_files = $parser->filer->purgeable;
     $parser->filer->purge;
     my @z_files = list_dir($output_dir);
-    $T->ok((@z_files == 0),
-	   "Did purge work?",
-	    Purgeable => \@p_files,
-	    Original  => \@a_files,
-	    Remaining => \@z_files
-	   );
+    is(@z_files, 0, 'Did purge work?');
 	
     ### Cleanup for real:
     rmtree($output_dir);
@@ -150,7 +144,7 @@ sub trim {
 }
 
 #------------------------------
-
+# TODO: replace with cmp_deeply from Test::Deep?
 sub check_ref {
     my ($msgpath, $ent, $ref) = @_;
 
@@ -214,9 +208,9 @@ sub check_ref {
 	    }
 	    elsif (/^Size$/)     { 
 		if ($head->mime_type =~ m{^(text|message)}) {
-		    $T->log("Skipping Size evaluation in text message ".
-			    "due to variations in local newline ".
-			    "conventions\n\n");
+#		    diag("Skipping Size evaluation in text message ".
+#			    "due to variations in local newline ".
+#			    "conventions\n\n");
 		    next ATTR;
 		}
 		if ($body and $body->path) { $got = (-s $body->path) }
@@ -226,10 +220,10 @@ sub check_ref {
 	    }
 
 	    ### Log this sub-test:
-	    $T->log("SUB-TEST: msg=$msgpath; part=$partname; attr=$_:\n");
-	    $T->log("  want: ".encode($want)."\n");
-	    $T->log("  got:  ".encode($got )."\n");
-	    $T->log("\n");
+#	    diag("SUB-TEST: msg=$msgpath; part=$partname; attr=$_:\n");
+#	    diag("  want: ".encode($want)."\n");
+#	    diag("  got:  ".encode($got )."\n");
+#	    diag("\n");
 
 	    next ATTR if (!defined($want) and !defined($got));
 	    next ATTR if ($want eq $got);

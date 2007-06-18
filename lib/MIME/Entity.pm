@@ -223,7 +223,6 @@ use vars qw(@ISA $VERSION);
 use strict;
 
 ### System modules:
-use FileHandle;
 use Carp;
 
 ### Other modules:
@@ -235,8 +234,6 @@ use MIME::Tools qw(:config :msgs :utils);
 use MIME::Head;
 use MIME::Body;
 use MIME::Decoder;
-use IO::ScalarArray;
-use IO::Wrap;
 use IO::Lines;
 
 @ISA = qw(Mail::Internet);
@@ -249,7 +246,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420";
+$VERSION = "5.420_01";
 
 ### Boundary counter:
 my $BCount = 0;
@@ -686,7 +683,7 @@ external data in bodyhandles is I<not> copied to new files!
 Changing the data in one entity's data file, or purging that entity, 
 I<will> affect its duplicate.  Entities with in-core data probably need
 not worry.
-
+'
 =cut
 
 sub dup {
@@ -755,16 +752,17 @@ or raw data (via read()).
 =cut
 
 sub body {
-    my ($self, $value) = @_;
-    if (@_ > 1) {      ### setting body line(s)...
-	croak "you cannot use body() to set the encoded contents\n";
-    }
-    else {             ### getting body lines...
-	my $lines = [];
-	my $lh = IO::Lines->new($lines);
-	$self->print_body($lh);
-	return $lines;
-    }
+	my ($self, $value) = @_;
+	if (@_ > 1) {      ### setting body line(s)...
+		croak "you cannot use body() to set the encoded contents\n";
+	}
+	else {             ### getting body lines...
+		my $output = '';
+		my $fh = IO::File->new(\$output, '>') or croak("Cannot open in-memory file: $!");
+		$self->print_body($fh);
+		close($fh);
+		return split("\n", $output);
+	}
 }
 
 #------------------------------
@@ -1371,9 +1369,9 @@ sub sign {
 	$sig = (ref($sig) ? join('', @$sig) : $sig);
     }
     elsif ($params{File}) {                      ### file contents
-	CORE::open SIG, $params{File} or croak "can't open $params{File}: $!";
-	$sig = join('', SIG->getlines);
-	close SIG or croak "can't close $params{File}: $!";
+	my $fh = IO::File->new( $params{File} ) or croak "can't open $params{File}: $!";
+	$sig = join('', $fh->getlines);
+	$fh->close or croak "can't close $params{File}: $!";
     }
     else {
 	croak "no signature given!";
@@ -1743,8 +1741,7 @@ sub print {
     my ($self, $out) = @_;
     $out = select if @_ < 2;
     $out = Symbol::qualify($out,scalar(caller)) unless ref($out);
-    $out = wraphandle($out);             ### get a printable output
-    
+
     $self->print_header($out);   ### the header
     $out->print("\n");
     $self->print_body($out);     ### the "stuff after the header"
@@ -1785,7 +1782,7 @@ filehandle is given: this may lead to confusion.
 
 sub print_body {
     my ($self, $out) = @_;
-    $out = wraphandle($out || select);             ### get a printable output
+    $out ||= select;
     my ($type) = split '/', lc($self->mime_type);  ### handle by MIME type
 
     ### Multipart...
@@ -1844,7 +1841,7 @@ sub print_body {
 #
 sub print_bodyhandle {
     my ($self, $out) = @_;
-    $out = wraphandle($out || select);             ### get a printable output
+    $out ||= select;
 
     my $IO = $self->open("r")     || die "open body: $!";
     if ( $self->bodyhandle->is_encoded ) {
@@ -1888,9 +1885,12 @@ You can also use C<as_string()>.
 =cut
 
 sub stringify {
-    my @arr = ();
-    shift->print(new IO::ScalarArray \@arr);
-    join("", @arr);
+	my ($self) = @_;
+	my $output = '';
+	my $fh = IO::File->new( \$output, '>' ) or croak("Cannot open in-memory file: $!");
+	$self->print($fh);
+	$fh->close;
+	return $output;
 }
 
 sub as_string { shift->stringify };      ### silent BC
@@ -1916,24 +1916,15 @@ singlepart message (like a "text/plain"), use C<bodyhandle()> instead:
 =cut
 
 sub stringify_body {
-    my @arr = ();
-    shift->print_body(new IO::ScalarArray \@arr);
-    join("", @arr);
+	my ($self) = @_;
+	my $output = '';
+	my $fh = IO::File->new( \$output, '>' ) or croak("Cannot open in-memory file: $!");
+	$self->print_body($fh);
+	$fh->close;
+	return $output;
 }
+
 sub body_as_string { shift->stringify_body }
-
-#------------------------------
-#
-# stringify_bodyhandle
-#
-# Instance method, unpublicized.  Stringify just the bodyhandle.
-
-sub stringify_bodyhandle {
-    my @arr = ();
-    shift->print_bodyhandle(new IO::ScalarArray \@arr);
-    join("", @arr);
-}
-sub bodyhandle_as_string { shift->stringify_bodyhandle }
 
 #------------------------------
 
@@ -1951,9 +1942,8 @@ sub stringify_header {
 sub header_as_string { shift->stringify_header }
 
 
-
-__END__
 1;
+__END__
   
 #------------------------------
 
@@ -2066,15 +2056,6 @@ As an array of lines, ready for sending.
 
 B<MIME::Entity:> 
 As an array of lines, ready for sending.
-
-
-=item If an entity has a body, does it have a soul as well?
-
-The soul does not exist in a corporeal sense, the way the body does; 
-it is not a solid [Perl] object.  Rather, it is a virtual object
-which is only visible when you print() an entity to a file... in other
-words, the "soul" it is all that is left after the body is DESTROY'ed.  
-
 
 =item What's the best way to get at the body data?
 
@@ -2242,9 +2223,8 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.18 $ $Date: 2006/03/17 21:15:49 $
+$Revision$ $Date$
 
 =cut
 
 #------------------------------
-1;

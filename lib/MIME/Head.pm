@@ -113,7 +113,6 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 
 ### System modules:
-use IO::Wrap;
 
 ### Other modules:
 use Mail::Header 1.09 ();
@@ -137,7 +136,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420";
+$VERSION = "5.420_01";
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -203,10 +202,10 @@ sub from_file {
     my $class = ref($self) ? ref($self) : $self;
 
     ### Parse:
-    open(HDR, $file) or return error("open $file: $!");
-    binmode(HDR) or return error("binmode $file: $!");  # we expect to have \r\n at line ends, and want to keep 'em.
-    $self = $class->new(\*HDR, @opts);      ### now, $self is instance or undef
-    close(HDR) or return error("close $file: $!");
+    my $fh = IO::File->new($file, '<') or return error("open $file: $!");
+    $fh->binmode() or return error("binmode $file: $!");  # we expect to have \r\n at line ends, and want to keep 'em.
+    $self = $class->new($fh, @opts);      ### now, $self is instance or undef
+    $fh->close or return error("close $file: $!");
     $self;
 }
 
@@ -526,7 +525,7 @@ Also, it defaults to the I<currently-selected> filehandle if none is given
 
 sub print {
     my ($self, $fh) = @_;
-    $fh = wraphandle($fh || select);   ### get output handle, as a print()able
+    $fh ||= select;
     $fh->print($self->as_string);
 }
 
@@ -904,7 +903,7 @@ Lee E. Brotzman, Advanced Data Solutions.
 
 =head1 VERSION
 
-$Revision: 1.14 $ $Date: 2006/03/17 21:03:23 $
+$Revision$ $Date$
 
 =cut
 

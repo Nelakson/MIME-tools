@@ -121,8 +121,6 @@ that parse MIME streams into MIME::Entity objects.
 
 #------------------------------
 
-# We require the new FileHandle methods, and a non-buggy version
-# of FileHandle->new_tmpfile:
 require 5.004;
 
 ### Pragmas:
@@ -130,11 +128,7 @@ use strict;
 use vars (qw($VERSION $CAT $CRLF));
 
 ### Built-in modules:
-use FileHandle ();
-use IO::Wrap;
-use IO::Scalar       1.117;
 use IO::ScalarArray  1.114;
-use IO::Lines        1.108;
 use IO::File;
 use IO::InnerFile;
 use File::Spec;
@@ -184,7 +178,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420";
+$VERSION = "5.420_01";
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -247,8 +241,6 @@ sub init {
     $self->{MP5_DecodeBodies}    = 1;
     $self->{MP5_Interface}       = {};
     $self->{MP5_ParseNested}     = 'NEST';
-    $self->{MP5_Tmp}             = undef;
-    $self->{MP5_TmpRecycling}    = 1;
     $self->{MP5_TmpToCore}       = 0;
     $self->{MP5_IgnoreErrors}    = 1;
     $self->{MP5_UseInnerFiles}   = 0;
@@ -704,7 +696,7 @@ sub process_multipart {
     $self->debug("process_multipart...");
 
     ### Get actual type and subtype from the header:
-    my ($type, $subtype) = (split('/', $head->mime_type), "");
+    my ($type, $subtype) = (split('/', $head->mime_type, -1), '');
 
     ### If this was a type "multipart/digest", then the RFCs say we
     ### should default the parts to have type "message/rfc822".
@@ -802,8 +794,7 @@ sub process_singlepart {
 	}
 	else {
 	    $self->debug("using temp file");
-	    $ENCODED = $self->new_tmpfile($self->{Tmp});
-	    $self->{Tmp} = $ENCODED if $self->{TmpRecycle};
+	    $ENCODED = $self->new_tmpfile();
 	}
 
 	### Read encoded body until boundary (or EOF)...
@@ -1071,7 +1062,7 @@ sub process_part {
     $head->mime_type($p{Retype}) if $p{Retype};
 
     ### Get the MIME type and subtype:
-    my ($type, $subtype) = (split('/', $head->mime_type), '');
+    my ($type, $subtype) = (split('/', $head->mime_type, -1), '');
     $self->debug("type = $type, subtype = $subtype");
 
     ### Handle, according to the MIME type:
@@ -1138,18 +1129,18 @@ sub parse_data {
 
     ### Get data as a scalar:
     my $io;
-  switch: while(1) {
-      (!ref($data)) and do {
-	  $io = new IO::Scalar \$data; last switch;
-      };
-      (ref($data) eq 'SCALAR') and do {
-	  $io = new IO::Scalar $data; last switch;
-      };
-      (ref($data) eq 'ARRAY') and do {
-	  $io = new IO::ScalarArray $data; last switch;
-      };
-      croak "parse_data: wrong argument ref type: ", ref($data);
-  }
+
+    if (! ref $data ) {
+        $io = IO::File->new(\$data, '<');
+    } elsif( ref $data eq 'SCALAR' ) {
+        $io = IO::File->new($data, '<');
+    } elsif( ref $data eq 'ARRAY' ) {
+	# Unfortunately, if they give us an array, we have to keep
+	# using it.  We don't really want to make a copy.
+        $io = IO::ScalarArray->new($data);
+    } else {
+        croak "parse_data: wrong argument ref type: ", ref($data);
+    }
 
     ### Parse!
     return $self->parse($io);
@@ -1162,10 +1153,9 @@ sub parse_data {
 I<Instance method.>
 Takes a MIME-stream and splits it into its component entities.
 
-The INSTREAM can be given as a readable FileHandle, an IO::File,
-a globref filehandle (like C<\*STDIN>),
-or as I<any> blessed object conforming to the IO:: interface
-(which minimally implements getline() and read()).
+The INSTREAM can be given as an IO::File, a globref filehandle (like
+C<\*STDIN>), or as I<any> blessed object conforming to the IO::
+interface (which minimally implements getline() and read()).
 
 Returns the parsed MIME::Entity on success.
 Throws exception on failure.  If the message contained too many
@@ -1175,7 +1165,7 @@ parts (as set by I<max_parts>), returns undef.
 
 sub parse {
     my $self = shift;
-    my $in = wraphandle(shift);    ### coerce old-style filehandles to objects
+    my $in = shift;
     my $entity;
     local $/ = "\n";    ### just to be safe
 
@@ -1247,13 +1237,13 @@ Throws exception on failure.
 
 sub parse_two {
     my ($self, $headfile, $bodyfile) = @_;
-    my @lines;
+    my $data;
     foreach ($headfile, $bodyfile) {
 	open IN, "<$_" or die "$ME: open $_: $!";
-	push @lines, <IN>;
+	$data .= do { local $/; <IN> };
 	close IN or die "$ME: can't close: $!";
     }
-    return $self->parse_data(\@lines);
+    return $self->parse_data($data);
 }
 
 =back
@@ -1484,30 +1474,6 @@ sub output_to_core {
 
 #------------------------------
 
-=item tmp_recycling [YESNO]
-
-I<Instance method.>
-Normally, tmpfiles are created when needed during parsing, and
-destroyed automatically when they go out of scope.  But for efficiency,
-you might prefer for your parser to attempt to rewind and reuse the
-same file until the parser itself is destroyed.
-
-If YESNO is true (the default), we allow recycling;
-tmpfiles persist until the parser itself is destroyed.
-If YESNO is false, we do not allow recycling;
-tmpfiles persist only as long as they are needed during the parse.
-With no argument, just returns the current setting.
-
-=cut
-
-sub tmp_recycling {
-    my ($self, $yesno) = @_;
-    $self->{MP5_TmpRecycling} = $yesno if (@_ > 1);
-    $self->{MP5_TmpRecycling};
-}
-
-#------------------------------
-
 =item tmp_to_core [YESNO]
 
 I<Instance method.>
@@ -1641,13 +1607,14 @@ sub new_body_for {
 
 #------------------------------
 
-=item new_tmpfile [RECYCLE]
+=item new_tmpfile
 
 I<Instance method.>
 Return an IO handle to be used to hold temporary data during a parse.
-The default uses the standard IO::File->new_tmpfile() method unless
-L<tmp_to_core()|/tmp_to_core> dictates otherwise, but you can override this.
-You shouldn't need to.
+
+The default uses MIME::Tools::tmpopen() to create a new temporary file,
+unless L<tmp_to_core()|/tmp_to_core> dictates otherwise, but you can
+override this.  You shouldn't need to.
 
 If you do override this, make certain that the object you return is
 set for binmode(), and is able to handle the following methods:
@@ -1661,34 +1628,18 @@ set for binmode(), and is able to handle the following methods:
 
 Fatal exception if the stream could not be established.
 
-If RECYCLE is given, it is an object returned by a previous invocation
-of this method; to recycle it, this method must effectively rewind and
-truncate it, and return the same object.  If you don't want to support
-recycling, just ignore it and always return a new object.
-
 =cut
 
 sub new_tmpfile {
-    my ($self, $recycle) = @_;
+    my ($self) = @_;
 
     my $io;
-    if ($self->{MP5_TmpToCore}) {         ### Use an in-core tmpfile (slow)
-	$io = IO::ScalarArray->new;
-    }
-    else {                                ### Use a real tmpfile (fast)
-					       ### Recycle?
-	if ($self->{TmpRecycling} &&                 ### we're recycling
-	    $recycle &&                              ### something to recycle
-	    $Config{'truncate'} && $io->can('seek')  ### recycling will work
-	    ){
-	    $self->debug("recycling tmpfile: $io");
-	    $io->seek(0, 0) or die "$ME: can't seek: $!";
-	    truncate($io, 0) or die "$ME: can't truncate: $!";
-	}
-	else {                                 ### Return a new one:
-	    $io = tmpopen() or die "$ME: can't open tmpfile: $!\n";
-	    binmode($io) or die "$ME: can't set to binmode: $!";
-	}
+    if ($self->{MP5_TmpToCore}) {
+	my $var;
+	$io = IO::File->new(\$var, '+>') or die "$ME: Can't open in-core tmpfile: $!";
+    } else {
+	$io = tmpopen() or die "$ME: can't open tmpfile: $!\n";
+	binmode($io) or die "$ME: can't set to binmode: $!";
     }
     return $io;
 }
@@ -1790,7 +1741,6 @@ Optimum settings:
     extract_nested_messages()  0   (may be slightly faster, but in
 				    general you want it set to 1)
     output_to_core()           0   (will be MUCH faster)
-    tmp_recycling()            1?  (probably, but should be investigated)
     tmp_to_core()              0   (will be MUCH faster)
     use_inner_files()          0   (if tmp_to_core() is 0;
 				    use 1 otherwise)
@@ -1838,7 +1788,6 @@ Optimum settings:
     decode_headers()           *** (no real difference)
     extract_nested_messages()  *** (no real difference)
     output_to_core()           0   (will use MUCH less memory)
-    tmp_recycling()            0?  (promotes faster GC if
 				    tmp_to_core is 1)
     tmp_to_core()              0   (will use MUCH less memory)
     use_inner_files()          *** (no real difference, but set it to 1
@@ -1861,7 +1810,6 @@ Optimum settings:
     extract_nested_messages()  0   (sidesteps problems of bad nested messages,
 				    but often you want it set to 1 anyway).
     output_to_core()           *** (doesn't matter)
-    tmp_recycling()            *** (doesn't matter)
     tmp_to_core()              *** (doesn't matter)
     use_inner_files()          *** (doesn't matter)
 
@@ -1880,7 +1828,6 @@ Optimum settings:
     decode_headers()           *** (doesn't matter)
     extract_nested_messages()  *** (doesn't matter)
     output_to_core()           *** (doesn't matter)
-    tmp_recycling              1   (restricts created files to 1 per parser)
     tmp_to_core()              1
     use_inner_files()          1
 
@@ -2035,6 +1982,6 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 VERSION
 
-$Revision: 1.20 $ $Date: 2006/03/17 21:03:23 $
+$Revision$ $Date$
 
 =cut
