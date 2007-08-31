@@ -141,7 +141,7 @@ use vars qw($VERSION);
 use Carp;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_01";
+$VERSION = "5.420_02";
 
 
 #------------------------------
@@ -213,7 +213,7 @@ repeated read() calls; your subclass might wish to override this.
 sub as_string {
     my $self = shift;
     my $str = '';
-    my $fh = IO::File->new(\$str, '>') or croak("Cannot open in-memory file: $!");
+    my $fh = IO::File->new(\$str, '>:') or croak("Cannot open in-memory file: $!");
     $self->print($fh);
     close($fh);
     return $str;
@@ -425,21 +425,17 @@ sub init {
 #------------------------------
 sub open {
     my ($self, $mode) = @_;
-    my $IO;
+
     my $path = $self->path;
 
-    # TODO: should just use
-    # 	IO::File->new($path, $mode) || die ...
-    if ($mode eq 'w') {          ### writing
-	$IO = IO::File->new(">$path") || die "write-open $path: $!";
-    }
-    elsif ($mode eq 'r') {       ### reading
-	$IO = IO::File->new("<$path") || die "read-open $path: $!";
-    }
-    else {  
+    if( $mode ne 'r' && $mode ne 'w' ) {
 	die "bad mode: '$mode'";
     }
+
+    my $IO = IO::File->new($path, $mode) || die "MIME::Body::File->open $path: $!";
+
     $IO->binmode() if $self->binmode;
+
     return $IO;
 }
 
@@ -519,9 +515,9 @@ sub open {
     $self->{MBS_Data} = '' if ($mode eq 'w');        ### writing
 
     if ($mode eq 'w') {
-	    $mode = '>';
+	    $mode = '>:';
     } elsif ($mode eq 'r') {
-	    $mode = '<';
+	    $mode = '<:';
     } else {
 	    die "bad mode: $mode";
     }

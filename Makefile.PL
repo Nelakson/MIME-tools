@@ -10,7 +10,7 @@ my %modules =
  'Mail::Field' =>    { min_version => "1.05" },
  'MIME::Base64' =>   { min_version => "2.20",
 		       rec_version => "3.03" },
- 'IO::Stringy' =>    { min_version => "1.211" },
+ 'IO::Stringy' =>    { min_version => "2.110" },
  'File::Spec' =>     { min_version => "0.6" },
  'File::Path' =>     { min_version => "1" },
  );
@@ -72,12 +72,12 @@ WriteMakefile(
 		       "Mail::Internet"    => 1.0203,
 		       "Mail::Field"       => 1.05,
 	               "MIME::Base64"      => 2.20,
-		       "IO::Stringy"       => 1.211,
+		       "IO::Stringy"       => 2.110,
 		       "File::Spec"        => 0.6,
 		       "File::Path"        => 1,
                        "Test::More"        => 0,
 		       },
-      AUTHOR => 'Eryq <eryq@zeegee.com>, David F. Skoll <dfs@roaringpenguin.com>',
+      AUTHOR => q{Eryq <eryq@zeegee.com>, David F. Skoll <dfs@roaringpenguin.com>, Dave O'Neill <dmo@roaringpenguin.com>},
       ABSTRACT => 'Tools to manipulate MIME messages',
       'dist'       => {
 	  COMPRESS     =>'gzip -f',

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 26;
 
 use MIME::Tools;
 
@@ -142,3 +142,17 @@ like($es,  qr/^Request for Leave$/, "	parse of 2-part simple message (subj <$es>
 	my $line = <$fh>;
 	is( $line, "testing\n", 'Read line back in OK');
 }
+
+# diag('native_handle() on various things we might get');
+{
+	my $io_file_scalar = IO::File->new( do { my $foo = ''; \$foo }, '>:' );
+	ok( MIME::Parser::Reader::native_handle( $io_file_scalar ), 'FH on scalar is OK');
+
+	my $io_file_real   = IO::File->new_tmpfile();
+	ok( MIME::Parser::Reader::native_handle( $io_file_real ), 'FH on real file is OK');
+
+	my $globref   = \*STDOUT;
+	ok( MIME::Parser::Reader::native_handle( $globref ), 'globref is OK');
+
+}
+	

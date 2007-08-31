@@ -1,10 +1,12 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 27;
+use Test::More tests => 30;
 
 use MIME::Body;
 use MIME::Tools;
+
+use Cwd;
 
 # Check bodies:
 my @bodies = (
@@ -80,6 +82,24 @@ foreach my $body ( @bodies ) {
     # Slurp string:
     my $str = $body->as_string;
     is($str, "Line 1\nLine 2\nLine 3", "$class: as_string works?");
+}
+
+# Check that we can open files with leading whitespace in name
+# (RT ticket #22680)
+{
+
+	my $cwd = cwd();
+	ok( chdir './testout', 'chdir to ./testout to avoid clutter');
+	eval {
+		my $body = MIME::Body::File->new(" bad file ");
+
+		my $fh = $body->open('w');
+		$fh->close();
+
+		ok( -e ' bad file ', 'file created with leading whitespace, as expected');
+		unlink(' bad file ');
+	};
+	ok( chdir $cwd, 'chdir back');
 }
     
 1;

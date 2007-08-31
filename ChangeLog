@@ -1,4 +1,23 @@
-2007-06-18  Dave O'Neill <dmo@roaringpenguin.com>
+5.420_02  2007-08-29  Dave O'Neill <dmo@roaringpenguin.com>
+
+	* VERSION 5.420_02 (developer release)
+
+	* (bugfix) Correct 'use vars' and add a 'use strict' (fixes RT #22681)
+
+	* (bugfix) Don't allow all-whitespace filenames in
+	  recommended_filename() (fixes RT #6115)
+
+	* (bugfix) Require IO-stringy 2.110.  Fixes RT tickets 11312, 11452,
+	  12375, 12784, and 18791
+
+	* (docs) Updated RFC references to refer to MIME RFCs 2045-2049 (RT #14119)
+
+	* (cleanup) Warn if no decoder is found for a given encoding. (RT #22682)
+
+	* (cleanup) IO::Wrap no longer used, IO::ScalarArray use minimized
+
+
+5.420_01  2007-06-18  Dave O'Neill <dmo@roaringpenguin.com>
 
 	* VERSION 5.420_01 (developer release)
 
@@ -29,7 +48,7 @@
 	  MIME/Tools.pm into ChangeLog
 
 2006-03-17  David F. Skoll  <dfs@roaringpenguin.com>
-	
+
 	* VERSION 5.420 RELEASED
 
 	* Fix regression introduced in 5.419 -- quoted-printable
@@ -161,7 +180,7 @@
 	of MIME parts we are willing to parse.
 
 	* DSKOLL took over maintainership of MIME::tools at version 5.411a.
-	
+
 Version 5.411
         Regenerated docs. Bug in HTML docs, now all fixed.
 

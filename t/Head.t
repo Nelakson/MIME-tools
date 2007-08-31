@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 17;
+use Test::More tests => 20;
 
 use MIME::Head;
 
@@ -147,5 +147,19 @@ $head->decode;
 @orighdrs = map {/^\S+:?/ ? $& : ''} (split(/\r?\n/, $head->stringify));
 is(lc(join('|',@orighdrs)), lc(join('|',@curhdrs)),
       "field order is preserved under stringify after decoding?");
+
+{
+	my $h = MIME::Head->new();
+
+	$h->replace('Content-disposition', 'inline; filename=good.file');
+	is($h->recommended_filename(), 'good.file', 'Simple case, good filename');
+
+	$h->replace('Content-disposition', 'inline; filename="  "');
+	$h->replace('Content-type', 'text/x-fake; name="second.choice"');
+	is($h->recommended_filename(), 'second.choice', 'Simple case, second-best choice of filename');
+
+	$h->replace('Content-type', 'text/x-fake; name="      "');
+	is($h->recommended_filename(), undef, 'no filenames found');
+}
 
 1;

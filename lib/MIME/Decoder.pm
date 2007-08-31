@@ -86,6 +86,7 @@ use vars qw($VERSION %DecoderFor);
 
 ### System modules:
 use IPC::Open2;
+use FileHandle;
 
 ### Kit modules:
 use MIME::Tools qw(:config :msgs);
@@ -124,7 +125,7 @@ use Carp;
 );
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_01";
+$VERSION = "5.420_02";
 
 ### Me:
 my $ME = 'MIME::Decoder';
@@ -159,17 +160,22 @@ Returns the undefined value if no known decoders are appropriate.
 sub new {
     my ($class, @args) = @_;
     my ($encoding) = @args;
-    my ($concrete_name);
 
     ### Coerce the type to be legit:
     $encoding = lc($encoding || '');
 
     ### Get the class:
-    ($concrete_name = $DecoderFor{$encoding}) or return undef;
+    my $concrete_name = $DecoderFor{$encoding};
+
+    if( ! $concrete_name ) {
+	carp "no decoder for $encoding";
+	return undef;
+    }
 
     ### Create the new object (if we can):
     my $self = { MD_Encoding => lc($encoding) };
     unless (eval "require $concrete_name;") {
+	carp $@;
 	return undef;
     }
     bless $self, $concrete_name;

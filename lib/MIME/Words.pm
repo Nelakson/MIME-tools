@@ -3,7 +3,7 @@ package MIME::Words;
 
 =head1 NAME
 
-MIME::Words - deal with RFC-1522 encoded words
+MIME::Words - deal with RFC 2047 encoded words
 
 
 =head1 SYNOPSIS
@@ -94,7 +94,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_01";
+$VERSION = "5.420_02";
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -142,7 +142,7 @@ sub _encode_B {
 =item decode_mimewords ENCODED, [OPTS...]
 
 I<Function.>
-Go through the string looking for RFC-1522-style "Q"
+Go through the string looking for RFC 2047-style "Q"
 (quoted-printable, sort of) or "B" (base64) encoding, and decode them.
 
 B<In an array context,> splits the ENCODED string into a list of decoded 
@@ -293,7 +293,7 @@ Name of the mail field this string will be used in.  I<Currently ignored.>
 =back
 
 B<Warning:> this is a quick-and-dirty solution, intended for character
-sets which overlap ASCII.  B<It does not comply with the RFC-1522
+sets which overlap ASCII.  B<It does not comply with the RFC 2047
 rules regarding the use of encoded words in message headers>.
 You may want to roll your own variant,
 using C<encoded_mimeword()>, for your application.

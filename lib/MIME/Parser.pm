@@ -88,7 +88,7 @@ Ready?  Ok...
 
 =head2 Examples of parser options
 
-    ### Automatically attempt to RFC-1522-decode the MIME headers?
+    ### Automatically attempt to RFC 2047-decode the MIME headers?
     $parser->decode_headers(1);             ### default is false
 
     ### Parse contained "message/rfc822" objects as nested MIME streams?
@@ -178,7 +178,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_01";
+$VERSION = "5.420_02";
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -299,7 +299,7 @@ sub init_parse {
 
 I<Instance method.>
 Controls whether the parser will attempt to decode all the MIME headers
-(as per RFC-1522) the moment it sees them.  B<This is not advisable
+(as per RFC 2047) the moment it sees them.  B<This is not advisable
 for two very important reasons:>
 
 =over
@@ -668,7 +668,7 @@ sub process_header {
     @headlines and
 	$self->error("couldn't parse head; error near:\n",@headlines);
 
-    ### If desired, auto-decode the header as per RFC-1522.
+    ### If desired, auto-decode the header as per RFC 2047
     ###    This shouldn't affect non-encoded headers; however, it will decode
     ###    headers with international characters.  WARNING: currently, the
     ###    character-set information is LOST after decoding.
@@ -917,10 +917,10 @@ sub hunt_for_uuencode {
     $self->whine("Found a $how_encoded attachment");
     my $pre;
     while (1) {
-	my @bin_data;
+	my $bin_data = '';
 
 	### Try next part:
-	my $out = IO::ScalarArray->new(\@bin_data);
+	my $out = IO::File->new(\$bin_data, '>:');
 	eval { $decoder->decode($ENCODED, $out) }; last if $@;
 	my $preamble = $decoder->last_preamble;
 	my $filename = $decoder->last_filename;
@@ -956,7 +956,7 @@ sub hunt_for_uuencode {
 	    $bin_ent->bodyhandle($self->new_body_for($bin_ent->head));
 	    $bin_ent->bodyhandle->binmode(1) or die "$ME: can't set to binmode: $!";
 	    my $io = $bin_ent->bodyhandle->open("w") or die "$ME: can't create: $!";
-	    $io->print(@bin_data) or die "$ME: can't print: $!";
+	    $io->print($bin_data) or die "$ME: can't print: $!";
 	    $io->close or die "$ME: can't close: $!";
 	    push @parts, $bin_ent;
 	}
@@ -1131,12 +1131,13 @@ sub parse_data {
     my $io;
 
     if (! ref $data ) {
-        $io = IO::File->new(\$data, '<');
+        $io = IO::File->new(\$data, '<:');
     } elsif( ref $data eq 'SCALAR' ) {
-        $io = IO::File->new($data, '<');
+        $io = IO::File->new($data, '<:');
     } elsif( ref $data eq 'ARRAY' ) {
 	# Unfortunately, if they give us an array, we have to keep
 	# using it.  We don't really want to make a copy.
+	# TODO: I think we're stuck keeping this one for now.
         $io = IO::ScalarArray->new($data);
     } else {
         croak "parse_data: wrong argument ref type: ", ref($data);
@@ -1636,7 +1637,7 @@ sub new_tmpfile {
     my $io;
     if ($self->{MP5_TmpToCore}) {
 	my $var;
-	$io = IO::File->new(\$var, '+>') or die "$ME: Can't open in-core tmpfile: $!";
+	$io = IO::File->new(\$var, '+>:') or die "$ME: Can't open in-core tmpfile: $!";
     } else {
 	$io = tmpopen() or die "$ME: can't open tmpfile: $!\n";
 	binmode($io) or die "$ME: can't set to binmode: $!";
@@ -1895,7 +1896,7 @@ the temp-file use adds significant overhead.
 
 =item Fuzzing of CRLF and newline on input
 
-RFC-1521 dictates that MIME streams have lines terminated by CRLF
+RFC 2045 dictates that MIME streams have lines terminated by CRLF
 (C<"\r\n">).  However, it is extremely likely that folks will want to
 parse MIME streams where each line ends in the local newline
 character C<"\n"> instead.
@@ -1919,14 +1920,14 @@ each line... I<but this is as it should be>.
 =item Inability to handle multipart boundaries that contain newlines
 
 First, let's get something straight: I<this is an evil, EVIL practice,>
-and is incompatible with RFC-1521... hence, it's not valid MIME.
+and is incompatible with RFC 2046... hence, it's not valid MIME.
 
 If your mailer creates multipart boundary strings that contain
 newlines I<when they appear in the message body,> give it two weeks notice
 and find another one.  If your mail robot receives MIME mail like this,
 regard it as syntactically incorrect MIME, which it is.
 
-Why do I say that?  Well, in RFC-1521, the syntax of a boundary is
+Why do I say that?  Well, in RFC 2046, the syntax of a boundary is
 given quite clearly:
 
       boundary := 0*69<bchars> bcharsnospace

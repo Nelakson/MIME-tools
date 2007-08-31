@@ -51,7 +51,8 @@ $Revision$ $Date$
 
 
 require 5.002;
-use vars qw(@ISA $VERSION $ZIP $UNZIP);
+use strict;
+use vars qw(@ISA $VERSION $GZIP $GUNZIP);
 use MIME::Decoder;
 use MIME::Base64;
 use MIME::Decoder::Base64;
@@ -61,7 +62,7 @@ use MIME::Tools qw(tmpopen whine);
 @ISA = qw(MIME::Decoder::Base64);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_01";
+$VERSION = "5.420_02";
 
 # How to compress stdin to stdout:
 $GZIP   = "gzip -c";

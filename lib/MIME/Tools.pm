@@ -28,7 +28,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_01";
+$VERSION = "5.420_02";
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -673,7 +673,7 @@ isn't to your liking.
 
 =head2 Fuzzing of CRLF and newline on input
 
-RFC-1521 dictates that MIME streams have lines terminated by CRLF
+RFC 2045 dictates that MIME streams have lines terminated by CRLF
 (C<"\r\n">).  However, it is extremely likely that folks will want to
 parse MIME streams where each line ends in the local newline
 character C<"\n"> instead.
@@ -696,10 +696,11 @@ each line... I<but this is as it should be>.
 
 =head2 Fuzzing of CRLF and newline when encoding/composing
 
+TODO FIXME
 All encoders currently output the end-of-line sequence as a C<"\n">,
 with the assumption that the local mail agent will perform
 the conversion from newline to CRLF when sending the mail.
-However, there probably should be an option to output CRLF as per RFC-1521.
+However, there probably should be an option to output CRLF as per RFC 2045
 
 
 =head2 Inability to handle multipart boundaries with embedded newlines
@@ -782,8 +783,8 @@ Achim Bohnet once pointed out that MIME headers do nothing more than
 store a collection of attributes, and thus could be represented as
 objects which don't inherit from Mail::Header.
 
-I agree in principle, but RFC-1521 says otherwise.
-RFC-1521 [MIME] headers are a syntactic subset of RFC-822 [email] headers.
+I agree in principle, but RFC 2045 says otherwise.
+RFC 2045 [MIME] headers are a syntactic subset of RFC-822 [email] headers.
 Perhaps a better name for these modules would have been RFC1521::
 instead of MIME::, but we're a little beyond that stage now.
 
@@ -806,8 +807,9 @@ the specifics?  No problem...
 
 =head2 Glossary
 
-Here are some definitions adapted from RFC-1521 explaining the terminology
-we use; each is accompanied by the equivalent in MIME:: module terms...
+Here are some definitions adapted from RFC 1521 (predecessor of the
+current RFC 204[56789] defining MIME) explaining the terminology we
+use; each is accompanied by the equivalent in MIME:: module terms...
 
 =over 4
 

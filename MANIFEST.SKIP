@@ -1,3 +1,5 @@
+\.gitignore
+\.shipit
 set-version.pl
 Makefile$
 Makefile.old

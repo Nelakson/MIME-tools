@@ -3,7 +3,7 @@ package MIME::WordDecoder;
 
 =head1 NAME
 
-MIME::WordDecoder - decode RFC-1522 encoded words to a local representation
+MIME::WordDecoder - decode RFC 2047 encoded words to a local representation
 
 
 =head1 SYNOPSIS

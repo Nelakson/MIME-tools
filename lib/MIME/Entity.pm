@@ -37,7 +37,7 @@ Ready?  Ok...
 A subclass of B<Mail::Internet>.
 
 This package provides a class for representing MIME message entities,
-as specified in RFC 1521, I<Multipurpose Internet Mail Extensions>.
+as specified in RFCs 2045, 2046, 2047, 2048 and 2049.
 
 
 =head1 EXAMPLES
@@ -246,7 +246,7 @@ use IO::Lines;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_01";
+$VERSION = "5.420_02";
 
 ### Boundary counter:
 my $BCount = 0;
@@ -293,7 +293,10 @@ sub known_field {
 # This is used both internally and by MIME::ParserBase, but it is NOT in
 # the public interface!  Do not use it!
 #
-# We generate one containing a "=_", as RFC1521 suggests.
+# We generate one containing a "=_", as RFC2045 suggests:
+#    A good strategy is to choose a boundary that includes a character
+#    sequence such as "=_" which can never appear in a quoted-printable
+#    body.  See the definition of multipart messages in RFC 2046.
 #
 sub make_boundary {
     return "----------=_".scalar(time)."-$$-".$BCount++;
@@ -463,11 +466,11 @@ field (and it sort of looks like one too).
 
 =item Boundary
 
-I<Multipart entities only. Optional.>  
-The boundary string.  As per RFC-1521, it must consist only
+I<Multipart entities only. Optional.>
+The boundary string.  As per RFC-2046, it must consist only
 of the characters C<[0-9a-zA-Z'()+_,-./:=?]> and space (you'll be
 warned, and your boundary will be ignored, if this is not the case).
-If you omit this, a random string will be chosen... which is probably 
+If you omit this, a random string will be chosen... which is probably
 safer.
 
 =item Charset
@@ -532,10 +535,10 @@ The default is true.  (NB: look at how C<attach()> uses it.)
 
 =item Type
 
-I<Optional.>  
-The basic content-type (C<"text/plain">, etc.). 
-If you don't specify it, it defaults to C<"text/plain"> 
-as per RFC-1521.  I<Do yourself a favor: put it in.>
+I<Optional.>
+The basic content-type (C<"text/plain">, etc.).
+If you don't specify it, it defaults to C<"text/plain">
+as per RFC 2045.  I<Do yourself a favor: put it in.>
 
 =back
 
@@ -758,7 +761,7 @@ sub body {
 	}
 	else {             ### getting body lines...
 		my $output = '';
-		my $fh = IO::File->new(\$output, '>') or croak("Cannot open in-memory file: $!");
+		my $fh = IO::File->new(\$output, '>:') or croak("Cannot open in-memory file: $!");
 		$self->print_body($fh);
 		close($fh);
 		return split("\n", $output);
@@ -1887,7 +1890,7 @@ You can also use C<as_string()>.
 sub stringify {
 	my ($self) = @_;
 	my $output = '';
-	my $fh = IO::File->new( \$output, '>' ) or croak("Cannot open in-memory file: $!");
+	my $fh = IO::File->new( \$output, '>:' ) or croak("Cannot open in-memory file: $!");
 	$self->print($fh);
 	$fh->close;
 	return $output;
@@ -1918,7 +1921,7 @@ singlepart message (like a "text/plain"), use C<bodyhandle()> instead:
 sub stringify_body {
 	my ($self) = @_;
 	my $output = '';
-	my $fh = IO::File->new( \$output, '>' ) or croak("Cannot open in-memory file: $!");
+	my $fh = IO::File->new( \$output, '>:' ) or croak("Cannot open in-memory file: $!");
 	$self->print_body($fh);
 	$fh->close;
 	return $output;
@@ -2180,30 +2183,30 @@ In multipart messages, the I<"preamble"> is the portion that precedes
 the first encapsulation boundary, and the I<"epilogue"> is the portion
 that follows the last encapsulation boundary.
 
-According to RFC-1521:
+According to RFC 2046:
 
-    There appears to be room for additional information prior 
-    to the first encapsulation boundary and following the final 
+    There appears to be room for additional information prior
+    to the first encapsulation boundary and following the final
     boundary.  These areas should generally be left blank, and
-    implementations must ignore anything that appears before the 
+    implementations must ignore anything that appears before the
     first boundary or after the last one.
 
-    NOTE: These "preamble" and "epilogue" areas are generally 
-    not used because of the lack of proper typing of these parts 
-    and the lack of clear semantics for handling these areas at 
-    gateways, particularly X.400 gateways.  However, rather than 
-    leaving the preamble area blank, many MIME implementations 
-    have found this to be a convenient place to insert an 
-    explanatory note for recipients who read the message with 
-    pre-MIME software, since such notes will be ignored by 
+    NOTE: These "preamble" and "epilogue" areas are generally
+    not used because of the lack of proper typing of these parts
+    and the lack of clear semantics for handling these areas at
+    gateways, particularly X.400 gateways.  However, rather than
+    leaving the preamble area blank, many MIME implementations
+    have found this to be a convenient place to insert an
+    explanatory note for recipients who read the message with
+    pre-MIME software, since such notes will be ignored by
     MIME-compliant software.
 
-In the world of standards-and-practices, that's the standard.  
-Now for the practice: 
+In the world of standards-and-practices, that's the standard.
+Now for the practice:
 
 I<Some "MIME" mailers may incorrectly put a "part" in the preamble>.
 Since we have to parse over the stuff I<anyway>, in the future I
-I<may> allow the parser option of creating special MIME::Entity objects 
+I<may> allow the parser option of creating special MIME::Entity objects
 for the preamble and epilogue, with bogus MIME::Head objects.
 
 For now, though, we're MIME-compliant, so I probably won't change
