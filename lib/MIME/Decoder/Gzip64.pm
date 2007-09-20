@@ -43,10 +43,6 @@ All rights reserved.  This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
 
-=head1 VERSION
-
-$Revision$ $Date$
-
 =cut
 
 
@@ -62,7 +58,7 @@ use MIME::Tools qw(tmpopen whine);
 @ISA = qw(MIME::Decoder::Base64);
 
 # The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_02";
+$VERSION = "5.421";
 
 # How to compress stdin to stdout:
 $GZIP   = "gzip -c";

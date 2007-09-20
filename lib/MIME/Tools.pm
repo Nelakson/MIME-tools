@@ -7,11 +7,11 @@ package MIME::Tools;
 
 use strict;
 use vars (qw(@ISA %CONFIG @EXPORT_OK %EXPORT_TAGS $VERSION $ME
-	     $M_DEBUG $M_WARNING $M_ERROR
-	     $Tmpopen ));
+	     $M_DEBUG $M_WARNING $M_ERROR ));
 
 require Exporter;
 use IO::File;
+use File::Temp ();
 use Carp;
 
 $ME = "MIME-tools";
@@ -28,7 +28,7 @@ $ME = "MIME-tools";
 Exporter::export_ok_tags('config', 'msgs', 'msgtypes', 'utils');
 
 # The TOOLKIT version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_02";
+$VERSION = "5.421";
 
 # Configuration (do NOT alter this directly)...
 # All legal CONFIG vars *must* be in here, even if only to be set to undef:
@@ -165,15 +165,12 @@ sub textual_type {
 # tmpopen
 #
 #
-sub tmpopen {
-    &$Tmpopen();
+sub tmpopen
+{
+	my ($args) = @_;
+	$args ||= {};
+	return File::Temp->new( %{$args} );
 }
-
-$Tmpopen = sub { IO::File->new_tmpfile };
-
-
-
-
 
 #------------------------------
 1;
@@ -989,12 +986,6 @@ MIME-tools releases are planned, just email me and say so.  If your project
 is using MIME-tools, it might not be a bad idea to find out about those
 bugs I<before> they become problems...
 
-
-=head1 VERSION
-
-$Revision$
-
-
 =head1 CHANGE LOG
 
 See ChangeLog file
@@ -1058,8 +1049,7 @@ Better yet, email me, and I'll put you in.
 
 =head1 SEE ALSO
 
-At the time of this writing ($Date$), the
-MIME-tools homepage was
+At the time of this writing, the MIME-tools homepage was
 F<http://www.mimedefang.org/static/mime-tools.php>.  Check there for
 updates and support.
 

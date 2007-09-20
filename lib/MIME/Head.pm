@@ -137,7 +137,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_02";
+$VERSION = "5.421";
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();
@@ -906,11 +906,6 @@ it and/or modify it under the same terms as Perl itself.
 
 The more-comprehensive filename extraction is courtesy of 
 Lee E. Brotzman, Advanced Data Solutions.
-
-
-=head1 VERSION
-
-$Revision$ $Date$
 
 =cut
 

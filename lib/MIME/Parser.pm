@@ -65,6 +65,8 @@ Ready?  Ok...
     ### Change how nameless message-component files are named:
     $parser->output_prefix("msg");
 
+    ### Put temporary files somewhere else
+    $parser->tmp_dir("/var/tmp/mytmpdir");
 
 =head2 Examples of error recovery
 
@@ -178,7 +180,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_02";
+$VERSION = "5.421";
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -246,6 +248,7 @@ sub init {
     $self->{MP5_UseInnerFiles}   = 0;
     $self->{MP5_UUDecode}        = 0;
     $self->{MP5_MaxParts}        = -1;
+    $self->{MP5_TmpDir}          = undef;
 
     $self->interface(ENTITY_CLASS => 'MIME::Entity');
     $self->interface(HEAD_CLASS   => 'MIME::Head');
@@ -1608,6 +1611,37 @@ sub new_body_for {
 
 #------------------------------
 
+=pod
+
+=back
+
+=head2 Temporary File Creation
+
+=over
+
+=item tmp_dir DIRECTORY
+
+I<Instance method.>
+Causes any temporary files created by this parser to be created in the
+given DIRECTORY.
+
+If called without arguments, returns current value.
+
+The default value is undef, which will cause new_tmpfile() to use the
+system default temporary directory.
+
+=cut
+
+sub tmp_dir
+{
+    my ($self, $dirname) = @_;
+    if ( $dirname ) {
+	$self->{MP5_TmpDir} = $dirname;
+    }
+
+    return $self->{MP5_TmpDir};
+}
+
 =item new_tmpfile
 
 I<Instance method.>
@@ -1616,6 +1650,9 @@ Return an IO handle to be used to hold temporary data during a parse.
 The default uses MIME::Tools::tmpopen() to create a new temporary file,
 unless L<tmp_to_core()|/tmp_to_core> dictates otherwise, but you can
 override this.  You shouldn't need to.
+
+The location for temporary files can be changed on a per-parser basis
+with L<tmp_dir()>.
 
 If you do override this, make certain that the object you return is
 set for binmode(), and is able to handle the following methods:
@@ -1639,7 +1676,11 @@ sub new_tmpfile {
 	my $var;
 	$io = IO::File->new(\$var, '+>:') or die "$ME: Can't open in-core tmpfile: $!";
     } else {
-	$io = tmpopen() or die "$ME: can't open tmpfile: $!\n";
+	my $args = {};
+	if( $self->tmp_dir ) {
+		$args->{DIR} = $self->tmp_dir;
+	}
+	$io = tmpopen( $args ) or die "$ME: can't open tmpfile: $!\n";
 	binmode($io) or die "$ME: can't set to binmode: $!";
     }
     return $io;
@@ -1978,11 +2019,5 @@ David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
 All rights reserved.  This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
-
-
-
-=head1 VERSION
-
-$Revision$ $Date$
 
 =cut

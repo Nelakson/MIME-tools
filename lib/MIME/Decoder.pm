@@ -125,7 +125,7 @@ use Carp;
 );
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_02";
+$VERSION = "5.421";
 
 ### Me:
 my $ME = 'MIME::Decoder';
@@ -621,12 +621,5 @@ Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 
 All rights reserved.  This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
-
-
-=head1 VERSION
-
-$Revision$ $Date$
-
-=cut
 
 1;

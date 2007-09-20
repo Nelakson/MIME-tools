@@ -583,11 +583,6 @@ __END__
 Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
 David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
-
-=head1 VERSION
-
-$Revision$ $Date$
-
 =cut
 
 

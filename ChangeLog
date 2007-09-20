@@ -1,3 +1,11 @@
+5.421     2007-09-21  Dave O'Neill <dmo@roaringpenguin.com>
+
+	* VERSION 5.421 RELEASED
+
+	* (enhancement) Use File::Temp for tempfile generation.  MIME::Parser
+	  now has a tmp_dir() method for changing the temporary directory on a
+	  per-parser basis.
+
 5.420_02  2007-08-29  Dave O'Neill <dmo@roaringpenguin.com>
 
 	* VERSION 5.420_02 (developer release)
@@ -47,14 +55,14 @@
 	* (cleanup) Merge all changelog information from README and
 	  MIME/Tools.pm into ChangeLog
 
-2006-03-17  David F. Skoll  <dfs@roaringpenguin.com>
+5.420     2006-03-17  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.420 RELEASED
 
 	* Fix regression introduced in 5.419 -- quoted-printable
 	encoding would sometimes fail on "textual" MIME parts.
 
-2005-12-22  David F. Skoll  <dfs@roaringpenguin.com>
+5.419     2005-12-22  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.419 RELEASED
 
@@ -63,7 +71,7 @@
 	if you need the exact unmangled message source (for example,
 	for GPG-signing.)  Patch submitted by Jörn Reder.
 
-2005-09-29  David F. Skoll  <dfs@roaringpenguin.com>
+5.418     2005-09-29  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.418 RELEASED
 
@@ -78,7 +86,7 @@
 	* MANIFEST: Remove some useless internal files from the manifest.
 	They were never meant to be part of the actual distribution.
 
-2005-01-20  David F. Skoll  <dfs@roaringpenguin.com>
+5.417     2005-01-20  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.417 RELEASED
 
@@ -90,7 +98,7 @@
 	parameters was buggy and caused decoding errors.  This has been
 	fixed.
 
-2005-01-03  David F. Skoll  <dfs@roaringpenguin.com>
+5.416     2005-01-03  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.416 RELEASED
 
@@ -102,14 +110,14 @@
 	parameters.  Apparently, not doing so can cause Perl to core dump
 	on certain badly-formed messages.
 
-2004-10-27  David F. Skoll  <dfs@roaringpenguin.com>
+5.415     2004-10-27  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.415 RELEASED
 
 	* Fixed parsing of parameter="" in headers, and fixed case where
 	multipart boundary is ""
 
-2004-10-06  David F. Skoll  <dfs@roaringpenguin.com>
+5.414     2004-10-06  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.414 RELEASED
 
@@ -119,14 +127,14 @@
 	* Check return values of I/O operations like open(), close(), etc.
 	and die if they fail.  Problem reported by Mark Martinec.
 
-2004-09-15  David F. Skoll  <dfs@roaringpenguin.com>
+5.413     2004-09-15  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.413 RELEASED
 
 	* Fix some $VERSION = xxx assignments that were broken; make sure
 	VERSION shows up as 5.413 everywhere.  Sorry about that!
 
-2004-09-09  David F. Skoll  <dfs@roaringpenguin.com>
+5.412     2004-09-09  David F. Skoll  <dfs@roaringpenguin.com>
 
 	* VERSION 5.412 RELEASED
 

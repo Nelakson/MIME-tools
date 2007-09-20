@@ -42,9 +42,17 @@ diag($has_gzip
 my ($e, $eno) = (undef, 0);
 foreach $e (@encodings) {
     ++$eno;
+    my $warning;
+    local $SIG{__WARN__} = sub {
+	$warning = $@;
+    };
     my $decoder = MIME::Decoder->new($e);
     unless(defined($decoder)) {
-	pass("Encoding/decoding of $e not supported -- skipping test");
+	my $msg = "Encoding/decoding of $e not supported -- skipping test";
+	if( $warning =~ /^Can't locate ([^\s]+)/ ) {
+		$msg .= " (Can't locate $1)";
+	}
+	pass($msg);
 	next;
     }
 

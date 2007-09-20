@@ -141,7 +141,7 @@ use vars qw($VERSION);
 use Carp;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.420_02";
+$VERSION = "5.421";
 
 
 #------------------------------
@@ -664,14 +664,6 @@ it and/or modify it under the same terms as Perl itself.
 
 Thanks to Achim Bohnet for suggesting that MIME::Parser not be restricted
 to the use of FileHandles.
-
-
-
-=head1 VERSION
-
-$Revision$ $Date$
-
-=cut
 
 #------------------------------
 1;

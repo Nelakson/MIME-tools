@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                MIME-tools
-version:             5.420_02
+version:             5.421
 abstract:            Tools to manipulate MIME messages
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32
@@ -8,6 +8,7 @@ distribution_type:   module
 requires:     
     File::Path:                    1
     File::Spec:                    0.6
+    File::Temp:                    0.12
     IO::Stringy:                   2.11
     Mail::Field:                   1.05
     Mail::Header:                  1.01

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 26;
+use Test::More tests => 30;
 
 use MIME::Tools;
 
@@ -116,7 +116,7 @@ like($es,  qr/^Request for Leave$/, "	parse of 2-part simple message (subj <$es>
 # diag('new_tmpfile(), with real temp file');
 {
 	my $fh;
-	eval { 
+	eval {
 		local $parser->{MP5_TmpToCore} = 0;
 		$fh = $parser->new_tmpfile();
 	};
@@ -131,8 +131,23 @@ like($es,  qr/^Request for Leave$/, "	parse of 2-part simple message (subj <$es>
 # diag('new_tmpfile(), with in-core temp file');
 {
 	my $fh;
-	eval { 
+	eval {
 		local $parser->{MP5_TmpToCore} = 1;
+		$fh = $parser->new_tmpfile();
+	};
+	ok( ! $@, '->new_tmpfile() lives');
+	ok( $fh->print("testing\n"), '->print on fh ok');
+
+	ok( $fh->seek(0,0), '->seek on fh ok');
+	my $line = <$fh>;
+	is( $line, "testing\n", 'Read line back in OK');
+}
+
+# diag('new_tmpfile(), with temp files elsewhere');
+{
+	my $fh;
+	eval {
+		local $parser->{MP5_TmpDir} = $DIR;
 		$fh = $parser->new_tmpfile();
 	};
 	ok( ! $@, '->new_tmpfile() lives');
@@ -155,4 +170,3 @@ like($es,  qr/^Request for Leave$/, "	parse of 2-part simple message (subj <$es>
 	ok( MIME::Parser::Reader::native_handle( $globref ), 'globref is OK');
 
 }
-	

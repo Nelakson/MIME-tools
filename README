@@ -660,13 +660,6 @@ SUPPORT
     If your project is using MIME-tools, it might not be a bad idea to find
     out about those bugs *before* they become problems...
 
-VERSION
-    $Revision$
-
-CHANGE LOG
-
-     See ChangeLog file
-
 AUTHOR
     MIME-tools was created by:
 
@@ -718,8 +711,8 @@ ACKNOWLEDGMENTS
     me, and I'll put you in.
 
 SEE ALSO
-    At the time of this writing ($Date$), the MIME-
-    tools homepage was http://www.mimedefang.org/static/mime-tools.php.
+    At the time of this writing the MIME-tools homepage was
+    http://www.mimedefang.org/static/mime-tools.php.
     Check there for updates and support.
 
     Users of this toolkit may wish to read the documentation of Mail::Header
