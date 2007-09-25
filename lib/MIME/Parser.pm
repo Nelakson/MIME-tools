@@ -180,7 +180,7 @@ package MIME::Parser;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.421";
+$VERSION = "5.422";
 
 ### How to catenate:
 $CAT = '/bin/cat';
@@ -274,8 +274,8 @@ sub init_parse {
     $self->{MP5_Results} = new MIME::Parser::Results;
 
     $self->{MP5_Filer}->results($self->{MP5_Results});
+    $self->{MP5_Filer}->purgeable([]);
     $self->{MP5_Filer}->init_parse();
-    $self->{MP5_Filer}->purgeable([]);   ### just to be safe
     $self->{MP5_NumParts} = 0;
     1;
 }

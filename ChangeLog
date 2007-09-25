@@ -1,3 +1,18 @@
+5.422     2007-09-25  Dave O'Neill <dmo@roaringpenguin.com>
+
+	* VERSION 5.422 RELEASED
+
+	* (bugfix) Require File::Temp 0.17 or newer for IO::Seekable support.
+	  This fixes test failures seen on Darwin.
+
+	* (bugfix) Clear filer's purgeable() before calling init_parse().  Fixes RT 7858.
+
+commit 005e387c42957f2a433464beaef1d2b416746963
+Author: Dave O'Neill <dmo@roaringpenguin.com>
+Date:   Fri Sep 21 12:41:03 2007 -0400
+
+    Add LICENSE item to Makefile.PL
+
 5.421     2007-09-21  Dave O'Neill <dmo@roaringpenguin.com>
 
 	* VERSION 5.421 RELEASED
