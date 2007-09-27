@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 30;
 
 use MIME::Entity;
 use MIME::Parser;
@@ -149,9 +149,9 @@ unlink globby("testout/entity.msg*");
 #diag("Check body");
 
 my $bodylines = $top->parts(0)->body;
-#-----test------
-ok($bodylines > 0, 
-       "old-style body call ok");
+is( ref $bodylines, 'ARRAY', '->body returns an array reference');
+is( scalar @$bodylines, 6, '... of the correct size');
+
 my $preamble_str = join '', @{$top->preamble || []};
 my $epilogue_str = join '', @{$top->epilogue || []};
 
