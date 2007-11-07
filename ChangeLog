@@ -1,6 +1,13 @@
-5.433     2007-09-27  Dave O'Neill <dmo@roaringpenguin.com>
+5.424     2007-11-07  David Skoll <dfs@roaringpenguin.com>
 
-	* VERSION 5.4.33 RELEASED
+	* VERSION 5.424 RELEASED
+
+	* (bugfix) [rt.cpan.org #29864] - lines in $entity->body() should be
+	  newline-terminated.
+
+5.423     2007-09-27  Dave O'Neill <dmo@roaringpenguin.com>
+
+	* VERSION 5.423 RELEASED
 
 	* (bugfix) Fix API regression - MIME::Entity::body() should return an
 	  arrayref.  Fixes RT 29643.

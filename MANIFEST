@@ -55,6 +55,7 @@ t/Parser.t
 t/ParserEncoded.t
 t/ParserPreamble.t
 t/Ref.t
+t/Smtpsend.t
 t/WordDecoder.t
 t/Words.t
 testin/ak-0696.msg
