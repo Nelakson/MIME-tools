@@ -1,3 +1,12 @@
+5.425     2007-11-17  Dave O'Neill <dmo@roaringpenguin.com>
+
+	* VERSION 5.425 RELEASED
+
+	* (bugfix) A stub for MIME::Parser's tmp_recycling() method has been
+	  re-added to preserve compatibility.  Since recycling of tempfiles
+	  never worked and has been removed, any code calling tmp_recycling()
+	  should stop attempting to use the feature.
+
 5.424     2007-11-07  David Skoll <dfs@roaringpenguin.com>
 
 	* VERSION 5.424 RELEASED

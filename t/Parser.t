@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 30;
+use Test::More tests => 31;
 
 use MIME::Tools;
 
@@ -169,4 +169,10 @@ like($es,  qr/^Request for Leave$/, "	parse of 2-part simple message (subj <$es>
 	my $globref   = \*STDOUT;
 	ok( MIME::Parser::Reader::native_handle( $globref ), 'globref is OK');
 
+}
+
+# diag('tmp_recycling() exists again, as a no-op');
+{
+	my $rc = $parser->tmp_recycling(1);
+	is( $rc, undef, 'tmp_recycling no-op method returned undef');
 }
