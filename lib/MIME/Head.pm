@@ -114,6 +114,7 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 
 ### System modules:
+use IO::File;
 
 ### Other modules:
 use Mail::Header 1.09 ();
@@ -137,7 +138,7 @@ use MIME::Field::ContType;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.425";
+$VERSION = "5.426";
 
 ### Sanity (we put this test after our own version, for CPAN::):
 use Mail::Header 1.06 ();

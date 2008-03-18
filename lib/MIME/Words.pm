@@ -94,7 +94,7 @@ use MIME::QuotedPrint;
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.425";
+$VERSION = "5.426";
 
 ### Nonprintables (controls + x7F + 8bit):
 my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF"; 
@@ -117,7 +117,7 @@ sub _decode_Q {
 #     almost, but not exactly, quoted-printable.  :-P
 sub _encode_Q {
     my $str = shift;
-    $str =~ s{([_\?\=$NONPRINT])}{sprintf("=%02X", ord($1))}eog;
+    $str =~ s{([ _\?\=$NONPRINT])}{sprintf("=%02X", ord($1))}eog;
     $str;
 }
 
@@ -307,15 +307,16 @@ sub encode_mimewords {
     my $encoding = lc($params{Encoding} || 'q');
 
     ### Encode any "words" with unsafe characters.
-    ###    We limit such words to 18 characters, to guarantee that the 
+    ###    We limit such words to 18 characters, to guarantee that the
     ###    worst-case encoding give us no more than 54 + ~10 < 75 characters
     my $word;
-    $rawstr =~ s{([a-zA-Z0-9\x7F-\xFF]{1,18})}{     ### get next "word"
+    $rawstr =~ s{([ a-zA-Z0-9\x7F-\xFF]{1,18})}{     ### get next "word"
 	$word = $1;
-	(($word !~ /[$NONPRINT]/o) 
+	(($word !~ /(?:[$NONPRINT])|(?:^\s+$)/o) 
 	 ? $word                                          ### no unsafe chars
 	 : encode_mimeword($word, $encoding, $charset));  ### has unsafe chars
     }xeg;
+    $rawstr =~ s/\?==\?/?= =?/g;
     $rawstr;
 }
 

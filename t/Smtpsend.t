@@ -13,6 +13,7 @@ my $sock = IO::Socket::INET->new(Listen => 5,
 				 LocalPort => 5225,
 				 ReuseAddr => 1,
 				 Type => SOCK_STREAM,
+				 Timeout => 10,
 				 Proto => 'tcp');
 
 die("can't create socket: $!") unless $sock;
@@ -40,6 +41,11 @@ if (!$pid) {
 
 # In the parent
 my $s = $sock->accept();
+if (!$s) {
+	kill(9, $pid);
+	die("accept failed: $!");
+}
+
 $s->print("220 Go ahead\n");
 $s->flush();
 my $line = $s->getline();

@@ -1,94 +1,34 @@
-#!/usr/bin/perl
-use ExtUtils::MakeMaker;
+use strict;
+use warnings;
+use inc::Module::Install;
 
-# Do our own prerequisite checking
-# Stolen from Net::FTPServer which stole from libwww-perl
-my %modules =
-(
- 'Mail::Header' =>   { min_version => "1.01" },
- 'Mail::Internet' => { min_version => "1.0203" },
- 'Mail::Field' =>    { min_version => "1.05" },
- 'MIME::Base64' =>   { min_version => "2.20",
-		       rec_version => "3.03" },
- 'IO::Stringy' =>    { min_version => "2.110" },
- 'File::Spec' =>     { min_version => "0.6" },
- 'File::Path' =>     { min_version => "1" },
- 'File::Temp' =>     { min_version => "0.17" },
- );
+name            'MIME-tools';
+version_from    'lib/MIME/Tools.pm';
+author          q{Eryq <eryq@zeegee.com>, David F. Skoll <dfs@roaringpenguin.com>, Dave O'Neill <dmo@roaringpenguin.com>};
+abstract        'Tools to manipulate MIME messages';
+license         'perl';
 
-my($m, $foundit, $foundrec, @missing);
-@missing = ();
-foreach $m (sort keys %modules) {
-    $foundit = 0;
-    $foundrec = 0;
-    my $min_ver = $modules{$m}{min_version};
-    my $rec_ver = $modules{$m}{rec_version};
-    if (defined($rec_ver)) {
-	print "Checking for module $m (version $rec_ver)... ";
-	my $eval = "require $m; $m->VERSION >= $rec_ver;";
-	my $r = eval($eval);
-	if ($@ || !$r) {
-	    print "not found.\n --- Fallback: ";
-	} else {
-	    $foundit = 1;
-	    $foundrec = 1;
-	    print "ok.\n";
-	}
-    }
-    if (!$foundit) {
-	print "Checking for module $m (version $min_ver)... ";
-	my $eval = "require $m; $m->VERSION >= $min_ver;";
-	my $r = eval($eval);
-	if ($@ || !$r) {
-	    print "not found.\n";
-	} else {
-	    $foundit = 1;
-	    print "ok.\n";
-	}
-    }
-    if (defined($rec_ver) and $foundit and !$foundrec) {
-	print "\n   *** Warning: We can work with version $min_ver of $m, but\n   *** we recommend that you upgrade to version $rec_ver.\n\n";
-	if ($m eq "MIME::Base64") {
-	    print "   *** Note that if you type 'make test', then tests\n   *** 4, 5 and 7-11 of t/Misc.t may fail because of the old version\n   *** of $m\n";
-	}
-    }
+# We require 5.8.x, for PerlIO support of "in memory" filehandles opened on scalars
+perl_version    '5.008';
 
-    push @missing, "$m: At least version $min_ver" unless $foundit;
-}
+# Runtime deps
+requires        'Mail::Header'   => 1.01;
+requires        'Mail::Internet' => 1.0203;
+requires        'Mail::Field'    => 1.05;
 
-if ($#missing >= 0) {
-    print "\n\n   *** The following required modules are missing:\n";
-    foreach $m (@missing) {
-	print "$m\n";
-    }
-    print "   *** Please install them before attempting to use MIME::Tools.\n";
-}
+# We prefer 3.03, but can work with 2.20
+requires        'MIME::Base64'   => 2.20;
+recommends      'MIME::Base64'   => 3.03;
 
-# Why the PREREQ_PM below?  For automated tools like CPAN that try to be
-# smart about following dependencies.
-WriteMakefile(
-      NAME         => "MIME-tools",
-      VERSION_FROM => "lib/MIME/Tools.pm",
-      PREREQ_PM    => {"Mail::Header"      => 1.01,
-		       "Mail::Internet"    => 1.0203,
-		       "Mail::Field"       => 1.05,
-	               "MIME::Base64"      => 2.20,
-		       "IO::Stringy"       => 2.110,
-		       "File::Spec"        => 0.6,
-		       "File::Path"        => 1,
-		       "File::Temp"        => 0.17,
-                       "Test::More"        => 0,
-		       },
-      LICENSE => 'perl',
-      AUTHOR => q{Eryq <eryq@zeegee.com>, David F. Skoll <dfs@roaringpenguin.com>, Dave O'Neill <dmo@roaringpenguin.com>},
-      ABSTRACT => 'Tools to manipulate MIME messages',
-      'dist'       => {
-	  COMPRESS     =>'gzip -f',
-	  SUFFIX       =>'gz',
-      },
-);
+requires        'IO::File';
+requires        'IO::Handle';
+requires        'IO::Stringy'    => 2.110;
+requires        'File::Spec'     => 0.6;
+requires        'File::Path'     => 1;
+requires        'File::Temp'     => 0.18;
 
+# Build deps
+build_requires	'Test::More';
 
-
-
-
+auto_install;
+WriteAll;

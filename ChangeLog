@@ -1,3 +1,16 @@
+5.426     2008-03-07  Dave O'Neill <dmo@roaringpenguin.com>
+	* VERSION 5.426 RELEASED
+
+	* (bugfix) require File::Temp 0.18 or newer, as we need seek()
+	  (RT#31032)
+
+	* (bugfix) Don't hang forever in t/Smtpsend.t (RT#31082)
+
+	* (bugfix) require Perl 5.8.0 or newer in Makefile.PL (RT#30927)
+
+	* (bugfix) encode_mimewords() no longer removes spaces between two
+	  encoded words (RT#5462)
+
 5.425     2007-11-17  Dave O'Neill <dmo@roaringpenguin.com>
 
 	* VERSION 5.425 RELEASED
@@ -29,12 +42,6 @@
 	  This fixes test failures seen on Darwin.
 
 	* (bugfix) Clear filer's purgeable() before calling init_parse().  Fixes RT 7858.
-
-commit 005e387c42957f2a433464beaef1d2b416746963
-Author: Dave O'Neill <dmo@roaringpenguin.com>
-Date:   Fri Sep 21 12:41:03 2007 -0400
-
-    Add LICENSE item to Makefile.PL
 
 5.421     2007-09-21  Dave O'Neill <dmo@roaringpenguin.com>
 

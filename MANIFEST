@@ -11,6 +11,17 @@ examples/mimesend
 examples/mimesender
 examples/mimetour
 examples/README
+inc/Module/AutoInstall.pm
+inc/Module/Install.pm
+inc/Module/Install/AutoInstall.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/Include.pm
+inc/Module/Install/Makefile.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
 INSTALLING
 lib/MIME/Body.pm
 lib/MIME/Decoder.pm
@@ -36,7 +47,7 @@ lib/MIME/WordDecoder.pm
 lib/MIME/Words.pm
 Makefile.PL
 MANIFEST
-MANIFEST.SKIP
+META.yml
 README
 README-OR-DIE
 README.system
@@ -45,6 +56,7 @@ t/02-pod-coverage.t
 t/02-pod.t
 t/99-prepare.t
 t/Body.t
+t/BodyPrint.t
 t/Decoder.t
 t/Entity.t
 t/Gauntlet.t
@@ -57,6 +69,7 @@ t/ParserPreamble.t
 t/Ref.t
 t/Smtpsend.t
 t/WordDecoder.t
+t/WordEncoder.t
 t/Words.t
 testin/ak-0696.msg
 testin/andreas-1296.txt
@@ -161,4 +174,3 @@ testmsgs/uu-junk.msg
 testmsgs/uu-junk.ref
 testmsgs/uu-zeegee.msg
 testmsgs/uu-zeegee.ref
-META.yml                                 Module meta-data (added by MakeMaker)

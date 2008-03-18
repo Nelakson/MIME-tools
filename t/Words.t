@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 use MIME::QuotedPrint qw(decode_qp);
-use MIME::Words qw(decode_mimewords);
+use MIME::Words qw( :all );
 
 {
     local($/) = '';
@@ -26,4 +26,12 @@ use MIME::Words qw(decode_mimewords);
 	}
     }
     close WORDS;
-}    
+}
+
+# Test case for ticket 5462
+{
+	my $source  = 'hé hé';
+	my $encoded = encode_mimewords($source, ('Encode' => 'Q', 'Charset' => 'iso-8859-1'));
+	my $decoded = decode_mimewords($encoded);
+	is( $decoded, $source, 'encode/decode of string with spaces matches original');
+}

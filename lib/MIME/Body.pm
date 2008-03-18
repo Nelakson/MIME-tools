@@ -1,6 +1,5 @@
 package MIME::Body;
 
-
 =head1 NAME
 
 MIME::Body - the body of a MIME message
@@ -139,9 +138,10 @@ use vars qw($VERSION);
 
 ### System modules:
 use Carp;
+use IO::File;
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "5.425";
+$VERSION = "5.426";
 
 
 #------------------------------
