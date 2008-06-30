@@ -1,3 +1,25 @@
+5.427     2008-06-30  Dave O'Neill <dmo@roaringpenguin.com>
+	* VERSION 5.427 RELEASED
+
+	* (bugfix) fix remove_sig() on invalid multipart message (RT #11901)
+
+	* (bugfix) make_singlepart() no longer creates bizzare Content-Type: headers
+	  (RT #37139)
+
+	* (bugfix) process_part() no longer sets incorrect charset on empty
+	  parts (RT #35369)
+
+	* (bugfix) fix runtime warnings caused by incorrect pack() string
+	  (RT #34451, bugs.debian.org #446342)
+
+	* (docs) add "SEE ALSO" sections to POD docs (RT #30391)
+
+	* (docs) fix documentation of MIME::Head::get() (RT #34552,
+	  bugs.debian.org #235189)
+
+	* (packaging) Depend on IO::File 1.1.3, for its binmode() support (RT #34178)
+
+
 5.426     2008-03-07  Dave O'Neill <dmo@roaringpenguin.com>
 	* VERSION 5.426 RELEASED
 
